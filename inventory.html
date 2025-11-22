@@ -656,18 +656,86 @@
                 grouped[item.category].push(item);
             });
 
-            const wb = XLSX.utils.book_new();
-            const ws_data = [];
-
-            // Título principal
-            ws_data.push(['HOJA DE PEDIDO DE BAR']);
-            ws_data.push([]);
+            // Crear contenido XML para Excel con estilos
+            let excelXML = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="title">
+   <Font ss:Bold="1" ss:Size="16" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#1F4788" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="header">
+   <Font ss:Bold="1" ss:Size="12" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#2C5F9E" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="cellWhite">
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="cellRed">
+   <Interior ss:Color="#FFE6E6" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="cellLeft">
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Borders>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
+   </Borders>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Pedido">
+  <Table>
+   <Column ss:Width="180"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="130"/>
+   <Row>
+    <Cell ss:MergeAcross="3" ss:StyleID="title">
+     <Data ss:Type="String">HOJA DE PEDIDO DE BAR</Data>
+    </Cell>
+   </Row>
+   <Row></Row>`;
 
             const categories = Object.keys(grouped).sort();
             
-            categories.forEach((category, idx) => {
+            categories.forEach(category => {
                 // Encabezado de categoría
-                ws_data.push([category, 'Stock Actual', 'Stock Mínimo', 'Pedido Sugerido']);
+                excelXML += `
+   <Row>
+    <Cell ss:StyleID="header"><Data ss:Type="String">${category}</Data></Cell>
+    <Cell ss:StyleID="header"><Data ss:Type="String">Stock Actual</Data></Cell>
+    <Cell ss:StyleID="header"><Data ss:Type="String">Stock Mínimo</Data></Cell>
+    <Cell ss:StyleID="header"><Data ss:Type="String">Pedido Sugerido</Data></Cell>
+   </Row>`;
                 
                 // Productos de la categoría
                 grouped[category].forEach(item => {
@@ -675,114 +743,41 @@
                     const stockDisplay = `${item.stock} ${unit}`;
                     const minStockDisplay = `${item.min_stock} ${unit}`;
                     const pedidoValue = item.pedido > 0 ? item.pedido : 0;
+                    const pedidoStyle = item.pedido > 0 ? 'cellRed' : 'cellWhite';
                     
-                    ws_data.push([
-                        item.name,
-                        stockDisplay,
-                        minStockDisplay,
-                        pedidoValue
-                    ]);
+                    excelXML += `
+   <Row>
+    <Cell ss:StyleID="cellLeft"><Data ss:Type="String">${item.name}</Data></Cell>
+    <Cell ss:StyleID="cellWhite"><Data ss:Type="String">${stockDisplay}</Data></Cell>
+    <Cell ss:StyleID="cellWhite"><Data ss:Type="String">${minStockDisplay}</Data></Cell>
+    <Cell ss:StyleID="${pedidoStyle}"><Data ss:Type="Number">${pedidoValue}</Data></Cell>
+   </Row>`;
                 });
                 
                 // Espacio entre categorías
-                ws_data.push([]);
+                excelXML += `<Row></Row>`;
             });
 
-            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            excelXML += `
+  </Table>
+ </Worksheet>
+</Workbook>`;
 
-            // Configurar anchos de columna
-            ws['!cols'] = [
-                { wch: 25 },  // Producto
-                { wch: 15 },  // Stock Actual
-                { wch: 15 },  // Stock Mínimo
-                { wch: 18 }   // Pedido Sugerido
-            ];
-
-            // Aplicar estilos
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            
-            let currentRow = 0;
-            
-            // Estilo del título principal
-            const titleCell = ws[XLSX.utils.encode_cell({r: 0, c: 0})];
-            if (titleCell) {
-                titleCell.s = {
-                    font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "1F4788" } },
-                    alignment: { horizontal: "center", vertical: "center" }
-                };
-            }
-            
-            // Merge del título
-            if (!ws['!merges']) ws['!merges'] = [];
-            ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } });
-            
-            currentRow = 2;
-
-            categories.forEach(category => {
-                // Estilo del encabezado de categoría
-                for (let col = 0; col < 4; col++) {
-                    const cellRef = XLSX.utils.encode_cell({r: currentRow, c: col});
-                    const cell = ws[cellRef];
-                    if (cell) {
-                        cell.s = {
-                            font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
-                            fill: { fgColor: { rgb: "2C5F9E" } },
-                            alignment: { horizontal: "center", vertical: "center" },
-                            border: {
-                                top: { style: "thin", color: { rgb: "000000" } },
-                                bottom: { style: "thin", color: { rgb: "000000" } },
-                                left: { style: "thin", color: { rgb: "000000" } },
-                                right: { style: "thin", color: { rgb: "000000" } }
-                            }
-                        };
-                    }
-                }
-                
-                currentRow++;
-                
-                // Productos de la categoría
-                grouped[category].forEach(item => {
-                    for (let col = 0; col < 4; col++) {
-                        const cellRef = XLSX.utils.encode_cell({r: currentRow, c: col});
-                        const cell = ws[cellRef];
-                        
-                        if (cell) {
-                            // Determinar color de fondo según el pedido
-                            let fillColor = "FFFFFF"; // Blanco por defecto
-                            
-                            if (col === 3 && item.pedido > 0) {
-                                fillColor = "FFE6E6"; // Rojo tenue
-                            }
-                            
-                            cell.s = {
-                                font: { sz: 11 },
-                                fill: { fgColor: { rgb: fillColor } },
-                                alignment: { 
-                                    horizontal: col === 0 ? "left" : "center",
-                                    vertical: "center" 
-                                },
-                                border: {
-                                    top: { style: "thin", color: { rgb: "CCCCCC" } },
-                                    bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                                    left: { style: "thin", color: { rgb: "CCCCCC" } },
-                                    right: { style: "thin", color: { rgb: "CCCCCC" } }
-                                }
-                            };
-                        }
-                    }
-                    currentRow++;
-                });
-                
-                // Espacio entre categorías
-                currentRow++;
+            // Crear blob y descargar
+            const blob = new Blob([excelXML], { 
+                type: 'application/vnd.ms-excel;charset=utf-8' 
             });
-
-            XLSX.utils.book_append_sheet(wb, ws, "Pedido");
-
-            // Descargar
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
             const fecha = new Date().toLocaleDateString('es-CL').replace(/\//g, '-');
-            XLSX.writeFile(wb, `Pedido_${fecha}.xlsx`);
+            link.download = `Pedido_${fecha}.xls`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
             showAlert("📥 Excel exportado exitosamente");
         }
@@ -815,3 +810,4 @@
     </script>
 </body>
 </html>
+
