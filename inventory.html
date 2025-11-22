@@ -406,12 +406,19 @@
                     <label>Categoría</label>
                     <select id="productCategory">
                         <option value="BEBIDAS">BEBIDAS</option>
+                        <option value="CERVEZAS">CERVEZAS</option>
                         <option value="LICORES">LICORES</option>
+                        <option value="PISCO">PISCO</option>
+                        <option value="RON">RON</option>
+                        <option value="TEQUILA">TEQUILA</option>
                         <option value="GIN">GIN</option>
                         <option value="VODKA">VODKA</option>
                         <option value="WHISKY">WHISKY</option>
                         <option value="VINO">VINO</option>
                         <option value="INSUMOS">INSUMOS</option>
+                        <option value="PULPAS">PULPAS</option>
+                        <option value="FRUTAS">FRUTAS</option>
+                        <option value="VERDURAS">VERDURAS</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -419,9 +426,10 @@
                     <div class="unit-group">
                         <input type="number" id="productStock" placeholder="0" min="0" step="0.01">
                         <select id="productUnit">
-                            <option value="Unidad">Unidad</option>
-                            <option value="ml">ml</option>
-                            <option value="gr">gr</option>
+                            <option value="Ud">Ud</option>
+                            <option value="L">L</option>
+                            <option value="Kg">Kg</option>
+                            <option value="Gr">Gr</option>
                         </select>
                     </div>
                 </div>
@@ -466,7 +474,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
     <script>
         const db = supabase.createClient(
             "https://hhfpaviwuuqcuhcsfwdj.supabase.co",
@@ -641,7 +649,7 @@
             document.getElementById("toPurchase").textContent = toPurchase;
         }
 
-        function exportToExcel() {
+        async function exportToExcel() {
             if (inventory.length === 0) {
                 alert("No hay productos para exportar");
                 return;
@@ -656,86 +664,50 @@
                 grouped[item.category].push(item);
             });
 
-            // Crear contenido XML para Excel con estilos
-            let excelXML = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <Styles>
-  <Style ss:ID="title">
-   <Font ss:Bold="1" ss:Size="16" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#1F4788" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="header">
-   <Font ss:Bold="1" ss:Size="12" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#2C5F9E" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-   <Borders>
-    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
-   </Borders>
-  </Style>
-  <Style ss:ID="cellWhite">
-   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-   <Borders>
-    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-   </Borders>
-  </Style>
-  <Style ss:ID="cellRed">
-   <Interior ss:Color="#FFE6E6" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-   <Borders>
-    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-   </Borders>
-  </Style>
-  <Style ss:ID="cellLeft">
-   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-   <Borders>
-    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#CCCCCC"/>
-   </Borders>
-  </Style>
- </Styles>
- <Worksheet ss:Name="Pedido">
-  <Table>
-   <Column ss:Width="180"/>
-   <Column ss:Width="110"/>
-   <Column ss:Width="110"/>
-   <Column ss:Width="130"/>
-   <Row>
-    <Cell ss:MergeAcross="3" ss:StyleID="title">
-     <Data ss:Type="String">HOJA DE PEDIDO DE BAR</Data>
-    </Cell>
-   </Row>
-   <Row></Row>`;
+            // Crear workbook con ExcelJS
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Pedido');
+
+            // Configurar anchos de columna
+            worksheet.columns = [
+                { width: 25 },
+                { width: 15 },
+                { width: 15 },
+                { width: 18 }
+            ];
+
+            // Título principal
+            const titleRow = worksheet.addRow(['HOJA DE PEDIDO DE BAR']);
+            worksheet.mergeCells('A1:D1');
+            titleRow.getCell(1).style = {
+                font: { bold: true, size: 16, color: { argb: 'FFFFFFFF' } },
+                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4788' } },
+                alignment: { horizontal: 'center', vertical: 'middle' }
+            };
+            titleRow.height = 30;
+
+            // Fila vacía
+            worksheet.addRow([]);
 
             const categories = Object.keys(grouped).sort();
             
             categories.forEach(category => {
-                // Encabezado de categoría
-                excelXML += `
-   <Row>
-    <Cell ss:StyleID="header"><Data ss:Type="String">${category}</Data></Cell>
-    <Cell ss:StyleID="header"><Data ss:Type="String">Stock Actual</Data></Cell>
-    <Cell ss:StyleID="header"><Data ss:Type="String">Stock Mínimo</Data></Cell>
-    <Cell ss:StyleID="header"><Data ss:Type="String">Pedido Sugerido</Data></Cell>
-   </Row>`;
+                // Encabezado de categoría (azul)
+                const headerRow = worksheet.addRow([category, 'Stock Actual', 'Stock Mínimo', 'Pedido Sugerido']);
+                headerRow.eachCell((cell) => {
+                    cell.style = {
+                        font: { bold: true, size: 12, color: { argb: 'FFFFFFFF' } },
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C5F9E' } },
+                        alignment: { horizontal: 'center', vertical: 'middle' },
+                        border: {
+                            top: { style: 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                            left: { style: 'thin', color: { argb: 'FF000000' } },
+                            right: { style: 'thin', color: { argb: 'FF000000' } }
+                        }
+                    };
+                });
+                headerRow.height = 25;
                 
                 // Productos de la categoría
                 grouped[category].forEach(item => {
@@ -743,36 +715,52 @@
                     const stockDisplay = `${item.stock} ${unit}`;
                     const minStockDisplay = `${item.min_stock} ${unit}`;
                     const pedidoValue = item.pedido > 0 ? item.pedido : 0;
-                    const pedidoStyle = item.pedido > 0 ? 'cellRed' : 'cellWhite';
                     
-                    excelXML += `
-   <Row>
-    <Cell ss:StyleID="cellLeft"><Data ss:Type="String">${item.name}</Data></Cell>
-    <Cell ss:StyleID="cellWhite"><Data ss:Type="String">${stockDisplay}</Data></Cell>
-    <Cell ss:StyleID="cellWhite"><Data ss:Type="String">${minStockDisplay}</Data></Cell>
-    <Cell ss:StyleID="${pedidoStyle}"><Data ss:Type="Number">${pedidoValue}</Data></Cell>
-   </Row>`;
+                    const dataRow = worksheet.addRow([
+                        item.name,
+                        stockDisplay,
+                        minStockDisplay,
+                        pedidoValue
+                    ]);
+
+                    // Estilos de las celdas
+                    dataRow.eachCell((cell, colNumber) => {
+                        // Color de fondo: rojo tenue si hay pedido en columna 4
+                        const bgColor = (colNumber === 4 && item.pedido > 0) ? 'FFFFE6E6' : 'FFFFFFFF';
+                        
+                        cell.style = {
+                            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } },
+                            alignment: { 
+                                horizontal: colNumber === 1 ? 'left' : 'center',
+                                vertical: 'middle' 
+                            },
+                            border: {
+                                top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+                                bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+                                left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+                                right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+                            }
+                        };
+                    });
+                    dataRow.height = 20;
                 });
                 
-                // Espacio entre categorías
-                excelXML += `<Row></Row>`;
+                // Fila vacía entre categorías
+                worksheet.addRow([]);
             });
 
-            excelXML += `
-  </Table>
- </Worksheet>
-</Workbook>`;
-
-            // Crear blob y descargar
-            const blob = new Blob([excelXML], { 
-                type: 'application/vnd.ms-excel;charset=utf-8' 
+            // Generar el archivo
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
             });
+            
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             
             const fecha = new Date().toLocaleDateString('es-CL').replace(/\//g, '-');
-            link.download = `Pedido_${fecha}.xls`;
+            link.download = `Pedido_${fecha}.xlsx`;
             
             document.body.appendChild(link);
             link.click();
@@ -810,4 +798,5 @@
     </script>
 </body>
 </html>
+
 
