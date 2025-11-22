@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mixly - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .user-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .bar-name {
+            color: #dc2626;
+            font-weight: 400;
+            font-size: 1.2em;
+        }
+
+        .username {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.85em;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: #666;
+            border: 1px solid #2a2a2a;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+
+        .version {
+            color: #dc2626;
+            font-size: 0.75em;
+            font-weight: 300;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .menu-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 0;
+            padding: 50px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: #dc2626;
+            transition: left 0.3s ease;
+        }
+
+        .menu-card:hover::before {
+            left: 0;
+        }
+
+        .menu-card:hover {
+            background: #222;
+            border-color: #dc2626;
+            transform: translateY(-5px);
+        }
+
+        .menu-icon {
+            font-size: 3.5em;
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        .menu-title {
+            font-size: 1.8em;
+            font-weight: 400;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .menu-description {
+            color: #888;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .stats-bar {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            padding: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 300;
+            color: #dc2626;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider {
+            width: 1px;
+            background: #2a2a2a;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <div class="user-info">
+                <div class="bar-name" id="barNameDisplay">Cargando...</div>
+                <span class="username" id="usernameDisplay"></span>
+            </div>
+            <button class="logout-btn" onclick="logout()">CERRAR SESIÓN</button>
+        </div>
+
+        <div class="header">
+            <div class="logo">🔥</div>
+            <h1>Mixly</h1>
+            <p class="subtitle">Sistema de Gestión Profesional</p>
+            <p class="version">v1.4.0</p>
+        </div>
+
+        <div class="menu-grid">
+            <a href="productos.html" class="menu-card">
+                <span class="menu-icon">📦</span>
+                <div class="menu-title">PRODUCTOS</div>
+                <div class="menu-description">
+                    Gestiona tu inventario completo de licores, frutas, insumos y bases
+                </div>
+            </a>
+
+            <a href="inventory.html" class="menu-card">
+                <span class="menu-icon">📊</span>
+                <div class="menu-title">INVENTARIO</div>
+                <div class="menu-description">
+                    Control de stock y gestión de inventario en tiempo real
+                </div>
+            </a>
+
+            <a href="costeo.html" class="menu-card">
+                <span class="menu-icon">💰</span>
+                <div class="menu-title">COSTEO</div>
+                <div class="menu-description">
+                    Calcula costos exactos de cócteles y guarda tus recetas
+                </div>
+            </a>
+
+            <a href="Mixly_academy.html" class="menu-card">
+                <span class="menu-icon">🎓</span>
+                <div class="menu-title">ACADEMIA</div>
+                <div class="menu-description">
+                    Aprende técnicas profesionales y perfecciona tus habilidades
+                </div>
+            </a>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Productos</div>
+            </div>
+            <div class="divider"></div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalRecipes">0</div>
+                <div class="stat-label">Recetas</div>
+            </div>
+            <div class="divider"></div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalInvestment">$0</div>
+                <div class="stat-label">Inversión</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = "https://hhfpaviwuuqcuhcsfwdj.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg";
+        const db = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Inicializar al cargar la página
+        window.onload = async () => {
+            await checkAuth();
+            loadStats(); 
+        };
+
+        // =============================
+        // 🔐 VERIFICAR SESIÓN
+        // =============================
+        async function checkAuth() {
+            try {
+                const { data, error } = await db.auth.getSession();
+
+                if (error || !data.session) {
+                    // No hay sesión → redirigir al login
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                // Obtener datos del usuario
+                const user = data.session.user;
+                const metadata = user.user_metadata || {};
+
+                // Mostrar información del usuario
+                document.getElementById("barNameDisplay").textContent = 
+                    metadata.bar_name || metadata.barName || "Mi Bar";
+                
+                document.getElementById("usernameDisplay").textContent = 
+                    "👤 " + (metadata.username || user.email.split('@')[0]);
+
+                console.log("Sesión activa:", user);
+            } catch (err) {
+                console.error("Error al verificar sesión:", err);
+                window.location.href = "login.html";
+            }
+        }
+
+        // =============================
+        // 🚪 CERRAR SESIÓN
+        // =============================
+        async function logout() {
+            if (!confirm("¿Cerrar sesión?")) return;
+
+            try {
+                await db.auth.signOut();
+                window.location.href = "login.html";
+            } catch (err) {
+                console.error("Error al cerrar sesión:", err);
+                alert("Error al cerrar sesión. Intenta de nuevo.");
+            }
+        }
+
+        // =============================
+        // 📊 ESTADÍSTICAS
+        // Por ahora carga desde localStorage
+        // TODO: Migrar a Supabase
+        // =============================
+        function loadStats() {
+            try {
+                // Cargar productos
+                const products = JSON.parse(localStorage.getItem("bar-products") || "[]");
+                document.getElementById("totalProducts").textContent = products.length;
+
+                // Calcular inversión total
+                const total = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
+                document.getElementById("totalInvestment").textContent = 
+                    "$" + total.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+
+                // Cargar recetas
+                const recipes = JSON.parse(localStorage.getItem("bar-recipes") || "[]");
+                document.getElementById("totalRecipes").textContent = recipes.length;
+            } catch (err) {
+                console.error("Error al cargar estadísticas:", err);
+            }
+        }
+
+        // Escuchar cambios en la autenticación
+        db.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                window.location.href = "login.html";
+            }
+        });
+    </script>
+</body>
+</html>
