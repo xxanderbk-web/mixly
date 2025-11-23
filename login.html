@@ -313,6 +313,29 @@
                     Te enviaremos un enlace a tu correo para que puedas restablecer tu contraseña
                 </div>
             </div>
+
+            <!-- Reset Password Form (se muestra cuando viene del correo) -->
+            <div id="resetForm" class="form-section">
+                <div class="form-title">Nueva Contraseña</div>
+                
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" id="resetPassword" placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <div class="form-group">
+                    <label>Confirmar Nueva Contraseña</label>
+                    <input type="password" id="resetConfirmPassword" placeholder="Repite tu contraseña">
+                </div>
+
+                <button class="submit-btn" onclick="updatePassword()">
+                    ACTUALIZAR CONTRASEÑA
+                </button>
+
+                <div class="info-text">
+                    Ingresa tu nueva contraseña. Debe tener al menos 6 caracteres.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -322,15 +345,44 @@
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg";
         const db = supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Variable para controlar si estamos en modo reset password
+        let isPasswordRecovery = false;
+
         // Verificar sesión al cargar
         checkSession();
 
         async function checkSession() {
+            // Primero verificar si hay un hash de recuperación de contraseña
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const type = hashParams.get('type');
+            
+            if (type === 'recovery') {
+                // Es una recuperación de contraseña
+                isPasswordRecovery = true;
+                showAlert("Por favor ingresa tu nueva contraseña", 'info');
+                switchTab('reset');
+                return;
+            }
+
+            // Si no es recuperación, verificar sesión normal
             const { data, error } = await db.auth.getSession();
-            if (data?.session) {
+            if (data?.session && !isPasswordRecovery) {
                 window.location.href = "index.html";
             }
         }
+
+        // Escuchar cambios en la autenticación
+        db.auth.onAuthStateChange((event, session) => {
+            console.log('Auth event:', event);
+            
+            if (event === 'PASSWORD_RECOVERY') {
+                isPasswordRecovery = true;
+                showAlert("Por favor ingresa tu nueva contraseña", 'info');
+                switchTab('reset');
+            } else if (event === 'SIGNED_IN' && !isPasswordRecovery) {
+                window.location.href = "index.html";
+            }
+        });
 
         function showAlert(message, type = 'error') {
             const alertBox = document.getElementById("alertBox");
@@ -348,6 +400,49 @@
         function isValidEmail(email) {
             const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return regex.test(email);
+        }
+
+        // ACTUALIZAR CONTRASEÑA (cuando viene del correo)
+        async function updatePassword() {
+            const newPassword = document.getElementById("resetPassword").value;
+            const confirmPassword = document.getElementById("resetConfirmPassword").value;
+
+            if (!newPassword || !confirmPassword) {
+                showAlert("⚠ Completa ambos campos");
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showAlert("⚠ Las contraseñas no coinciden");
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showAlert("⚠ La contraseña debe tener al menos 6 caracteres");
+                return;
+            }
+
+            try {
+                const { data, error } = await db.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) {
+                    showAlert("Error: " + error.message);
+                    return;
+                }
+
+                showAlert("✓ Contraseña actualizada exitosamente. Redirigiendo...", 'success');
+                
+                // Resetear la variable
+                isPasswordRecovery = false;
+                
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 2000);
+            } catch (err) {
+                showAlert("Error inesperado: " + err.message);
+            }
         }
 
         // REGISTRO CON CORREO REAL
@@ -387,8 +482,7 @@
                         data: {
                             username: username,
                             bar_name: barName
-                        },
-                        emailRedirectTo: window.location.origin + '/index.html'
+                        }
                     }
                 });
 
@@ -469,7 +563,7 @@
 
             try {
                 const { data, error } = await db.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/reset-password.html'
+                    redirectTo: window.location.origin + '/login.html'
                 });
 
                 if (error) {
@@ -493,7 +587,7 @@
 
             // Ocultar/mostrar botones de tabs
             const tabButtons = document.getElementById("tabButtons");
-            if (tab === 'forgot') {
+            if (tab === 'forgot' || tab === 'reset') {
                 tabButtons.style.display = 'none';
             } else {
                 tabButtons.style.display = 'flex';
@@ -501,7 +595,7 @@
 
             // Actualizar tabs activos
             document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-            if (tab !== 'forgot') {
+            if (tab !== 'forgot' && tab !== 'reset') {
                 document.querySelector(`button[onclick="switchTab('${tab}')"]`)?.classList.add("active");
             }
 
@@ -517,6 +611,7 @@
                 if (activeForm.id === 'loginForm') login();
                 else if (activeForm.id === 'registerForm') register();
                 else if (activeForm.id === 'forgotForm') resetPassword();
+                else if (activeForm.id === 'resetForm') updatePassword();
             }
         });
     </script>
