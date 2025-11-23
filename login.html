@@ -168,6 +168,10 @@
             border-left-color: #10b981;
         }
 
+        .alert.info {
+            border-left-color: #3b82f6;
+        }
+
         .alert.show {
             display: block;
         }
@@ -178,6 +182,36 @@
             font-size: 0.9em;
             margin-top: 20px;
             line-height: 1.6;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: underline;
+            margin-top: 15px;
+            display: block;
+            text-align: center;
+            width: 100%;
+        }
+
+        .link-btn:hover {
+            color: #b91c1c;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #888;
+            padding: 12px;
+            margin-top: 15px;
+        }
+
+        .back-btn:hover {
+            background: #0a0a0a;
+            color: #fff;
         }
     </style>
 </head>
@@ -190,7 +224,7 @@
         </div>
 
         <div class="auth-container">
-            <div class="tab-buttons">
+            <div class="tab-buttons" id="tabButtons">
                 <button class="tab-btn active" onclick="switchTab('login')">INICIAR SESIÓN</button>
                 <button class="tab-btn" onclick="switchTab('register')">REGISTRARSE</button>
             </div>
@@ -202,8 +236,8 @@
                 <div class="form-title">Acceso al Sistema</div>
                 
                 <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" id="loginUsername" placeholder="Ingresa tu usuario">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail" placeholder="tu@correo.com">
                 </div>
 
                 <div class="form-group">
@@ -212,6 +246,10 @@
                 </div>
 
                 <button class="submit-btn" onclick="login()">ENTRAR</button>
+                
+                <button class="link-btn" onclick="switchTab('forgot')">
+                    ¿Olvidaste tu contraseña?
+                </button>
 
                 <div class="info-text">
                     Accede a tu sistema de gestión de bar
@@ -223,29 +261,56 @@
                 <div class="form-title">Crear Cuenta</div>
                 
                 <div class="form-group">
-                    <label>Nombre del Bar</label>
+                    <label>Correo Electrónico *</label>
+                    <input type="email" id="registerEmail" placeholder="tu@correo.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre del Bar *</label>
                     <input type="text" id="registerBarName" placeholder="Ej: Bar El Mojito">
                 </div>
 
                 <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" id="registerUsername" placeholder="Crea tu usuario">
+                    <label>Nombre de Usuario *</label>
+                    <input type="text" id="registerUsername" placeholder="Tu nombre o apodo">
                 </div>
 
                 <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="registerPassword" placeholder="Crea tu contraseña">
+                    <label>Contraseña *</label>
+                    <input type="password" id="registerPassword" placeholder="Mínimo 6 caracteres">
                 </div>
 
                 <div class="form-group">
-                    <label>Confirmar Contraseña</label>
+                    <label>Confirmar Contraseña *</label>
                     <input type="password" id="registerConfirmPassword" placeholder="Repite tu contraseña">
                 </div>
 
                 <button class="submit-btn" onclick="register()">CREAR CUENTA</button>
 
                 <div class="info-text">
-                    Registra tu bar y comienza a gestionar tu inventario
+                    Recibirás un correo de confirmación para verificar tu cuenta
+                </div>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgotForm" class="form-section">
+                <div class="form-title">Recuperar Contraseña</div>
+                
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="forgotEmail" placeholder="tu@correo.com">
+                </div>
+
+                <button class="submit-btn" onclick="resetPassword()">
+                    ENVIAR ENLACE DE RECUPERACIÓN
+                </button>
+
+                <button class="submit-btn back-btn" onclick="switchTab('login')">
+                    VOLVER AL INICIO DE SESIÓN
+                </button>
+
+                <div class="info-text">
+                    Te enviaremos un enlace a tu correo para que puedas restablecer tu contraseña
                 </div>
             </div>
         </div>
@@ -267,49 +332,144 @@
             }
         }
 
-        function showAlert(message, isSuccess = false) {
+        function showAlert(message, type = 'error') {
             const alertBox = document.getElementById("alertBox");
             alertBox.textContent = message;
             alertBox.className = "alert show";
-            if (isSuccess) alertBox.classList.add("success");
+            if (type === 'success') alertBox.classList.add("success");
+            if (type === 'info') alertBox.classList.add("info");
         }
 
         function hideAlert() {
             document.getElementById("alertBox").classList.remove("show");
         }
 
-        // REGISTRO
+        // Validar formato de email
+        function isValidEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        // REGISTRO CON CORREO REAL
         async function register() {
+            const email = document.getElementById("registerEmail").value.trim();
             const barName = document.getElementById("registerBarName").value.trim();
             const username = document.getElementById("registerUsername").value.trim();
             const password = document.getElementById("registerPassword").value;
             const confirmPassword = document.getElementById("registerConfirmPassword").value;
 
-            if (!barName || !username || !password) {
-                showAlert("⚠ Completa todos los campos");
+            // Validaciones
+            if (!email || !barName || !username || !password) {
+                showAlert("⚠ Completa todos los campos obligatorios");
                 return;
             }
+
+            if (!isValidEmail(email)) {
+                showAlert("⚠ Ingresa un correo electrónico válido");
+                return;
+            }
+
             if (password !== confirmPassword) {
                 showAlert("⚠ Las contraseñas no coinciden");
                 return;
             }
+
             if (password.length < 6) {
                 showAlert("⚠ La contraseña debe tener al menos 6 caracteres");
                 return;
             }
 
-            const emailFalso = username.toLowerCase() + "@mixly.fake";
-
             try {
                 const { data, error } = await db.auth.signUp({
-                    email: emailFalso,
+                    email: email,
                     password: password,
                     options: {
                         data: {
                             username: username,
                             bar_name: barName
-                        }
+                        },
+                        emailRedirectTo: window.location.origin + '/index.html'
                     }
+                });
+
+                if (error) {
+                    if (error.message.includes('already registered')) {
+                        showAlert("⚠ Este correo ya está registrado. Intenta iniciar sesión.");
+                    } else {
+                        showAlert("Error: " + error.message);
+                    }
+                    return;
+                }
+
+                showAlert("✓ Cuenta creada. Revisa tu correo para confirmar tu cuenta.", 'success');
+                
+                setTimeout(() => {
+                    switchTab('login');
+                    document.getElementById("loginEmail").value = email;
+                }, 3000);
+            } catch (err) {
+                showAlert("Error inesperado: " + err.message);
+            }
+        }
+
+        // LOGIN CON CORREO
+        async function login() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+
+            if (!email || !password) {
+                showAlert("⚠ Completa todos los campos");
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showAlert("⚠ Ingresa un correo electrónico válido");
+                return;
+            }
+
+            try {
+                const { data, error } = await db.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    if (error.message.includes('Email not confirmed')) {
+                        showAlert("⚠ Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.");
+                    } else if (error.message.includes('Invalid login credentials')) {
+                        showAlert("⚠ Correo o contraseña incorrectos");
+                    } else {
+                        showAlert("Error: " + error.message);
+                    }
+                    return;
+                }
+
+                showAlert("✓ Iniciando sesión...", 'success');
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 1000);
+            } catch (err) {
+                showAlert("Error inesperado: " + err.message);
+            }
+        }
+
+        // RECUPERAR CONTRASEÑA
+        async function resetPassword() {
+            const email = document.getElementById("forgotEmail").value.trim();
+
+            if (!email) {
+                showAlert("⚠ Ingresa tu correo electrónico");
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showAlert("⚠ Ingresa un correo electrónico válido");
+                return;
+            }
+
+            try {
+                const { data, error } = await db.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html'
                 });
 
                 if (error) {
@@ -317,43 +477,11 @@
                     return;
                 }
 
-                showAlert("✓ Cuenta creada exitosamente. Puedes iniciar sesión ahora.", true);
+                showAlert("✓ Correo enviado. Revisa tu bandeja de entrada para restablecer tu contraseña.", 'success');
+                
                 setTimeout(() => {
                     switchTab('login');
-                    document.getElementById("loginUsername").value = username;
-                }, 2000);
-            } catch (err) {
-                showAlert("Error inesperado: " + err.message);
-            }
-        }
-
-        // LOGIN
-        async function login() {
-            const username = document.getElementById("loginUsername").value.trim();
-            const password = document.getElementById("loginPassword").value;
-
-            if (!username || !password) {
-                showAlert("⚠ Completa todos los campos");
-                return;
-            }
-
-            const emailFalso = username.toLowerCase() + "@mixly.fake";
-
-            try {
-                const { data, error } = await db.auth.signInWithPassword({
-                    email: emailFalso,
-                    password: password
-                });
-
-                if (error) {
-                    showAlert("⚠ Usuario o contraseña incorrectos");
-                    return;
-                }
-
-                showAlert("✓ Iniciando sesión...", true);
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1000);
+                }, 3000);
             } catch (err) {
                 showAlert("Error inesperado: " + err.message);
             }
@@ -363,20 +491,33 @@
         function switchTab(tab) {
             hideAlert();
 
-            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-            document.querySelector(`button[onclick="switchTab('${tab}')"]`).classList.add("active");
+            // Ocultar/mostrar botones de tabs
+            const tabButtons = document.getElementById("tabButtons");
+            if (tab === 'forgot') {
+                tabButtons.style.display = 'none';
+            } else {
+                tabButtons.style.display = 'flex';
+            }
 
+            // Actualizar tabs activos
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            if (tab !== 'forgot') {
+                document.querySelector(`button[onclick="switchTab('${tab}')"]`)?.classList.add("active");
+            }
+
+            // Mostrar formulario correspondiente
             document.querySelectorAll(".form-section").forEach(sec => sec.classList.remove("active"));
             document.getElementById(tab + "Form").classList.add("active");
         }
 
         // Permitir Enter para enviar formularios
-        document.getElementById("loginPassword").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") login();
-        });
-
-        document.getElementById("registerConfirmPassword").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") register();
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const activeForm = document.querySelector('.form-section.active');
+                if (activeForm.id === 'loginForm') login();
+                else if (activeForm.id === 'registerForm') register();
+                else if (activeForm.id === 'forgotForm') resetPassword();
+            }
         });
     </script>
 </body>
