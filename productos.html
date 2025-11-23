@@ -323,13 +323,25 @@
             font-weight: 400;
         }
 
-        .delete-btn {
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .edit-btn, .delete-btn {
             background: transparent;
             color: #666;
             padding: 8px 16px;
             border: 1px solid #2a2a2a;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .edit-btn:hover {
+            color: #3b82f6;
+            border-color: #3b82f6;
         }
 
         .delete-btn:hover {
@@ -350,6 +362,10 @@
             padding: 15px 20px;
             margin-bottom: 20px;
             display: none;
+        }
+
+        .alert.edit-mode {
+            border-left-color: #3b82f6;
         }
     </style>
 </head>
@@ -400,7 +416,7 @@
 
         <!-- Form -->
         <div class="form-container" id="formContainer">
-            <h2>Nuevo Producto</h2>
+            <h2 id="formTitle">Nuevo Producto</h2>
             <div class="form-grid">
                 <div class="form-group">
                     <label>Nombre</label>
@@ -440,7 +456,7 @@
                         <th class="right">Precio</th>
                         <th class="right">Cantidad</th>
                         <th class="right">$/ml</th>
-                        <th class="center">Acción</th>
+                        <th class="center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="productTable">
@@ -464,9 +480,10 @@
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg"
         );
 
-        // VARIABLE GLOBAL
+        // VARIABLES GLOBALES
         let products = [];
         let currentFilter = 'Todos';
+        let editingProductId = null; // Para saber si estamos editando
 
         // ======================================================
         // 🔥 CARGAR AL INICIO
@@ -487,16 +504,19 @@
         // 🎯 CONFIGURAR EVENT LISTENERS
         // ======================================================
         function setupEventListeners() {
-            // Botón agregar
-            document.getElementById('addProductBtn').addEventListener('click', toggleForm);
+            document.getElementById('addProductBtn').addEventListener('click', () => {
+                editingProductId = null;
+                document.getElementById('formTitle').textContent = 'Nuevo Producto';
+                toggleForm();
+            });
             
-            // Botón cancelar
-            document.getElementById('cancelBtn').addEventListener('click', toggleForm);
+            document.getElementById('cancelBtn').addEventListener('click', () => {
+                editingProductId = null;
+                toggleForm();
+            });
             
-            // Botón guardar
             document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
             
-            // Filtros
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     filterProducts(this.getAttribute('data-category'));
@@ -534,7 +554,38 @@
         }
 
         // ======================================================
-        // 💾 GUARDAR PRODUCTO
+        // ✏️ EDITAR PRODUCTO
+        // ======================================================
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            editingProductId = id;
+
+            // Llenar el formulario con los datos existentes
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category;
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productQuantity').value = product.quantity;
+
+            // Cambiar título del formulario
+            document.getElementById('formTitle').textContent = 'Editar Producto';
+
+            // Mostrar alerta de modo edición
+            const alert = document.getElementById('successAlert');
+            alert.textContent = '✏️ Modo edición - Modifica los campos y guarda';
+            alert.classList.add('edit-mode');
+            alert.style.display = 'block';
+
+            // Mostrar formulario
+            document.getElementById('formContainer').classList.add('show');
+
+            // Scroll al formulario
+            document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ======================================================
+        // 💾 GUARDAR PRODUCTO (CREAR O ACTUALIZAR)
         // ======================================================
         async function saveProduct() {
             const name = document.getElementById('productName').value.trim();
@@ -555,7 +606,7 @@
             const { data: sessionData } = await db.auth.getSession();
             const userId = sessionData.session.user.id;
 
-            const product = {
+            const productData = {
                 user_id: userId,
                 name: name,
                 category: category,
@@ -564,15 +615,37 @@
                 price_per_ml: price / quantity
             };
 
-            const { error } = await db.from("products").insert(product);
+            let error;
+
+            if (editingProductId) {
+                // ACTUALIZAR producto existente
+                const result = await db
+                    .from("products")
+                    .update(productData)
+                    .eq("id", editingProductId);
+                
+                error = result.error;
+
+                if (!error) {
+                    showAlert('✓ Producto actualizado exitosamente', false);
+                }
+            } else {
+                // CREAR nuevo producto
+                const result = await db.from("products").insert(productData);
+                error = result.error;
+
+                if (!error) {
+                    showAlert('✓ Producto guardado exitosamente', false);
+                }
+            }
 
             if (error) {
-                console.error("Error insert:", error);
+                console.error("Error:", error);
                 alert("Error guardando en Supabase: " + error.message);
                 return;
             }
 
-            showAlert();
+            editingProductId = null;
             toggleForm();
             clearForm();
             await loadProducts();
@@ -595,6 +668,7 @@
                 return;
             }
 
+            showAlert('✓ Producto eliminado', false);
             await loadProducts();
         }
 
@@ -607,6 +681,13 @@
             
             if (!form.classList.contains("show")) {
                 clearForm();
+                editingProductId = null;
+                document.getElementById('formTitle').textContent = 'Nuevo Producto';
+                
+                // Ocultar alerta de edición
+                const alert = document.getElementById('successAlert');
+                alert.classList.remove('edit-mode');
+                alert.style.display = 'none';
             }
         }
 
@@ -667,7 +748,10 @@
                     <td class="right">${p.quantity.toLocaleString('es-CL')} ml</td>
                     <td class="right price-per-ml">$${p.price_per_ml.toFixed(2)}</td>
                     <td class="center">
-                        <button class="delete-btn" onclick="deleteProduct(${p.id})">Eliminar</button>
+                        <div class="action-buttons">
+                            <button class="edit-btn" onclick="editProduct(${p.id})">Editar</button>
+                            <button class="delete-btn" onclick="deleteProduct(${p.id})">Eliminar</button>
+                        </div>
                     </td>
                 `;
 
@@ -692,8 +776,10 @@
         // ======================================================
         // ⚠️ ALERTA DE GUARDADO
         // ======================================================
-        function showAlert() {
+        function showAlert(message = '✓ Producto guardado exitosamente', isEdit = false) {
             const alert = document.getElementById("successAlert");
+            alert.textContent = message;
+            alert.classList.remove('edit-mode');
             alert.style.display = "block";
 
             setTimeout(() => {
