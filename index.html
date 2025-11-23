@@ -25,7 +25,7 @@
         .container {
             max-width: 900px;
             width: 100%;
-            display: none; /* Oculto por defecto hasta verificar sesión */
+            display: none;
         }
 
         .container.loaded {
@@ -294,144 +294,92 @@
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg";
         const db = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Variable para controlar si ya estamos redirigiendo
         let isRedirecting = false;
 
-        // Inicializar al cargar la página
         window.onload = async () => {
-            console.log('🔄 Página cargada, verificando autenticación...');
             await checkAuth();
         };
 
-        // =============================
-        // 🔐 VERIFICAR SESIÓN
-        // =============================
         async function checkAuth() {
-            if (isRedirecting) {
-                console.log('Ya estamos redirigiendo, evitando verificación duplicada');
-                return;
-            }
+            if (isRedirecting) return;
 
             try {
-                console.log('Obteniendo sesión...');
                 const { data, error } = await db.auth.getSession();
 
-                console.log('Resultado de sesión:', {
-                    hasSession: !!data?.session,
-                    error: error?.message,
-                    user: data?.session?.user?.email
-                });
-
-                if (error) {
-                    console.error('Error al obtener sesión:', error);
+                if (error || !data?.session) {
                     redirectToLogin();
                     return;
                 }
 
-                if (!data?.session) {
-                    console.warn('⚠️ No hay sesión activa');
-                    redirectToLogin();
-                    return;
-                }
-
-                // ✅ Hay sesión válida
                 const user = data.session.user;
                 const metadata = user.user_metadata || {};
 
-                console.log('✅ Sesión válida para:', user.email);
-
-                // Mostrar información del usuario
                 document.getElementById("barNameDisplay").textContent = 
                     metadata.bar_name || metadata.barName || "Mi Bar";
                 
                 document.getElementById("usernameDisplay").textContent = 
                     "👤 " + (metadata.username || user.email.split('@')[0]);
 
-                // Ocultar loading y mostrar contenido
                 document.getElementById("loadingScreen").style.display = "none";
                 document.getElementById("mainContainer").classList.add("loaded");
 
-                // Cargar estadísticas
                 loadStats();
             } catch (err) {
-                console.error("❌ Error inesperado al verificar sesión:", err);
+                console.error("Error al verificar sesión:", err);
                 redirectToLogin();
             }
         }
 
         function redirectToLogin() {
-            if (isRedirecting) {
-                console.log('Ya estamos redirigiendo, ignorando llamada duplicada');
-                return;
-            }
-            
+            if (isRedirecting) return;
             isRedirecting = true;
-            console.log('🚪 Redirigiendo a login...');
-            
-            // Usar replace para que no pueda volver atrás con el botón
             window.location.replace("login.html");
         }
 
-        // =============================
-        // 🚪 CERRAR SESIÓN
-        // =============================
         async function logout() {
-            if (isRedirecting) {
-                console.log('Ya estamos procesando un cierre de sesión');
-                return;
-            }
-
+            if (isRedirecting) return;
             if (!confirm("¿Cerrar sesión?")) return;
 
-            // Deshabilitar el botón
             const logoutBtn = document.getElementById("logoutBtn");
             logoutBtn.disabled = true;
             logoutBtn.textContent = "CERRANDO...";
 
             try {
-                console.log('🚪 Cerrando sesión...');
                 isRedirecting = true;
 
-                const { error } = await db.auth.signOut();
-                
-                if (error) {
-                    console.error("Error al cerrar sesión:", error);
-                    alert("Error al cerrar sesión. Intenta de nuevo.");
-                    logoutBtn.disabled = false;
-                    logoutBtn.textContent = "CERRAR SESIÓN";
-                    isRedirecting = false;
-                    return;
-                }
+                // Cerrar sesión en Supabase
+                await db.auth.signOut();
 
-                console.log('✅ Sesión cerrada correctamente');
-                
-                // Limpiar cualquier cache local
+                // Limpiar TODO el almacenamiento
+                localStorage.clear();
                 sessionStorage.clear();
-                
-                // Redirigir al login
-                window.location.replace("login.html");
+
+                // Limpiar cookies de Supabase manualmente
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+
+                // Pequeña pausa para asegurar que se limpió todo
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Redirigir con parámetro para indicar logout
+                window.location.replace("login.html?logout=true");
             } catch (err) {
-                console.error("❌ Error inesperado al cerrar sesión:", err);
-                alert("Error inesperado. Recargando página...");
+                console.error("Error al cerrar sesión:", err);
+                alert("Error al cerrar sesión. Recargando...");
                 window.location.reload();
             }
         }
 
-        // =============================
-        // 📊 ESTADÍSTICAS
-        // =============================
         function loadStats() {
             try {
-                // Cargar productos
                 const products = JSON.parse(localStorage.getItem("bar-products") || "[]");
                 document.getElementById("totalProducts").textContent = products.length;
 
-                // Calcular inversión total
                 const total = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
                 document.getElementById("totalInvestment").textContent = 
                     "$" + total.toLocaleString('es-CL', { maximumFractionDigits: 0 });
 
-                // Cargar recetas
                 const recipes = JSON.parse(localStorage.getItem("bar-recipes") || "[]");
                 document.getElementById("totalRecipes").textContent = recipes.length;
             } catch (err) {
@@ -439,38 +387,11 @@
             }
         }
 
-        // =============================
-        // 🎧 ESCUCHAR CAMBIOS DE AUTENTICACIÓN
-        // =============================
         db.auth.onAuthStateChange((event, session) => {
-            console.log('🔔 Auth state change:', event, {
-                hasSession: !!session,
-                isRedirecting
-            });
-            
             if (event === 'SIGNED_OUT' && !isRedirecting) {
-                console.log('Sesión cerrada detectada por listener');
                 redirectToLogin();
-            } else if (event === 'TOKEN_REFRESHED') {
-                console.log('Token actualizado correctamente');
-            } else if (event === 'USER_UPDATED') {
-                console.log('Usuario actualizado');
             }
         });
-
-        // =============================
-        // 🛡️ PROTECCIÓN ADICIONAL
-        // =============================
-        // Verificar sesión cada 30 segundos (opcional)
-        setInterval(async () => {
-            if (isRedirecting) return;
-            
-            const { data } = await db.auth.getSession();
-            if (!data?.session) {
-                console.warn('⚠️ Sesión perdida, redirigiendo...');
-                redirectToLogin();
-            }
-        }, 30000);
     </script>
     
 </body>

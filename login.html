@@ -348,7 +348,7 @@
         // Variable para controlar si estamos en modo reset password
         let isPasswordRecovery = false;
 
-        // IMPORTANTE: Verificar PRIMERO si hay parámetros de recuperación
+        // IMPORTANTE: Verificar PRIMERO si hay parámetros de recuperación o logout
         checkRecoveryParams();
 
         function checkRecoveryParams() {
@@ -359,14 +359,25 @@
             const typeFromHash = hashParams.get('type');
             const typeFromQuery = queryParams.get('type');
             const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+            const isLogout = queryParams.get('logout');
             
-            console.log('Checking recovery params:', {
+            console.log('Checking params:', {
                 typeFromHash,
                 typeFromQuery,
                 hasAccessToken: !!accessToken,
+                isLogout,
                 fullHash: window.location.hash,
                 fullSearch: window.location.search
             });
+            
+            // Si viene de un logout, forzar limpieza y NO verificar sesión
+            if (isLogout === 'true') {
+                console.log('🚪 Logout detected, forcing session cleanup');
+                forceLogout();
+                // Limpiar el parámetro de la URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
             
             // Si detectamos recuperación de contraseña
             if (typeFromHash === 'recovery' || typeFromQuery === 'recovery' || 
@@ -378,8 +389,29 @@
                 return;
             }
             
-            // Si no es recuperación, verificar sesión normal
+            // Si no es recuperación ni logout, verificar sesión normal
             checkSession();
+        }
+
+        async function forceLogout() {
+            try {
+                // Cerrar cualquier sesión que pueda existir
+                await db.auth.signOut();
+                
+                // Limpiar almacenamiento
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Limpiar cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                console.log('✅ Sesión limpiada completamente');
+                showAlert("Sesión cerrada correctamente", 'info');
+            } catch (err) {
+                console.error('Error al limpiar sesión:', err);
+            }
         }
 
         async function checkSession() {
