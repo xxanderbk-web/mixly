@@ -316,7 +316,7 @@
 
             <!-- Reset Password Form (se muestra cuando viene del correo) -->
             <div id="resetForm" class="form-section">
-                <div class="form-title">Nueva Contraseña</div>
+                <div class="form-title">🔐 Nueva Contraseña</div>
                 
                 <div class="form-group">
                     <label>Nueva Contraseña</label>
@@ -348,39 +348,71 @@
         // Variable para controlar si estamos en modo reset password
         let isPasswordRecovery = false;
 
-        // Verificar sesión al cargar
-        checkSession();
+        // IMPORTANTE: Verificar PRIMERO si hay parámetros de recuperación
+        checkRecoveryParams();
 
-        async function checkSession() {
-            // Primero verificar si hay un hash de recuperación de contraseña
+        function checkRecoveryParams() {
+            // Buscar en hash (#) y en query params (?)
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const type = hashParams.get('type');
+            const queryParams = new URLSearchParams(window.location.search);
             
-            if (type === 'recovery') {
-                // Es una recuperación de contraseña
+            const typeFromHash = hashParams.get('type');
+            const typeFromQuery = queryParams.get('type');
+            const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+            
+            console.log('Checking recovery params:', {
+                typeFromHash,
+                typeFromQuery,
+                hasAccessToken: !!accessToken,
+                fullHash: window.location.hash,
+                fullSearch: window.location.search
+            });
+            
+            // Si detectamos recuperación de contraseña
+            if (typeFromHash === 'recovery' || typeFromQuery === 'recovery' || 
+                (accessToken && window.location.hash.includes('type=recovery'))) {
                 isPasswordRecovery = true;
-                showAlert("Por favor ingresa tu nueva contraseña", 'info');
+                console.log('🔐 Password recovery detected!');
+                showAlert("✓ Enlace válido. Por favor ingresa tu nueva contraseña", 'info');
                 switchTab('reset');
                 return;
             }
-
+            
             // Si no es recuperación, verificar sesión normal
+            checkSession();
+        }
+
+        async function checkSession() {
+            if (isPasswordRecovery) {
+                console.log('Skipping session check - password recovery mode');
+                return;
+            }
+
             const { data, error } = await db.auth.getSession();
-            if (data?.session && !isPasswordRecovery) {
+            console.log('Session check:', { hasSession: !!data?.session, error });
+            
+            if (data?.session) {
+                console.log('Active session found, redirecting to index.html');
                 window.location.href = "index.html";
             }
         }
 
         // Escuchar cambios en la autenticación
         db.auth.onAuthStateChange((event, session) => {
-            console.log('Auth event:', event);
+            console.log('🔔 Auth state change:', event, {
+                hasSession: !!session,
+                isPasswordRecovery
+            });
             
             if (event === 'PASSWORD_RECOVERY') {
                 isPasswordRecovery = true;
-                showAlert("Por favor ingresa tu nueva contraseña", 'info');
+                showAlert("✓ Enlace válido. Por favor ingresa tu nueva contraseña", 'info');
                 switchTab('reset');
             } else if (event === 'SIGNED_IN' && !isPasswordRecovery) {
+                console.log('Signed in, redirecting to index.html');
                 window.location.href = "index.html";
+            } else if (event === 'USER_UPDATED' && isPasswordRecovery) {
+                console.log('Password updated, will redirect after confirmation');
             }
         });
 
@@ -423,24 +455,30 @@
             }
 
             try {
+                console.log('Updating password...');
                 const { data, error } = await db.auth.updateUser({
                     password: newPassword
                 });
 
                 if (error) {
+                    console.error('Error updating password:', error);
                     showAlert("Error: " + error.message);
                     return;
                 }
 
+                console.log('Password updated successfully:', data);
                 showAlert("✓ Contraseña actualizada exitosamente. Redirigiendo...", 'success');
                 
-                // Resetear la variable
+                // Resetear la variable y cerrar sesión para que haga login de nuevo
                 isPasswordRecovery = false;
                 
-                setTimeout(() => {
+                // Esperar un momento y cerrar sesión
+                setTimeout(async () => {
+                    await db.auth.signOut();
                     window.location.href = "index.html";
                 }, 2000);
             } catch (err) {
+                console.error('Unexpected error:', err);
                 showAlert("Error inesperado: " + err.message);
             }
         }
@@ -562,8 +600,11 @@
             }
 
             try {
+                // Obtener la URL actual sin parámetros
+                const currentUrl = window.location.origin + window.location.pathname;
+                
                 const { data, error } = await db.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/login.html'
+                    redirectTo: currentUrl
                 });
 
                 if (error) {
@@ -571,6 +612,7 @@
                     return;
                 }
 
+                console.log('Reset email sent to:', email);
                 showAlert("✓ Correo enviado. Revisa tu bandeja de entrada para restablecer tu contraseña.", 'success');
                 
                 setTimeout(() => {
