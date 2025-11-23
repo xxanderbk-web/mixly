@@ -25,6 +25,16 @@
         .container {
             max-width: 900px;
             width: 100%;
+            display: none; /* Oculto por defecto hasta verificar sesión */
+        }
+
+        .container.loaded {
+            display: block;
+        }
+
+        .loading-screen {
+            text-align: center;
+            color: #666;
         }
 
         .top-bar {
@@ -67,6 +77,11 @@
         .logout-btn:hover {
             color: #dc2626;
             border-color: #dc2626;
+        }
+
+        .logout-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .header {
@@ -195,24 +210,23 @@
             width: 1px;
             background: #2a2a2a;
         }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
     </style>
 </head>
 
 <body>
     
-    <div class="container">
+    <div class="loading-screen" id="loadingScreen">
+        <div class="logo">🍸</div>
+        <p>Cargando...</p>
+    </div>
+
+    <div class="container" id="mainContainer">
         <div class="top-bar">
             <div class="user-info">
                 <div class="bar-name" id="barNameDisplay">Cargando...</div>
                 <span class="username" id="usernameDisplay"></span>
             </div>
-            <button class="logout-btn" onclick="logout()">CERRAR SESIÓN</button>
+            <button class="logout-btn" id="logoutBtn" onclick="logout()">CERRAR SESIÓN</button>
         </div>
 
         <div class="header">
@@ -280,28 +294,51 @@
         const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg";
         const db = supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Variable para controlar si ya estamos redirigiendo
+        let isRedirecting = false;
+
         // Inicializar al cargar la página
         window.onload = async () => {
+            console.log('🔄 Página cargada, verificando autenticación...');
             await checkAuth();
-            loadStats(); 
         };
 
         // =============================
         // 🔐 VERIFICAR SESIÓN
         // =============================
         async function checkAuth() {
+            if (isRedirecting) {
+                console.log('Ya estamos redirigiendo, evitando verificación duplicada');
+                return;
+            }
+
             try {
+                console.log('Obteniendo sesión...');
                 const { data, error } = await db.auth.getSession();
 
-                if (error || !data.session) {
-                    // No hay sesión → redirigir al login
-                    window.location.href = "login.html";
+                console.log('Resultado de sesión:', {
+                    hasSession: !!data?.session,
+                    error: error?.message,
+                    user: data?.session?.user?.email
+                });
+
+                if (error) {
+                    console.error('Error al obtener sesión:', error);
+                    redirectToLogin();
                     return;
                 }
 
-                // Obtener datos del usuario
+                if (!data?.session) {
+                    console.warn('⚠️ No hay sesión activa');
+                    redirectToLogin();
+                    return;
+                }
+
+                // ✅ Hay sesión válida
                 const user = data.session.user;
                 const metadata = user.user_metadata || {};
+
+                console.log('✅ Sesión válida para:', user.email);
 
                 // Mostrar información del usuario
                 document.getElementById("barNameDisplay").textContent = 
@@ -310,32 +347,78 @@
                 document.getElementById("usernameDisplay").textContent = 
                     "👤 " + (metadata.username || user.email.split('@')[0]);
 
-                console.log("Sesión activa:", user);
+                // Ocultar loading y mostrar contenido
+                document.getElementById("loadingScreen").style.display = "none";
+                document.getElementById("mainContainer").classList.add("loaded");
+
+                // Cargar estadísticas
+                loadStats();
             } catch (err) {
-                console.error("Error al verificar sesión:", err);
-                window.location.href = "login.html";
+                console.error("❌ Error inesperado al verificar sesión:", err);
+                redirectToLogin();
             }
+        }
+
+        function redirectToLogin() {
+            if (isRedirecting) {
+                console.log('Ya estamos redirigiendo, ignorando llamada duplicada');
+                return;
+            }
+            
+            isRedirecting = true;
+            console.log('🚪 Redirigiendo a login...');
+            
+            // Usar replace para que no pueda volver atrás con el botón
+            window.location.replace("login.html");
         }
 
         // =============================
         // 🚪 CERRAR SESIÓN
         // =============================
         async function logout() {
+            if (isRedirecting) {
+                console.log('Ya estamos procesando un cierre de sesión');
+                return;
+            }
+
             if (!confirm("¿Cerrar sesión?")) return;
 
+            // Deshabilitar el botón
+            const logoutBtn = document.getElementById("logoutBtn");
+            logoutBtn.disabled = true;
+            logoutBtn.textContent = "CERRANDO...";
+
             try {
-                await db.auth.signOut();
-                window.location.href = "login.html";
+                console.log('🚪 Cerrando sesión...');
+                isRedirecting = true;
+
+                const { error } = await db.auth.signOut();
+                
+                if (error) {
+                    console.error("Error al cerrar sesión:", error);
+                    alert("Error al cerrar sesión. Intenta de nuevo.");
+                    logoutBtn.disabled = false;
+                    logoutBtn.textContent = "CERRAR SESIÓN";
+                    isRedirecting = false;
+                    return;
+                }
+
+                console.log('✅ Sesión cerrada correctamente');
+                
+                // Limpiar cualquier cache local
+                sessionStorage.clear();
+                
+                // Redirigir al login
+                window.location.replace("login.html");
             } catch (err) {
-                console.error("Error al cerrar sesión:", err);
-                alert("Error al cerrar sesión. Intenta de nuevo.");
+                console.error("❌ Error inesperado al cerrar sesión:", err);
+                alert("Error inesperado. Recargando página...");
+                window.location.reload();
             }
         }
 
         // =============================
         // 📊 ESTADÍSTICAS
-        // Por ahora carga desde localStorage
-        // TODO: Migrar a Supabase
         // =============================
         function loadStats() {
             try {
@@ -356,15 +439,39 @@
             }
         }
 
-        // Escuchar cambios en la autenticación
+        // =============================
+        // 🎧 ESCUCHAR CAMBIOS DE AUTENTICACIÓN
+        // =============================
         db.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT') {
-                window.location.href = "login.html";
+            console.log('🔔 Auth state change:', event, {
+                hasSession: !!session,
+                isRedirecting
+            });
+            
+            if (event === 'SIGNED_OUT' && !isRedirecting) {
+                console.log('Sesión cerrada detectada por listener');
+                redirectToLogin();
+            } else if (event === 'TOKEN_REFRESHED') {
+                console.log('Token actualizado correctamente');
+            } else if (event === 'USER_UPDATED') {
+                console.log('Usuario actualizado');
             }
         });
+
+        // =============================
+        // 🛡️ PROTECCIÓN ADICIONAL
+        // =============================
+        // Verificar sesión cada 30 segundos (opcional)
+        setInterval(async () => {
+            if (isRedirecting) return;
+            
+            const { data } = await db.auth.getSession();
+            if (!data?.session) {
+                console.warn('⚠️ Sesión perdida, redirigiendo...');
+                redirectToLogin();
+            }
+        }, 30000);
     </script>
     
 </body>
-
-
 </html>
