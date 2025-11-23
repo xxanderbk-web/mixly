@@ -295,6 +295,7 @@
         const db = supabase.createClient(supabaseUrl, supabaseKey);
 
         let isRedirecting = false;
+        let authSubscription = null;
 
         window.onload = async () => {
             await checkAuth();
@@ -347,27 +348,41 @@
             try {
                 isRedirecting = true;
 
-                // Cerrar sesión en Supabase
-                await db.auth.signOut();
+                // 1. Desactivar el listener PRIMERO
+                if (authSubscription && authSubscription.unsubscribe) {
+                    authSubscription.unsubscribe();
+                }
 
-                // Limpiar TODO el almacenamiento
-                localStorage.clear();
-                sessionStorage.clear();
+                // 2. Cerrar sesión en Supabase
+                await db.auth.signOut({ scope: 'local' });
 
-                // Limpiar cookies de Supabase manualmente
-                document.cookie.split(";").forEach(function(c) { 
-                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-                });
+                // 3. Limpiar TODO el almacenamiento
+                try {
+                    localStorage.clear();
+                } catch(e) {}
+                
+                try {
+                    sessionStorage.clear();
+                } catch(e) {}
 
-                // Pequeña pausa para asegurar que se limpió todo
-                await new Promise(resolve => setTimeout(resolve, 300));
+                // 4. Limpiar cookies de Supabase
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+                }
 
-                // Redirigir con parámetro para indicar logout
+                // 5. Pausa para asegurar limpieza
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // 6. Redirigir con parámetro
                 window.location.replace("login.html?logout=true");
             } catch (err) {
                 console.error("Error al cerrar sesión:", err);
-                alert("Error al cerrar sesión. Recargando...");
-                window.location.reload();
+                // Forzar redirección de todas formas
+                window.location.replace("login.html?logout=true");
             }
         }
 
@@ -387,7 +402,8 @@
             }
         }
 
-        db.auth.onAuthStateChange((event, session) => {
+        // Configurar listener de autenticación
+        authSubscription = db.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' && !isRedirecting) {
                 redirectToLogin();
             }

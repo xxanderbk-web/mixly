@@ -395,20 +395,40 @@
 
         async function forceLogout() {
             try {
-                // Cerrar cualquier sesión que pueda existir
-                await db.auth.signOut();
+                console.log('🧹 Forzando limpieza completa...');
+                
+                // Cerrar cualquier sesión
+                try {
+                    await db.auth.signOut({ scope: 'local' });
+                } catch(e) {
+                    console.log('No hay sesión activa para cerrar');
+                }
                 
                 // Limpiar almacenamiento
-                localStorage.clear();
-                sessionStorage.clear();
+                try {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                } catch(e) {
+                    console.error('Error limpiando storage:', e);
+                }
                 
-                // Limpiar cookies
-                document.cookie.split(";").forEach(function(c) { 
-                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-                });
+                // Limpiar cookies de forma más agresiva
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    // Limpiar para path raíz
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                    // Limpiar para dominio actual
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+                }
                 
-                console.log('✅ Sesión limpiada completamente');
-                showAlert("Sesión cerrada correctamente", 'info');
+                console.log('✅ Limpieza completa finalizada');
+                
+                // Pequeña pausa
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                showAlert("✓ Sesión cerrada correctamente", 'success');
             } catch (err) {
                 console.error('Error al limpiar sesión:', err);
             }
