@@ -622,12 +622,13 @@
                 const result = await db
                     .from("products")
                     .update(productData)
-                    .eq("id", editingProductId);
+                    .eq("id", editingProductId)
+                    .eq("user_id", userId);
                 
                 error = result.error;
 
                 if (!error) {
-                    showAlert('✓ Producto actualizado exitosamente', false);
+                    showAlert('✓ Producto actualizado exitosamente');
                 }
             } else {
                 // CREAR nuevo producto
@@ -635,7 +636,7 @@
                 error = result.error;
 
                 if (!error) {
-                    showAlert('✓ Producto guardado exitosamente', false);
+                    showAlert('✓ Producto guardado exitosamente');
                 }
             }
 
@@ -776,7 +777,7 @@
         // ======================================================
         // ⚠️ ALERTA DE GUARDADO
         // ======================================================
-        function showAlert(message = '✓ Producto guardado exitosamente', isEdit = false) {
+        function showAlert(message = '✓ Producto guardado exitosamente') {
             const alert = document.getElementById("successAlert");
             alert.textContent = message;
             alert.classList.remove('edit-mode');
