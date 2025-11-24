@@ -607,7 +607,6 @@
             const userId = sessionData.session.user.id;
 
             const productData = {
-                user_id: userId,
                 name: name,
                 category: category,
                 price: price,
@@ -615,28 +614,63 @@
                 price_per_ml: price / quantity
             };
 
+            console.log('Modo edición:', editingProductId ? 'SI' : 'NO');
+            console.log('Product ID:', editingProductId);
+            console.log('User ID:', userId);
+            console.log('Product Data:', productData);
+
             let error;
 
             if (editingProductId) {
                 // ACTUALIZAR producto existente
+                console.log('Ejecutando UPDATE...');
+                
+                // Primero verificar que el producto existe
+                const { data: existingProduct } = await db
+                    .from("products")
+                    .select("*")
+                    .eq("id", editingProductId)
+                    .single();
+                
+                console.log('Producto existente:', existingProduct);
+                
+                if (!existingProduct) {
+                    alert('El producto no existe o no tienes permisos para editarlo');
+                    return;
+                }
+                
+                // Agregar user_id al productData para el update
+                productData.user_id = userId;
+                
                 const result = await db
                     .from("products")
                     .update(productData)
                     .eq("id", editingProductId)
-                    .eq("user_id", userId);
+                    .select();
                 
+                console.log('Resultado UPDATE:', result);
                 error = result.error;
 
-                if (!error) {
+                if (!error && result.data && result.data.length > 0) {
                     showAlert('✓ Producto actualizado exitosamente');
+                } else if (!error && result.data && result.data.length === 0) {
+                    alert('No se pudo actualizar el producto. Puede ser un problema de permisos.');
+                    console.error('No se encontró el producto para actualizar');
+                } else {
+                    console.error('Error en UPDATE:', error);
                 }
             } else {
                 // CREAR nuevo producto
-                const result = await db.from("products").insert(productData);
+                console.log('Ejecutando INSERT...');
+                productData.user_id = userId;
+                const result = await db.from("products").insert(productData).select();
+                console.log('Resultado INSERT:', result);
                 error = result.error;
 
                 if (!error) {
                     showAlert('✓ Producto guardado exitosamente');
+                } else {
+                    console.error('Error en INSERT:', error);
                 }
             }
 
