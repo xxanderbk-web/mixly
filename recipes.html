@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mixly - Recetario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .nav-title {
+            font-size: 1.5em;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            color: #888;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #2a2a2a;
+            transition: all 0.3s;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+        }
+
+        .nav-btn:hover {
+            color: #fff;
+            border-color: #dc2626;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            padding: 40px;
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            color: #888;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            color: #fff;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .ingredient-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+
+        input[type="number"] {
+            padding: 12px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            color: #fff;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .remove-btn {
+            background: transparent;
+            color: #666;
+            border: 1px solid #2a2a2a;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: transparent;
+            color: #888;
+            border: 1px solid #2a2a2a;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .add-btn:hover {
+            color: #fff;
+            border-color: #444;
+        }
+
+        .profile-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .profile-option {
+            background: #0a0a0a;
+            border: 2px solid #2a2a2a;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85em;
+        }
+
+        .profile-option:hover {
+            border-color: #444;
+        }
+
+        .profile-option.selected {
+            border-color: #dc2626;
+            background: #1a0a0a;
+            color: #dc2626;
+        }
+
+        .profile-icon {
+            display: block;
+            font-size: 1.5em;
+            margin-bottom: 8px;
+        }
+
+        .save-btn {
+            width: 100%;
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 18px;
+            cursor: pointer;
+            font-size: 1em;
+            letter-spacing: 1px;
+            margin-top: 30px;
+            transition: background 0.3s;
+        }
+
+        .save-btn:hover {
+            background: #b91c1c;
+        }
+
+        .recipe-card {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            border-color: #444;
+        }
+
+        .recipe-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .recipe-name {
+            font-size: 1.3em;
+            font-weight: 400;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .recipe-profile {
+            display: inline-block;
+            background: #1a1a1a;
+            padding: 5px 12px;
+            font-size: 0.8em;
+            color: #dc2626;
+            border: 1px solid #2a2a2a;
+        }
+
+        .recipe-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: transparent;
+            color: #666;
+            border: 1px solid #2a2a2a;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .recipe-description {
+            color: #888;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .recipe-ingredients {
+            margin: 15px 0;
+        }
+
+        .recipe-ingredients h4 {
+            color: #666;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .ingredient-item {
+            padding: 8px 0;
+            color: #888;
+            font-size: 0.9em;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .ingredient-item:last-child {
+            border-bottom: none;
+        }
+
+        .recipe-preparation {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #1a1a1a;
+        }
+
+        .recipe-preparation h4 {
+            color: #666;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .recipe-preparation p {
+            color: #888;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #444;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .filter-pills {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .filter-pill:hover {
+            border-color: #444;
+        }
+
+        .filter-pill.active {
+            border-color: #dc2626;
+            color: #dc2626;
+            background: #1a0a0a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="nav-bar">
+            <div class="nav-title">RECETARIO</div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-btn">INICIO</a>
+                <a href="productos.html" class="nav-btn">PRODUCTOS</a>
+                <a href="costeo.html" class="nav-btn">COSTEO</a>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <h1>Recetario Profesional</h1>
+            <p class="subtitle">Crea y organiza tus cócteles con ingredientes, preparación y perfiles de sabor</p>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left: Create Recipe -->
+            <div class="card">
+                <h2>Nueva Receta</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Nombre del Cóctel</label>
+                    <input type="text" id="recipeName" placeholder="Ej: Mojito Clásico">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea id="recipeDescription" placeholder="Describe tu cóctel..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ingredientes</label>
+                    <div id="ingredientsContainer"></div>
+                    <button class="add-btn" onclick="addIngredient()">+ AGREGAR INGREDIENTE</button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Preparación</label>
+                    <textarea id="recipePreparation" placeholder="1. Agregar hielo al vaso...&#10;2. Verter ingredientes...&#10;3. Mezclar y decorar..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Perfil de Sabor</label>
+                    <div class="profile-selector">
+                        <div class="profile-option" data-profile="dulce" onclick="selectProfile('dulce')">
+                            <span class="profile-icon">🍬</span>
+                            <div>Dulce</div>
+                        </div>
+                        <div class="profile-option" data-profile="suave" onclick="selectProfile('suave')">
+                            <span class="profile-icon">🌸</span>
+                            <div>Suave</div>
+                        </div>
+                        <div class="profile-option" data-profile="seco" onclick="selectProfile('seco')">
+                            <span class="profile-icon">🍋</span>
+                            <div>Seco</div>
+                        </div>
+                        <div class="profile-option" data-profile="fuerte" onclick="selectProfile('fuerte')">
+                            <span class="profile-icon">🔥</span>
+                            <div>Fuerte</div>
+                        </div>
+                        <div class="profile-option" data-profile="extra-fuerte" onclick="selectProfile('extra-fuerte')">
+                            <span class="profile-icon">💥</span>
+                            <div>Extra Fuerte</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="save-btn" onclick="saveRecipe()">GUARDAR RECETA</button>
+            </div>
+
+            <!-- Right: Saved Recipes -->
+            <div class="card">
+                <h2>Mis Recetas</h2>
+                
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar recetas..." oninput="filterRecipes()">
+                </div>
+
+                <div class="filter-pills">
+                    <div class="filter-pill active" data-filter="all" onclick="filterByProfile('all')">Todas</div>
+                    <div class="filter-pill" data-filter="dulce" onclick="filterByProfile('dulce')">🍬 Dulce</div>
+                    <div class="filter-pill" data-filter="suave" onclick="filterByProfile('suave')">🌸 Suave</div>
+                    <div class="filter-pill" data-filter="seco" onclick="filterByProfile('seco')">🍋 Seco</div>
+                    <div class="filter-pill" data-filter="fuerte" onclick="filterByProfile('fuerte')">🔥 Fuerte</div>
+                    <div class="filter-pill" data-filter="extra-fuerte" onclick="filterByProfile('extra-fuerte')">💥 Extra</div>
+                </div>
+
+                <div id="recipesContainer">
+                    <div class="empty-state">
+                        No hay recetas guardadas
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        const SUPABASE_URL = "https://hhfpaviwuuqcuhcsfwdj.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg";
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let ingredients = [];
+        let selectedProfile = null;
+        let savedRecipes = [];
+        let currentFilter = 'all';
+        let currentUser = null;
+        let isRedirecting = false;
+
+        window.onload = async function() {
+            await checkAuth();
+            addIngredient();
+        };
+
+        async function checkAuth() {
+            if (isRedirecting) return;
+
+            try {
+                const { data, error } = await db.auth.getSession();
+
+                if (error || !data?.session) {
+                    redirectToLogin();
+                    return;
+                }
+
+                currentUser = data.session.user;
+                console.log("Usuario autenticado:", currentUser.email);
+                
+                await loadRecipes();
+            } catch (err) {
+                console.error("Error al verificar sesión:", err);
+                redirectToLogin();
+            }
+        }
+
+        function redirectToLogin() {
+            if (isRedirecting) return;
+            isRedirecting = true;
+            window.location.replace("login.html");
+        }
+
+        window.addIngredient = function() {
+            const container = document.getElementById("ingredientsContainer");
+            const id = Date.now();
+
+            const row = document.createElement("div");
+            row.className = "ingredient-row";
+            row.id = "ingredient-" + id;
+
+            row.innerHTML = `
+                <input type="text" id="name-${id}" placeholder="Nombre del ingrediente" onchange="updateIngredient(${id})">
+                <input type="number" id="quantity-${id}" placeholder="Cantidad" step="0.1" min="0" onchange="updateIngredient(${id})">
+                <select id="unit-${id}" onchange="updateIngredient(${id})">
+                    <option value="ml">ml</option>
+                    <option value="oz">oz</option>
+                    <option value="gr">gr</option>
+                    <option value="unidad">unidad</option>
+                    <option value="dash">dash</option>
+                    <option value="gotas">gotas</option>
+                </select>
+                <button class="remove-btn" onclick="removeIngredient(${id})">✕</button>
+            `;
+
+            container.appendChild(row);
+            ingredients.push({ id: id, name: "", quantity: 0, unit: "ml" });
+        };
+
+        window.updateIngredient = function(id) {
+            const name = document.getElementById("name-" + id)?.value || "";
+            const quantity = parseFloat(document.getElementById("quantity-" + id)?.value) || 0;
+            const unit = document.getElementById("unit-" + id)?.value || "ml";
+
+            const ingredient = ingredients.find(i => i.id === id);
+            if (ingredient) {
+                ingredient.name = name;
+                ingredient.quantity = quantity;
+                ingredient.unit = unit;
+            }
+        };
+
+        window.removeIngredient = function(id) {
+            const element = document.getElementById("ingredient-" + id);
+            if (element) {
+                element.remove();
+            }
+            ingredients = ingredients.filter(i => i.id !== id);
+        };
+
+        window.selectProfile = function(profile) {
+            document.querySelectorAll('.profile-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            document.querySelector(`[data-profile="${profile}"]`).classList.add('selected');
+            selectedProfile = profile;
+        };
+
+        window.saveRecipe = async function() {
+            const name = document.getElementById("recipeName").value;
+            const description = document.getElementById("recipeDescription").value;
+            const preparation = document.getElementById("recipePreparation").value;
+
+            if (!name) {
+                alert("Escribe un nombre para la receta");
+                return;
+            }
+
+            if (!selectedProfile) {
+                alert("Selecciona un perfil de sabor");
+                return;
+            }
+
+            const validIngredients = ingredients.filter(i => i.name && i.quantity > 0);
+            
+            if (validIngredients.length === 0) {
+                alert("Agrega al menos un ingrediente");
+                return;
+            }
+
+            if (!currentUser) {
+                alert("Debes iniciar sesión para guardar recetas");
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                // Guardar en Supabase
+                const { data, error } = await db
+                    .from('recipes')
+                    .insert([{
+                        user_id: currentUser.id,
+                        name: name,
+                        description: description,
+                        ingredients: validIngredients,
+                        preparation: preparation,
+                        profile: selectedProfile
+                    }])
+                    .select();
+
+                if (error) {
+                    console.error("Error guardando en Supabase:", error);
+                    alert("Error al guardar la receta: " + error.message);
+                    return;
+                }
+
+                alert("✅ Receta guardada exitosamente");
+
+                clearForm();
+                await loadRecipes();
+            } catch (err) {
+                console.error("Error al guardar:", err);
+                alert("Error al guardar la receta");
+            }
+        };
+
+        function clearForm() {
+            document.getElementById("recipeName").value = "";
+            document.getElementById("recipeDescription").value = "";
+            document.getElementById("recipePreparation").value = "";
+            document.getElementById("ingredientsContainer").innerHTML = "";
+            
+            document.querySelectorAll('.profile-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            ingredients = [];
+            selectedProfile = null;
+            addIngredient();
+        }
+
+        async function loadRecipes() {
+            if (!currentUser) {
+                console.log("No hay usuario autenticado");
+                return;
+            }
+
+            try {
+                // Cargar recetas desde Supabase
+                const { data, error } = await db
+                    .from('recipes')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("Error cargando recetas:", error);
+                    return;
+                }
+
+                savedRecipes = data || [];
+                console.log("Recetas cargadas:", savedRecipes.length);
+                renderRecipes();
+            } catch (err) {
+                console.error("Error al cargar recetas:", err);
+            }
+        }
+
+        function renderRecipes() {
+            const container = document.getElementById("recipesContainer");
+            
+            let filtered = savedRecipes;
+            
+            if (currentFilter !== 'all') {
+                filtered = savedRecipes.filter(r => r.profile === currentFilter);
+            }
+
+            const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
+            if (searchTerm) {
+                filtered = filtered.filter(r => 
+                    r.name.toLowerCase().includes(searchTerm) ||
+                    r.description.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay recetas que coincidan</div>';
+                return;
+            }
+
+            const profileIcons = {
+                'dulce': '🍬',
+                'suave': '🌸',
+                'seco': '🍋',
+                'fuerte': '🔥',
+                'extra-fuerte': '💥'
+            };
+
+            const profileNames = {
+                'dulce': 'Dulce',
+                'suave': 'Suave',
+                'seco': 'Seco',
+                'fuerte': 'Fuerte',
+                'extra-fuerte': 'Extra Fuerte'
+            };
+
+            container.innerHTML = filtered.map(recipe => `
+                <div class="recipe-card">
+                    <div class="recipe-card-header">
+                        <div>
+                            <div class="recipe-name">${recipe.name}</div>
+                            <span class="recipe-profile">${profileIcons[recipe.profile]} ${profileNames[recipe.profile]}</span>
+                        </div>
+                        <div class="recipe-actions">
+                            <button class="action-btn" onclick="deleteRecipe(${recipe.id})">✕</button>
+                        </div>
+                    </div>
+                    
+                    ${recipe.description ? `<div class="recipe-description">${recipe.description}</div>` : ''}
+                    
+                    <div class="recipe-ingredients">
+                        <h4>Ingredientes</h4>
+                        ${recipe.ingredients.map(ing => `
+                            <div class="ingredient-item">
+                                ${ing.name} - ${ing.quantity} ${ing.unit}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${recipe.preparation ? `
+                        <div class="recipe-preparation">
+                            <h4>Preparación</h4>
+                            <p>${recipe.preparation.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        window.deleteRecipe = async function(id) {
+            if (!confirm("¿Eliminar esta receta?")) return;
+
+            try {
+                const { error } = await db
+                    .from('recipes')
+                    .delete()
+                    .eq('id', id)
+                    .eq('user_id', currentUser.id);
+
+                if (error) {
+                    console.error("Error eliminando receta:", error);
+                    alert("Error al eliminar la receta");
+                    return;
+                }
+
+                alert("Receta eliminada");
+                await loadRecipes();
+            } catch (err) {
+                console.error("Error al eliminar:", err);
+                alert("Error al eliminar la receta");
+            }
+        };
+
+        window.filterByProfile = function(profile) {
+            currentFilter = profile;
+            
+            document.querySelectorAll('.filter-pill').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            document.querySelector(`[data-filter="${profile}"]`).classList.add('active');
+            
+            renderRecipes();
+        };
+
+        window.filterRecipes = function() {
+            renderRecipes();
+        };
+    </script>
+</body>
+</html>
