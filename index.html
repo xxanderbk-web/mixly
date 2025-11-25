@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mixly - Dashboard</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
     <style>
         * {
             margin: 0;
@@ -119,7 +118,7 @@
 
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-bottom: 60px;
         }
@@ -177,6 +176,40 @@
             line-height: 1.6;
             font-size: 0.95em;
         }
+
+        .stats-bar {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            padding: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 300;
+            color: #dc2626;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider {
+            width: 1px;
+            background: #2a2a2a;
+        }
     </style>
 </head>
 
@@ -200,8 +233,8 @@
             <div class="logo">🔥</div>
             <h1>Mixly</h1>
             <p class="subtitle">Sistema de Gestión Profesional</p>
-            <p class="version">v1.6.0</p>
-            <p class="version" style="font-size: 0.65em; margin-top: 5px; opacity: 0.5;">Ahora con un costeo más dinámico y recetario profesional</p>
+            <p class="version">v1.5.0</p>
+            <p class="version" style="font-size: 0.65em; margin-top: 5px; opacity: 0.5;">Gracias Guido, ahora Mixly tiene reset password gracias a tus sugerencias</p>
         </div>
 
         <div class="menu-grid">
@@ -210,14 +243,6 @@
                 <div class="menu-title">PRODUCTOS</div>
                 <div class="menu-description">
                     Gestiona tu inventario completo de licores, frutas, insumos y bases
-                </div>
-            </a>
-
-            <a href="recetario.html" class="menu-card">
-                <span class="menu-icon">📖</span>
-                <div class="menu-title">RECETARIO</div>
-                <div class="menu-description">
-                    Crea y guarda tus recetas con ingredientes, preparación y perfiles
                 </div>
             </a>
 
@@ -233,7 +258,7 @@
                 <span class="menu-icon">💰</span>
                 <div class="menu-title">COSTEO</div>
                 <div class="menu-description">
-                    Calcula costos exactos de cócteles y márgenes de ganancia
+                    Calcula costos exactos de cócteles y guarda tus recetas
                 </div>
             </a>
 
@@ -283,6 +308,7 @@
                 document.getElementById("loadingScreen").style.display = "none";
                 document.getElementById("mainContainer").classList.add("loaded");
 
+                loadStats();
             } catch (err) {
                 console.error("Error al verificar sesión:", err);
                 redirectToLogin();
@@ -306,12 +332,15 @@
             try {
                 isRedirecting = true;
 
+                // 1. Desactivar el listener PRIMERO
                 if (authSubscription && authSubscription.unsubscribe) {
                     authSubscription.unsubscribe();
                 }
 
+                // 2. Cerrar sesión en Supabase
                 await db.auth.signOut({ scope: 'local' });
 
+                // 3. Limpiar TODO el almacenamiento
                 try {
                     localStorage.clear();
                 } catch(e) {}
@@ -320,6 +349,7 @@
                     sessionStorage.clear();
                 } catch(e) {}
 
+                // 4. Limpiar cookies de Supabase
                 const cookies = document.cookie.split(";");
                 for (let cookie of cookies) {
                     const eqPos = cookie.indexOf("=");
@@ -328,15 +358,35 @@
                     document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
                 }
 
+                // 5. Pausa para asegurar limpieza
                 await new Promise(resolve => setTimeout(resolve, 500));
 
+                // 6. Redirigir con parámetro
                 window.location.replace("login.html?logout=true");
             } catch (err) {
                 console.error("Error al cerrar sesión:", err);
+                // Forzar redirección de todas formas
                 window.location.replace("login.html?logout=true");
             }
         }
 
+        function loadStats() {
+            try {
+                const products = JSON.parse(localStorage.getItem("bar-products") || "[]");
+                document.getElementById("totalProducts").textContent = products.length;
+
+                const total = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0);
+                document.getElementById("totalInvestment").textContent = 
+                    "$" + total.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+
+                const recipes = JSON.parse(localStorage.getItem("bar-recipes") || "[]");
+                document.getElementById("totalRecipes").textContent = recipes.length;
+            } catch (err) {
+                console.error("Error al cargar estadísticas:", err);
+            }
+        }
+
+        // Configurar listener de autenticación
         authSubscription = db.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' && !isRedirecting) {
                 redirectToLogin();
