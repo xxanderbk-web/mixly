@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mixly - Inventario</title>
     <link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
     <style>
         * {
             margin: 0;
@@ -523,15 +523,29 @@
             const { data, error } = await db
                 .from("inventory")
                 .select("*")
-                .eq("user_id", currentUserId)
-                .order("category", { ascending: true });
+                .eq("user_id", currentUserId);
 
             if (error) {
                 console.error("Error cargando inventario:", error);
                 return;
             }
 
-            inventory = data || [];
+            // Ordenar jerárquicamente: Categoría → Proveedor → Producto
+            inventory = (data || []).sort((a, b) => {
+                // 1. Ordenar por categoría
+                const catCompare = a.category.localeCompare(b.category);
+                if (catCompare !== 0) return catCompare;
+                
+                // 2. Dentro de la categoría, ordenar por proveedor
+                const provA = (a.provider || 'Sin proveedor').toLowerCase();
+                const provB = (b.provider || 'Sin proveedor').toLowerCase();
+                const provCompare = provA.localeCompare(provB);
+                if (provCompare !== 0) return provCompare;
+                
+                // 3. Dentro del proveedor, ordenar por nombre de producto
+                return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+            });
+
             renderInventory();
         }
 
@@ -676,7 +690,7 @@
                 return;
             }
 
-            // Agrupar por categoría
+            // Agrupar por categoría manteniendo el orden alfabético
             const grouped = {};
             inventory.forEach(item => {
                 if (!grouped[item.category]) {
@@ -711,6 +725,7 @@
             // Fila vacía
             worksheet.addRow([]);
 
+            // Categorías ya ordenadas alfabéticamente
             const categories = Object.keys(grouped).sort();
             
             categories.forEach(category => {
@@ -731,7 +746,7 @@
                 });
                 headerRow.height = 25;
                 
-                // Productos de la categoría
+                // Productos ya vienen ordenados por proveedor → producto
                 grouped[category].forEach(item => {
                     const unit = item.unit || 'Ud';
                     const stockDisplay = `${item.stock} ${unit}`;
