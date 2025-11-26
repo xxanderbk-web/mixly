@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mixly - Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍸</text></svg>">
     <style>
         * {
             margin: 0;
@@ -116,7 +117,6 @@
             opacity: 0.7;
         }
 
-        /* Banners de guía */
         .guide-banner {
             background: linear-gradient(135deg, #1a1a1a 0%, #2a1a1a 100%);
             border: 2px solid #dc2626;
@@ -206,10 +206,6 @@
             font-size: 0.85em;
             color: #dc2626;
             border: 1px solid rgba(220, 38, 38, 0.3);
-        }
-
-        .guide-arrow {
-            margin-left: 15px;
         }
 
         .guide-cta {
@@ -349,11 +345,6 @@
             .guide-icon {
                 font-size: 2.5em;
             }
-
-            .guide-arrow {
-                margin-left: 0;
-                margin-top: 10px;
-            }
         }
     </style>
 </head>
@@ -382,18 +373,18 @@
             <p class="version" style="font-size: 0.65em; margin-top: 5px; opacity: 0.5;">Ahora con costeo dinámico y recetario profesional</p>
         </div>
 
-        <!-- Banner de bienvenida (sin productos) -->
+        <!-- Banner paso 1: Sin productos -->
         <div class="guide-banner" id="welcomeBanner">
             <div class="guide-content">
                 <div class="guide-icon">👋</div>
                 <div class="guide-text">
                     <div class="guide-title">¡Bienvenido a Mixly!</div>
                     <div class="guide-description">
-                        Para comenzar, necesitas agregar productos a tu inventario. Estos productos serán la base para crear recetas y calcular costos.
+                        Para comenzar, agrega productos a tu inventario. Estos serán la base para calcular costos de tus cócteles.
                     </div>
                     <div class="guide-steps">
                         <span>📍 PASO 1 DE 2</span>
-                        <span class="guide-arrow">→ Agrega tus primeros productos</span>
+                        <span>→ Agrega tus primeros productos</span>
                     </div>
                     <button class="guide-cta" onclick="window.location.href='productos.html'">
                         IR A PRODUCTOS
@@ -402,14 +393,14 @@
             </div>
         </div>
 
-        <!-- Banner de éxito (tiene productos, sin costeos) -->
+        <!-- Banner paso 2: Tiene productos, sin costeos -->
         <div class="guide-banner success-banner" id="successBanner">
             <div class="guide-content">
                 <div class="guide-icon">🎉</div>
                 <div class="guide-text">
                     <div class="guide-title">¡Excelente! Ya tienes productos</div>
                     <div class="guide-description">
-                        Ahora puedes crear tus primeras recetas y calcular los costos exactos de tus cócteles.
+                        Ahora puedes usar la calculadora de costeo para saber cuánto cuesta cada cóctel que preparas.
                     </div>
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -423,10 +414,10 @@
                     </div>
                     <div class="guide-steps" style="margin-top: 15px;">
                         <span>✅ PASO 1 COMPLETO</span>
-                        <span class="guide-arrow">→ Paso 2: Crea tus recetas</span>
+                        <span>→ Paso 2: Calcula tus costos</span>
                     </div>
-                    <button class="guide-cta" onclick="window.location.href='recipes.html'" style="background: #10b981;">
-                        IR A RECETARIO
+                    <button class="guide-cta" onclick="window.location.href='costeo.html'" style="background: #10b981;">
+                        IR A COSTEO
                     </button>
                 </div>
             </div>
@@ -441,7 +432,7 @@
                 </div>
             </a>
 
-            <a href="recipes.html" class="menu-card">
+            <a href="recetario.html" class="menu-card">
                 <span class="menu-icon">📖</span>
                 <div class="menu-title">RECETARIO</div>
                 <div class="menu-description">
@@ -580,13 +571,13 @@
                 const userId = session.user.id;
 
                 // Verificar productos
-                const { data: products, error: productsError } = await db
+                const { data: products } = await db
                     .from('products')
                     .select('id')
                     .eq('user_id', userId);
 
                 // Verificar recetas
-                const { data: recipes, error: recipesError } = await db
+                const { data: recipes } = await db
                     .from('recipes')
                     .select('id')
                     .eq('user_id', userId);
@@ -600,13 +591,12 @@
 
                 // Mostrar banner apropiado
                 if (productCount === 0) {
-                    // No tiene productos: mostrar banner de bienvenida
+                    // Paso 1: No tiene productos
                     document.getElementById('welcomeBanner').classList.add('show');
-                } else if (recipeCount === 0) {
-                    // Tiene productos pero no recetas: mostrar banner de éxito
+                } else {
+                    // Paso 2: Tiene productos, mostrar banner de éxito
                     document.getElementById('successBanner').classList.add('show');
                 }
-                // Si tiene productos Y recetas: no mostrar ningún banner
 
             } catch (err) {
                 console.error("Error al verificar progreso:", err);
