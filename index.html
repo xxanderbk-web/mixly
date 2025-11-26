@@ -582,6 +582,9 @@
                     .select('id')
                     .eq('user_id', userId);
 
+                // Verificar si ya usó el costeo (flag en localStorage)
+                const hasUsedCosting = localStorage.getItem('hasUsedCosting_' + userId) === 'true';
+
                 const productCount = products?.length || 0;
                 const recipeCount = recipes?.length || 0;
 
@@ -593,10 +596,11 @@
                 if (productCount === 0) {
                     // Paso 1: No tiene productos
                     document.getElementById('welcomeBanner').classList.add('show');
-                } else {
-                    // Paso 2: Tiene productos, mostrar banner de éxito
+                } else if (!hasUsedCosting) {
+                    // Paso 2: Tiene productos pero no ha usado costeo
                     document.getElementById('successBanner').classList.add('show');
                 }
+                // Si hasUsedCosting es true, no se muestra ningún banner
 
             } catch (err) {
                 console.error("Error al verificar progreso:", err);

@@ -640,6 +640,11 @@
             document.getElementById("resultSection").classList.add("show");
             document.getElementById("resultSection").scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         };
+        // Marcar que el usuario ya usó el costeo
+const { data: { session } } = await db.auth.getSession();
+if (session) {
+    localStorage.setItem('hasUsedCosting_' + session.user.id, 'true');
+}
 
         window.clearCalculator = function() {
             if (confirm("¿Limpiar todos los ingredientes?")) {
