@@ -48,6 +48,12 @@
             border-bottom: 1px solid #2a2a2a;
         }
 
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .user-info {
             color: #666;
             font-size: 0.9em;
@@ -86,6 +92,166 @@
             cursor: not-allowed;
         }
 
+        .notification-bell {
+            position: relative;
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #888;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+
+        .notification-bell:hover {
+            color: #fff;
+            border-color: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .notification-bell.has-alerts {
+            color: #dc2626;
+            border-color: #dc2626;
+            animation: bellRing 2s infinite;
+        }
+
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30% { transform: rotate(-15deg); }
+            20%, 40% { transform: rotate(15deg); }
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc2626;
+            color: #fff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: bold;
+            border: 2px solid #0a0a0a;
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            min-width: 350px;
+            max-width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .notification-dropdown.show {
+            display: block;
+            animation: dropdownSlide 0.3s ease-out;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-header {
+            padding: 20px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            font-size: 1em;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: #dc2626;
+        }
+
+        .view-all-btn {
+            background: transparent;
+            color: #888;
+            border: none;
+            font-size: 0.85em;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .view-all-btn:hover {
+            color: #dc2626;
+        }
+
+        .notification-item {
+            padding: 20px;
+            border-bottom: 1px solid #1a1a1a;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: #222;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .notification-icon {
+            font-size: 1.5em;
+        }
+
+        .notification-title {
+            font-weight: 400;
+            color: #fff;
+            font-size: 0.95em;
+        }
+
+        .notification-meta {
+            color: #666;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .notification-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .bell-wrapper {
+            position: relative;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 60px;
@@ -118,169 +284,11 @@
             opacity: 0.7;
         }
 
-        .guide-banner {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a1a1a 100%);
-            border: 2px solid #dc2626;
-            border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-            display: none;
-        }
-
-        .guide-banner.show {
-            display: block;
-            animation: slideDown 0.5s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .guide-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #dc2626, #ef4444, #dc2626);
-            background-size: 200% 100%;
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { background-position: 0% 0%; }
-            50% { background-position: 100% 0%; }
-        }
-
-        .guide-content {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .guide-icon {
-            font-size: 3.5em;
-            flex-shrink: 0;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .guide-text {
-            flex: 1;
-        }
-
-        .guide-title {
-            font-size: 1.5em;
-            font-weight: 500;
-            margin-bottom: 10px;
-            color: #dc2626;
-            letter-spacing: 1px;
-        }
-
-        .guide-description {
-            color: #aaa;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .guide-steps {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(220, 38, 38, 0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            color: #dc2626;
-            border: 1px solid rgba(220, 38, 38, 0.3);
-        }
-
-        .guide-cta {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 0.9em;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            margin-top: 15px;
-        }
-
-        .guide-cta:hover {
-            background: #ef4444;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-        }
-
-        .success-banner {
-            background: linear-gradient(135deg, #1a2a1a 0%, #1a3a1a 100%);
-            border-color: #10b981;
-        }
-
-        .success-banner::before {
-            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
-        }
-
-        .success-banner .guide-title {
-            color: #10b981;
-        }
-
-        .success-banner .guide-steps {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: #10b981;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .stat-item {
-            background: rgba(16, 185, 129, 0.05);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2em;
-            font-weight: 600;
-            color: #10b981;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.8em;
-            color: #888;
-            margin-top: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
+            margin-bottom: 60px;
         }
 
         .menu-card {
@@ -336,17 +344,6 @@
             line-height: 1.6;
             font-size: 0.95em;
         }
-
-        @media (max-width: 768px) {
-            .guide-content {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .guide-icon {
-                font-size: 2.5em;
-            }
-        }
     </style>
 </head>
 
@@ -359,11 +356,32 @@
 
     <div class="container" id="mainContainer">
         <div class="top-bar">
-            <div class="user-info">
-                <div class="bar-name" id="barNameDisplay">Cargando...</div>
-                <span class="username" id="usernameDisplay"></span>
+            <div class="top-bar-left">
+                <div class="user-info">
+                    <div class="bar-name" id="barNameDisplay">Cargando...</div>
+                    <span class="username" id="usernameDisplay"></span>
+                </div>
             </div>
-            <button class="logout-btn" id="logoutBtn" onclick="logout()">CERRAR SESIÓN</button>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="bell-wrapper">
+                    <button class="notification-bell" id="notificationBell" onclick="toggleNotifications()">
+                        🔔
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h3>RECORDATORIOS URGENTES</h3>
+                            <button class="view-all-btn" onclick="window.location.href='agenda.html'">Ver todos</button>
+                        </div>
+                        <div id="notificationsList">
+                            <div class="notification-empty">
+                                No hay recordatorios urgentes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn" onclick="logout()">CERRAR SESIÓN</button>
+            </div>
         </div>
 
         <div class="header">
@@ -371,57 +389,7 @@
             <h1>Mixly</h1>
             <p class="subtitle">Sistema de Gestión Profesional</p>
             <p class="version">v1.6.0</p>
-            <p class="version" style="font-size: 0.65em; margin-top: 5px; opacity: 0.5;">Ahora con costeo dinámico y recetario profesional</p>
-        </div>
-
-        <!-- Banner paso 1: Sin productos -->
-        <div class="guide-banner" id="welcomeBanner">
-            <div class="guide-content">
-                <div class="guide-icon">👋</div>
-                <div class="guide-text">
-                    <div class="guide-title">¡Bienvenido a Mixly!</div>
-                    <div class="guide-description">
-                        Para comenzar, agrega productos a tu inventario. Estos serán la base para calcular costos de tus cócteles.
-                    </div>
-                    <div class="guide-steps">
-                        <span>📍 PASO 1 DE 2</span>
-                        <span>→ Agrega tus primeros productos</span>
-                    </div>
-                    <button class="guide-cta" onclick="window.location.href='productos.html'">
-                        IR A PRODUCTOS
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Banner paso 2: Tiene productos, sin costeos -->
-        <div class="guide-banner success-banner" id="successBanner">
-            <div class="guide-content">
-                <div class="guide-icon">🎉</div>
-                <div class="guide-text">
-                    <div class="guide-title">¡Excelente! Ya tienes productos</div>
-                    <div class="guide-description">
-                        Ahora puedes usar la calculadora de costeo para saber cuánto cuesta cada cóctel que preparas.
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="stat-number" id="productCount">0</span>
-                            <span class="stat-label">Productos</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="recipeCount">0</span>
-                            <span class="stat-label">Recetas</span>
-                        </div>
-                    </div>
-                    <div class="guide-steps" style="margin-top: 15px;">
-                        <span>✅ PASO 1 COMPLETO</span>
-                        <span>→ Paso 2: Calcula tus costos</span>
-                    </div>
-                    <button class="guide-cta" onclick="window.location.href='costeo.html'" style="background: #10b981;">
-                        IR A COSTEO
-                    </button>
-                </div>
-            </div>
+            <p class="version" style="font-size: 0.65em; margin-top: 5px; opacity: 0.5;">Ahora con un costeo más dinámico y recetario profesional</p>
         </div>
 
         <div class="menu-grid">
@@ -433,7 +401,7 @@
                 </div>
             </a>
 
-            <a href="recipes.html" class="menu-card">
+            <a href="recetario.html" class="menu-card">
                 <span class="menu-icon">📖</span>
                 <div class="menu-title">RECETARIO</div>
                 <div class="menu-description">
@@ -475,10 +443,12 @@
 
         let isRedirecting = false;
         let authSubscription = null;
+        let currentUserId = null;
 
         window.onload = async () => {
             await checkAuth();
-            await checkUserProgress();
+            await loadUrgentNotifications();
+            requestNotificationPermission();
         };
 
         async function checkAuth() {
@@ -494,6 +464,7 @@
 
                 const user = data.session.user;
                 const metadata = user.user_metadata || {};
+                currentUserId = user.id;
 
                 document.getElementById("barNameDisplay").textContent = 
                     metadata.bar_name || metadata.barName || "Mi Bar";
@@ -564,49 +535,167 @@
             }
         });
 
-        async function checkUserProgress() {
+        // ============================================
+        // SISTEMA DE NOTIFICACIONES
+        // ============================================
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', (e) => {
+            const bellWrapper = document.querySelector('.bell-wrapper');
+            const dropdown = document.getElementById('notificationDropdown');
+            
+            if (bellWrapper && !bellWrapper.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        async function loadUrgentNotifications() {
+            if (!currentUserId) return;
+
             try {
-                const { data: { session } } = await db.auth.getSession();
-                if (!session) return;
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(23, 59, 59, 999);
 
-                const userId = session.user.id;
+                // Cargar tareas urgentes (hoy y mañana)
+                const { data: tasks, error } = await db
+                    .from('agenda')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .lte('fecha', tomorrow.toISOString().split('T')[0])
+                    .order('fecha', { ascending: true })
+                    .order('hora', { ascending: true });
 
-                // Verificar productos
-                const { data: products } = await db
-                    .from('products')
-                    .select('id')
-                    .eq('user_id', userId);
+                if (error) throw error;
 
-                // Verificar recetas
-                const { data: recipes } = await db
-                    .from('recipes')
-                    .select('id')
-                    .eq('user_id', userId);
+                const urgentTasks = tasks || [];
+                const urgentCount = urgentTasks.length;
 
-                // Verificar si ya usó el costeo (flag en localStorage)
-                const hasUsedCosting = localStorage.getItem('hasUsedCosting_' + userId) === 'true';
-
-                const productCount = products?.length || 0;
-                const recipeCount = recipes?.length || 0;
-
-                // Actualizar contadores
-                document.getElementById('productCount').textContent = productCount;
-                document.getElementById('recipeCount').textContent = recipeCount;
-
-                // Mostrar banner apropiado
-                if (productCount === 0) {
-                    // Paso 1: No tiene productos
-                    document.getElementById('welcomeBanner').classList.add('show');
-                } else if (!hasUsedCosting) {
-                    // Paso 2: Tiene productos pero no ha usado costeo
-                    document.getElementById('successBanner').classList.add('show');
+                // Actualizar badge
+                const badge = document.getElementById('notificationBadge');
+                const bell = document.getElementById('notificationBell');
+                
+                if (urgentCount > 0) {
+                    badge.textContent = urgentCount;
+                    badge.style.display = 'flex';
+                    bell.classList.add('has-alerts');
+                } else {
+                    badge.style.display = 'none';
+                    bell.classList.remove('has-alerts');
                 }
-                // Si hasUsedCosting es true, no se muestra ningún banner
+
+                // Mostrar notificaciones en dropdown
+                displayNotifications(urgentTasks);
+
+                // Enviar notificaciones push si hay tareas urgentes
+                if (urgentCount > 0 && Notification.permission === 'granted') {
+                    sendPushNotifications(urgentTasks);
+                }
 
             } catch (err) {
-                console.error("Error al verificar progreso:", err);
+                console.error('Error cargando notificaciones:', err);
             }
         }
+
+        function displayNotifications(tasks) {
+            const container = document.getElementById('notificationsList');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div class="notification-empty">
+                        No hay recordatorios urgentes
+                    </div>
+                `;
+                return;
+            }
+
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+
+            container.innerHTML = tasks.map(task => {
+                const taskDate = new Date(task.fecha + 'T' + (task.hora || '00:00'));
+                const isToday = task.fecha === today;
+                const isPast = taskDate < now;
+
+                let icon = '📅';
+                let timeText = '';
+
+                if (isPast) {
+                    icon = '⚠️';
+                    timeText = 'Vencida';
+                } else if (isToday) {
+                    icon = '🔥';
+                    timeText = 'Hoy';
+                } else {
+                    icon = '📌';
+                    timeText = 'Mañana';
+                }
+
+                return `
+                    <div class="notification-item" onclick="window.location.href='agenda.html'">
+                        <div class="notification-item-header">
+                            <span class="notification-icon">${icon}</span>
+                            <span class="notification-title">${task.titulo}</span>
+                        </div>
+                        <div class="notification-meta">
+                            ${timeText} • ${task.hora || 'Sin hora'} • ${task.tipo || 'Tarea'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Solicitar permisos de notificaciones
+        async function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                try {
+                    await Notification.requestPermission();
+                } catch (err) {
+                    console.log('Notificaciones no soportadas:', err);
+                }
+            }
+        }
+
+        // Enviar notificaciones push
+        function sendPushNotifications(tasks) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                return;
+            }
+
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+
+            // Enviar solo 1 notificación resumida para no saturar
+            const todayTasks = tasks.filter(t => t.fecha === today);
+            const pastTasks = tasks.filter(t => {
+                const taskDate = new Date(t.fecha + 'T' + (t.hora || '00:00'));
+                return taskDate < now;
+            });
+
+            if (pastTasks.length > 0) {
+                new Notification('⚠️ Mixly - Tareas Vencidas', {
+                    body: `Tienes ${pastTasks.length} tarea(s) vencida(s). ¡Revísalas!`,
+                    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>',
+                    tag: 'mixly-past-tasks',
+                    requireInteraction: true
+                });
+            } else if (todayTasks.length > 0) {
+                new Notification('🔥 Mixly - Recordatorio', {
+                    body: `Tienes ${todayTasks.length} tarea(s) para hoy`,
+                    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>',
+                    tag: 'mixly-today-tasks'
+                });
+            }
+        }
+
+        // Recargar notificaciones cada 5 minutos
+        setInterval(loadUrgentNotifications, 5 * 60 * 1000);
     </script>
     
 </body>
