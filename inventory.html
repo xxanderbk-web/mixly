@@ -865,6 +865,18 @@
                 showAlert('Error al cargar el inventario', 'error');
             }
         }
+        function handleTableNavigation(event) {
+    if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        const allInputs = Array.from(document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]'));
+        const currentIndex = allInputs.indexOf(event.target);
+        const nextInput = allInputs[currentIndex + 1];
+        if (nextInput) {
+            nextInput.focus();
+            nextInput.select();
+        }
+    }
+}
 
         function renderInventory() {
             const tbody = document.getElementById('inventoryTable');
@@ -897,8 +909,7 @@
                                    step="0.01"
                                    data-row="${index}"
                                    data-type="stock"
-                                   onchange="updateStock(${item.id}, this.value)"
-                                   onkeydown="handleTableNavigation(event, ${index}, 'stock')">
+                                   data-id="${item.id}">
                         </td>
                         <td class="center">${item.unit}</td>
                         <td class="center">${item.min_stock}</td>
@@ -910,8 +921,7 @@
                                    step="0.01"
                                    data-row="${index}"
                                    data-type="pedido"
-                                   onchange="updatePedido(${item.id}, this.value)"
-                                   onkeydown="handleTableNavigation(event, ${index}, 'pedido')">
+                                   data-id="${item.id}">
                         </td>
                         <td class="center ${stockStatus}">${statusText}</td>
                         <td class="center">
@@ -920,6 +930,36 @@
                     </tr>
                 `;
             }).join('');
+
+            // Agregar event listeners después de renderizar
+            attachTableInputListeners();
+        }
+
+        function attachTableInputListeners() {
+            const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
+            
+            allInputs.forEach(input => {
+                // Remover listeners anteriores para evitar duplicados
+                input.removeEventListener('keydown', handleTableNavigation);
+                input.removeEventListener('change', handleInputChange);
+                
+                // Agregar listeners
+                input.addEventListener('keydown', handleTableNavigation);
+                input.addEventListener('change', handleInputChange);
+            });
+        }
+
+        function handleInputChange(event) {
+            const input = event.target;
+            const id = parseInt(input.getAttribute('data-id'));
+            const type = input.getAttribute('data-type');
+            const value = input.value;
+            
+            if (type === 'stock') {
+                updateStock(id, value);
+            } else if (type === 'pedido') {
+                updatePedido(id, value);
+            }
         }
 
         async function saveProduct() {
