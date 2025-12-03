@@ -796,6 +796,10 @@
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {// Continuación del código JavaScript desde el addEventListener de Enter
 
+                        // Continuación del código JavaScript desde el addEventListener de Enter
+
+                        // Continuación del código JavaScript desde el addEventListener de Enter
+
                         e.preventDefault();
                         if (index < formInputs.length - 1) {
                             document.getElementById(formInputs[index + 1]).focus();
@@ -938,9 +942,16 @@
 
         async function updateStock(id, newStock) {
             try {
+                const stockValue = parseFloat(newStock);
+                if (isNaN(stockValue) || stockValue < 0) {
+                    alert('Por favor ingresa un valor válido para el stock');
+                    await loadInventory();
+                    return;
+                }
+
                 const { error } = await db
                     .from('inventory')
-                    .update({ stock: parseFloat(newStock) })
+                    .update({ stock: stockValue })
                     .eq('id', id);
 
                 if (error) throw error;
@@ -955,9 +966,16 @@
 
         async function updatePedido(id, newPedido) {
             try {
+                const pedidoValue = parseFloat(newPedido);
+                if (isNaN(pedidoValue) || pedidoValue < 0) {
+                    alert('Por favor ingresa un valor válido para la cantidad de pedido');
+                    await loadInventory();
+                    return;
+                }
+
                 const { error } = await db
                     .from('inventory')
-                    .update({ pedido: parseFloat(newPedido) })
+                    .update({ pedido: pedidoValue })
                     .eq('id', id);
 
                 if (error) throw error;
@@ -990,18 +1008,21 @@
         }
 
         async function resetAllQuantities() {
-            if (!confirm('¿Vaciar todas las cantidades de pedido? Esta acción no se puede deshacer.')) return;
+            if (!confirm('¿Vaciar TODAS las cantidades (stock actual y pedidos)? Esta acción no se puede deshacer.')) return;
 
             try {
                 const { error } = await db
                     .from('inventory')
-                    .update({ pedido: 0 })
+                    .update({ 
+                        stock: 0,
+                        pedido: 0 
+                    })
                     .eq('user_id', currentUserId);
 
                 if (error) throw error;
 
                 await loadInventory();
-                showAlert('Cantidades de pedido vaciadas');
+                showAlert('Stock y cantidades de pedido vaciadas');
             } catch (error) {
                 console.error('Error al resetear cantidades:', error);
                 alert('Error al vaciar las cantidades');
