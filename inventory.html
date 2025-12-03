@@ -880,7 +880,7 @@
                 return;
             }
 
-            tbody.innerHTML = inventory.map(item => {
+            tbody.innerHTML = inventory.map((item, index) => {
                 const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
                 const statusText = item.stock <= item.min_stock ? '⚠️ BAJO' : '✓ OK';
                 
@@ -895,7 +895,10 @@
                                    value="${item.stock}" 
                                    min="0" 
                                    step="0.01"
-                                   onchange="updateStock(${item.id}, this.value)">
+                                   data-row="${index}"
+                                   data-type="stock"
+                                   onchange="updateStock(${item.id}, this.value)"
+                                   onkeydown="handleTableNavigation(event, ${index}, 'stock')">
                         </td>
                         <td class="center">${item.unit}</td>
                         <td class="center">${item.min_stock}</td>
@@ -905,7 +908,10 @@
                                    value="${item.pedido || 0}" 
                                    min="0" 
                                    step="0.01"
-                                   onchange="updatePedido(${item.id}, this.value)">
+                                   data-row="${index}"
+                                   data-type="pedido"
+                                   onchange="updatePedido(${item.id}, this.value)"
+                                   onkeydown="handleTableNavigation(event, ${index}, 'pedido')">
                         </td>
                         <td class="center ${stockStatus}">${statusText}</td>
                         <td class="center">
@@ -1082,62 +1088,20 @@
 
             try {
                 const workbook = new ExcelJS.Workbook();
-                
-                // Agrupar productos por proveedor
-                const providerGroups = {};
-                inventory.forEach(item => {
-                    if (!providerGroups[item.provider]) {
-                        providerGroups[item.provider] = [];
-                    }
-                    providerGroups[item.provider].push(item);
-                });
 
-                // Crear hoja de resumen
-                const summarySheet = workbook.addWorksheet('RESUMEN GENERAL');
-                summarySheet.columns = [
-                    { header: 'PRODUCTO', key: 'name', width: 30 },
-                    { header: 'PROVEEDOR', key: 'provider', width: 20 },
-                    { header: 'CATEGORÍA', key: 'category', width: 15 },
-                    { header: 'STOCK ACTUAL', key: 'stock', width: 15 },
-                    { header: 'UNIDAD', key: 'unit', width: 10 },
-                    { header: 'STOCK MÍN.', key: 'min_stock', width: 15 },
-                    { header: 'CANTIDAD A PEDIR', key: 'pedido', width: 18 },
-                    { header: 'ESTADO', key: 'status', width: 12 }
+                // Crear hoja de pedido tipo "HOJA DE PEDIDO DE BAR"
+                const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
+                pedidoSheet.columns = [
+                    { key: 'producto', width: 35 },
+                    { key: 'proveedor', width: 25 },
+                    { key: 'stock_actual', width: 18 },
+                    { key: 'stock_minimo', width: 18 },
+                    { key: 'pedido_sugerido', width: 20 }
                 ];
 
-                // Estilo del encabezado de resumen
-                summarySheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                summarySheet.getRow(1).fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: 'FFFF6B6B' }
-                };
-                summarySheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+                let currentRow = 1;
 
-                // Agregar datos al resumen
-                inventory.forEach(item => {
-                    const row = summarySheet.addRow({
-                        name: item.name,
-                        provider: item.provider,
-                        category: item.category,
-                        stock: item.stock,
-                        unit: item.unit,
-                        min_stock: item.min_stock,
-                        pedido: item.pedido || 0,
-                        status: item.stock <= item.min_stock ? 'BAJO' : 'OK'
-                    });
-
-                    // Colorear filas con stock bajo
-                    if (item.stock <= item.min_stock) {
-                        row.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: 'FFFFF3CD' }
-                        };
-                    }
-                });
-
-                // Agrupar productos por categoría para las hojas de pedido
+                // Agrupar productos por categoría > proveedor > producto
                 const categoryGroups = {};
                 inventory.forEach(item => {
                     if (!categoryGroups[item.category]) {
@@ -1149,28 +1113,13 @@
                     categoryGroups[item.category][item.provider].push(item);
                 });
 
-                // Crear hoja de pedido con todas las categorías organizadas
-                const pedidoSheet = workbook.addWorksheet('Pedido');
-                pedidoSheet.columns = [
-                    { key: 'name', width: 30 },
-                    { key: 'provider', width: 20 },
-                    { key: 'stock', width: 15 },
-                    { key: 'min_stock', width: 15 },
-                    { key: 'pedido', width: 18 }
-                ];
-
-                let currentRow = 1;
-
                 // Ordenar categorías alfabéticamente
                 const sortedCategories = Object.keys(categoryGroups).sort();
 
-                sortedCategories.forEach(category => {
+                sortedCategories.forEach((category, catIndex) => {
                     const providers = categoryGroups[category];
-                    const productsInCategory = Object.values(providers).flat().filter(item => item.pedido > 0);
                     
-                    if (productsInCategory.length === 0) return;
-
-                    // Encabezado de categoría
+                    // Encabezado de categoría (fila azul oscuro)
                     pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
                     const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
                     categoryHeader.value = category;
@@ -1178,43 +1127,52 @@
                     categoryHeader.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF3B82F6' }
+                        fgColor: { argb: 'FF4472C4' }
                     };
                     categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
+                    categoryHeader.border = {
+                        top: { style: 'thin', color: { argb: 'FF000000' } },
+                        left: { style: 'thin', color: { argb: 'FF000000' } },
+                        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                        right: { style: 'thin', color: { argb: 'FF000000' } }
+                    };
                     pedidoSheet.getRow(currentRow).height = 25;
                     currentRow++;
 
-                    // Encabezados de columnas
-                    const headers = ['Proveedor', 'Stock Actual', 'Stock Mínimo', 'Pedido Sugerido'];
+                    // Encabezados de columnas (azul celeste)
                     const headerRow = pedidoSheet.getRow(currentRow);
-                    headerRow.getCell(2).value = headers[0];
-                    headerRow.getCell(3).value = headers[1];
-                    headerRow.getCell(4).value = headers[2];
-                    headerRow.getCell(5).value = headers[3];
+                    headerRow.getCell(1).value = category;
+                    headerRow.getCell(2).value = 'Proveedor';
+                    headerRow.getCell(3).value = 'Stock Actual';
+                    headerRow.getCell(4).value = 'Stock Mínimo';
+                    headerRow.getCell(5).value = 'Pedido Sugerido';
+                    
                     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                    headerRow.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF1E40AF' }
-                    };
                     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-                    headerRow.eachCell((cell) => {
-                        cell.border = {
-                            top: { style: 'thin' },
-                            left: { style: 'thin' },
-                            bottom: { style: 'thin' },
-                            right: { style: 'thin' }
+                    headerRow.height = 22;
+                    
+                    for (let col = 1; col <= 5; col++) {
+                        const cell = headerRow.getCell(col);
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FF5B9BD5' }
                         };
-                    });
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FF000000' } },
+                            left: { style: 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                            right: { style: 'thin', color: { argb: 'FF000000' } }
+                        };
+                    }
                     currentRow++;
 
                     // Ordenar proveedores alfabéticamente
                     const sortedProviders = Object.keys(providers).sort();
 
                     sortedProviders.forEach(provider => {
-                        const products = providers[provider].filter(item => item.pedido > 0);
-                        if (products.length === 0) return;
-
+                        const products = providers[provider];
+                        
                         // Ordenar productos alfabéticamente
                         products.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -1224,23 +1182,51 @@
                             row.getCell(2).value = provider;
                             row.getCell(3).value = `${item.stock} ${item.unit}`;
                             row.getCell(4).value = `${item.min_stock} ${item.unit}`;
-                            row.getCell(5).value = item.pedido;
+                            row.getCell(5).value = item.pedido || 0;
                             
                             row.alignment = { vertical: 'middle' };
-                            row.eachCell((cell) => {
+                            row.height = 20;
+                            
+                            // Calcular el porcentaje de stock
+                            const stockPercentage = (item.stock / item.min_stock) * 100;
+                            
+                            for (let col = 1; col <= 5; col++) {
+                                const cell = row.getCell(col);
                                 cell.border = {
-                                    top: { style: 'thin' },
-                                    left: { style: 'thin' },
-                                    bottom: { style: 'thin' },
-                                    right: { style: 'thin' }
+                                    top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                    left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                    bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                    right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
                                 };
-                            });
+                                
+                                // Aplicar color de fondo a la columna "Pedido Sugerido"
+                                if (col === 5) {
+                                    if (stockPercentage < 50) {
+                                        // Rojo suave si está por debajo del 50%
+                                        cell.fill = {
+                                            type: 'pattern',
+                                            pattern: 'solid',
+                                            fgColor: { argb: 'FFFFE6E6' }
+                                        };
+                                    } else if (stockPercentage >= 50 && stockPercentage <= 100) {
+                                        // Amarillo suave si está entre 50% y 100%
+                                        cell.fill = {
+                                            type: 'pattern',
+                                            pattern: 'solid',
+                                            fgColor: { argb: 'FFFFF4CC' }
+                                        };
+                                    }
+                                }
+                            }
+                            
                             currentRow++;
                         });
                     });
 
-                    // Espacio entre categorías
-                    currentRow++;
+                    // Fila vacía entre categorías (excepto después de la última)
+                    if (catIndex < sortedCategories.length - 1) {
+                        currentRow++;
+                    }
                 });
 
                 // Generar archivo
