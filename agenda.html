@@ -542,8 +542,16 @@
             }
             currentUserId = data.session.user.id;
             
+            // Solicitar permisos de notificaciones
+            if ("Notification" in window && Notification.permission === "default") {
+                await Notification.requestPermission();
+            }
+            
             // Establecer fecha mínima como hoy
-            document.getElementById('reminderDate').min = new Date().toISOString().split('T')[0];
+            const today = new Date();
+            const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000))
+                .toISOString().split('T')[0];
+            document.getElementById('reminderDate').min = localDate;
             
             await loadReminders();
             setupFormHandler();
@@ -563,6 +571,40 @@
 
             reminders = data || [];
             renderReminders();
+            checkNotifications();
+        }
+
+        async function checkNotifications() {
+            if (!("Notification" in window)) return;
+            
+            if (Notification.permission === "default") {
+                await Notification.requestPermission();
+            }
+            
+            if (Notification.permission !== "granted") return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            reminders.forEach(reminder => {
+                if (reminder.completed) return;
+                
+                const reminderDate = new Date(reminder.date + 'T00:00:00');
+                reminderDate.setHours(0, 0, 0, 0);
+                
+                // Notificar si es hoy o está vencido
+                if (reminderDate <= today) {
+                    const notifKey = `notif_${reminder.id}_${reminder.date}`;
+                    if (!localStorage.getItem(notifKey)) {
+                        new Notification("Recordatorio Mixly", {
+                            body: `${getTypeIcon(reminder.type)} ${reminder.title}`,
+                            icon: "logo.png",
+                            tag: `reminder-${reminder.id}`
+                        });
+                        localStorage.setItem(notifKey, 'shown');
+                    }
+                }
+            });
         }
 
         function renderReminders() {
@@ -574,7 +616,7 @@
 
             // Filtrar según tab activo
             let filtered = reminders.filter(r => {
-                const reminderDate = new Date(r.date);
+                const reminderDate = new Date(r.date + 'T00:00:00');
                 reminderDate.setHours(0, 0, 0, 0);
 
                 if (currentTab === 'completed') {
@@ -596,7 +638,7 @@
             // Mostrar alertas urgentes
             const urgent = reminders.filter(r => {
                 if (r.completed) return false;
-                const reminderDate = new Date(r.date);
+                const reminderDate = new Date(r.date + 'T00:00:00');
                 reminderDate.setHours(0, 0, 0, 0);
                 return reminderDate <= today;
             });
@@ -617,7 +659,7 @@
             }
 
             container.innerHTML = filtered.map(reminder => {
-                const date = new Date(reminder.date);
+                const date = new Date(reminder.date + 'T00:00:00');
                 const formattedDate = date.toLocaleDateString('es-CL', { 
                     weekday: 'short', 
                     day: 'numeric', 
@@ -678,7 +720,7 @@
 
             section.style.display = 'grid';
             section.innerHTML = urgent.map(reminder => {
-                const date = new Date(reminder.date);
+                const date = new Date(reminder.date + 'T00:00:00');
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const isToday = date.getTime() === today.getTime();
@@ -731,7 +773,7 @@
         function getUrgencyBadge(dateStr, completed) {
             if (completed) return '';
             
-            const date = new Date(dateStr);
+            const date = new Date(dateStr + 'T00:00:00');
             date.setHours(0, 0, 0, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -766,7 +808,7 @@
 
         async function snoozeReminder(id) {
             const reminder = reminders.find(r => r.id === id);
-            const newDate = new Date(reminder.date);
+            const newDate = new Date(reminder.date + 'T00:00:00');
             newDate.setDate(newDate.getDate() + 1);
 
             const { error } = await db

@@ -14,16 +14,37 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e8e8e8;
             min-height: 100vh;
-            padding: 40px 20px;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(205,43,49,0.06) 0%, transparent 70%);
+            animation: gradientShift 15s ease infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-10%, 10%) rotate(180deg); }
         }
 
         .container {
             max-width: 1600px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .nav-bar {
@@ -31,34 +52,53 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #2a2a2a;
+            padding: 25px 30px;
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(205, 43, 49, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .nav-title {
-            font-size: 1.5em;
-            font-weight: 300;
-            letter-spacing: 2px;
+            color: #cd2b31;
+            font-weight: 600;
+            font-size: 1.4em;
+            letter-spacing: -0.5px;
         }
 
         .nav-links {
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
 
-        .nav-btn {
-            color: #888;
+        .back-btn {
+            background: linear-gradient(135deg, #cd2b31 0%, #e84855 100%);
+            color: #ffffff;
             text-decoration: none;
-            padding: 10px 20px;
-            border: 1px solid #2a2a2a;
-            transition: all 0.3s;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            cursor: pointer;
             font-size: 0.9em;
-            letter-spacing: 1px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(205, 43, 49, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .nav-btn:hover {
-            color: #fff;
-            border-color: #dc2626;
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(205, 43, 49, 0.5);
         }
 
         .header {
@@ -66,53 +106,79 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(205, 43, 49, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .header-left h1 {
             font-size: 2.5em;
-            font-weight: 300;
-            letter-spacing: 1px;
+            font-weight: 700;
+            letter-spacing: -1px;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #cd2b31 0%, #e84855 50%, #f26a72 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .subtitle {
-            color: #666;
+            color: #a8a8b8;
             font-size: 1em;
+            font-weight: 400;
         }
 
         .action-buttons {
             display: flex;
             gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn, .reset-btn, .add-btn {
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .export-btn {
-            background: #10b981;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: #fff;
-            border: none;
-            padding: 12px 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9em;
-            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
 
         .export-btn:hover {
-            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
         }
 
         .add-btn {
-            background: #dc2626;
+            background: linear-gradient(135deg, #cd2b31 0%, #e84855 100%);
             color: #fff;
-            border: none;
-            padding: 12px 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9em;
-            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(205, 43, 49, 0.3);
         }
 
         .add-btn:hover {
-            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(205, 43, 49, 0.5);
         }
 
         .stats {
@@ -123,24 +189,53 @@
         }
 
         .stat-card {
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
-            padding: 25px;
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(205, 43, 49, 0.15);
+            border-radius: 20px;
+            padding: 30px;
             text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #cd2b31, #e84855, #f26a72);
+            transform: scaleX(0);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(205, 43, 49, 0.4);
+            box-shadow: 0 15px 40px rgba(205, 43, 49, 0.2);
         }
 
         .stat-label {
-            color: #666;
+            color: #a8a8b8;
             font-size: 0.85em;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: 500;
         }
 
         .stat-value {
-            font-size: 2em;
-            font-weight: 300;
-            color: #dc2626;
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #cd2b31;
+            letter-spacing: -1px;
         }
 
         .stat-value.warning {
@@ -148,11 +243,26 @@
         }
 
         .form-container {
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(205, 43, 49, 0.15);
+            border-radius: 20px;
             padding: 40px;
             margin-bottom: 30px;
             display: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-container.show {
@@ -160,10 +270,11 @@
         }
 
         .form-container h2 {
-            font-size: 1.5em;
-            font-weight: 300;
+            font-size: 1.8em;
+            font-weight: 600;
             margin-bottom: 30px;
-            letter-spacing: 1px;
+            letter-spacing: -0.5px;
+            color: #fff;
         }
 
         .form-grid {
@@ -179,26 +290,30 @@
         }
 
         .form-group label {
-            color: #888;
+            color: #a8a8b8;
             font-size: 0.85em;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
+            font-weight: 500;
         }
 
         input, select {
             width: 100%;
             padding: 15px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(205, 43, 49, 0.2);
+            border-radius: 12px;
             color: #fff;
             font-size: 1em;
-            transition: border-color 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: #dc2626;
+            border-color: #cd2b31;
+            background: rgba(10, 10, 10, 0.95);
+            box-shadow: 0 0 0 3px rgba(205, 43, 49, 0.1);
         }
 
         .form-buttons {
@@ -208,28 +323,49 @@
 
         .save-btn {
             flex: 1;
-            background: #dc2626;
+            background: linear-gradient(135deg, #cd2b31 0%, #e84855 100%);
             color: #fff;
             padding: 15px;
             border: none;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 1em;
-            letter-spacing: 1px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(205, 43, 49, 0.3);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(205, 43, 49, 0.5);
         }
 
         .cancel-btn {
-            background: transparent;
-            color: #888;
+            background: rgba(205, 43, 49, 0.1);
+            color: #a8a8b8;
             padding: 15px 30px;
-            border: 1px solid #2a2a2a;
+            border: 1px solid rgba(205, 43, 49, 0.2);
+            border-radius: 12px;
             cursor: pointer;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cancel-btn:hover {
+            color: #fff;
+            background: rgba(205, 43, 49, 0.2);
+            border-color: #cd2b31;
         }
 
         .table-container {
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
-            overflow-x: auto;
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(205, 43, 49, 0.15);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         table {
@@ -238,14 +374,15 @@
         }
 
         thead {
-            border-bottom: 1px solid #2a2a2a;
+            background: rgba(205, 43, 49, 0.1);
+            border-bottom: 1px solid rgba(205, 43, 49, 0.2);
         }
 
         th {
             padding: 20px;
             text-align: left;
-            font-weight: 400;
-            color: #666;
+            font-weight: 600;
+            color: #cd2b31;
             font-size: 0.85em;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -257,7 +394,7 @@
 
         td {
             padding: 20px;
-            border-top: 1px solid #1a1a1a;
+            border-top: 1px solid rgba(205, 43, 49, 0.05);
         }
 
         td.center {
@@ -265,91 +402,99 @@
         }
 
         tbody tr {
-            transition: background 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         tbody tr:hover {
-            background: #151515;
+            background: rgba(205, 43, 49, 0.05);
         }
 
         .category-badge {
             display: inline-block;
-            padding: 5px 15px;
-            background: transparent;
-            border: 1px solid #2a2a2a;
-            color: #888;
+            padding: 6px 16px;
+            background: rgba(205, 43, 49, 0.1);
+            border: 1px solid rgba(205, 43, 49, 0.3);
+            border-radius: 8px;
+            color: #cd2b31;
             font-size: 0.85em;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         .provider-badge {
             display: inline-block;
-            padding: 5px 12px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            padding: 6px 14px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
             color: #10b981;
             font-size: 0.8em;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
-        .stock-input {
+        .stock-input, .pedido-input {
             width: 80px;
             padding: 8px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(205, 43, 49, 0.2);
+            border-radius: 8px;
             color: #fff;
             text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .stock-input:focus {
-            border-color: #dc2626;
+        .stock-input:focus, .pedido-input:focus {
+            border-color: #cd2b31;
+            background: rgba(10, 10, 10, 0.95);
+            box-shadow: 0 0 0 3px rgba(205, 43, 49, 0.1);
         }
 
         .stock-low {
             color: #f59e0b;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .stock-ok {
             color: #10b981;
-        }
-
-        .pedido-input {
-            width: 80px;
-            padding: 8px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
-            color: #fff;
-            text-align: center;
+            font-weight: 600;
         }
 
         .delete-btn {
-            background: transparent;
-            color: #666;
+            background: rgba(205, 43, 49, 0.1);
+            color: #a8a8b8;
             padding: 8px 16px;
-            border: 1px solid #2a2a2a;
+            border: 1px solid rgba(205, 43, 49, 0.2);
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
         }
 
         .delete-btn:hover {
-            color: #dc2626;
-            border-color: #dc2626;
+            color: #fff;
+            background: rgba(205, 43, 49, 0.2);
+            border-color: #cd2b31;
+            transform: scale(1.05);
         }
 
         .alert {
-            background: #1a1a1a;
-            border-left: 3px solid #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-left: 4px solid #10b981;
+            border-radius: 12px;
             color: #fff;
             padding: 15px 20px;
             margin-bottom: 20px;
             display: none;
+            animation: slideDown 0.3s ease-out;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #444;
+            color: #a8a8b8;
+            font-size: 1.1em;
         }
 
         .unit-group {
@@ -364,16 +509,79 @@
         .unit-group select {
             width: 100px;
         }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .nav-bar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+            }
+
+            .nav-left {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .back-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .header-left h1 {
+                font-size: 2em;
+            }
+
+            .action-buttons {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .action-buttons button {
+                width: 100%;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 900px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="nav-bar">
-            <div class="nav-title">INVENTARIO</div>
+            <div class="nav-left">
+                <div class="nav-title">📊 INVENTARIO</div>
+            </div>
             <div class="nav-links">
-                <a href="index.html" class="nav-btn">INICIO</a>
-                <a href="productos.html" class="nav-btn">PRODUCTOS</a>
-                <a href="costeo.html" class="nav-btn">COSTEO</a>
+                <a href="index.html" class="back-btn">← VOLVER AL INICIO</a>
             </div>
         </div>
 
@@ -387,6 +595,7 @@
                 <p class="subtitle">Gestiona tu inventario con proveedores y genera hojas de pedido</p>
             </div>
             <div class="action-buttons">
+                <button class="reset-btn" id="resetBtn">🔄 VACIAR CANTIDADES</button>
                 <button class="export-btn" id="exportBtn">📥 EXPORTAR EXCEL</button>
                 <button class="add-btn" id="addProductBtn">+ AGREGAR</button>
             </div>
@@ -517,6 +726,22 @@
             document.getElementById('cancelBtn').addEventListener('click', toggleForm);
             document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
             document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            document.getElementById('resetBtn').addEventListener('click', resetAllQuantities);
+            
+            const formInputs = ['productName', 'productProvider', 'productStock', 'productMinStock', 'productPedido'];
+            formInputs.forEach((inputId, index) => {
+                const input = document.getElementById(inputId);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (index < formInputs.length - 1) {
+                            document.getElementById(formInputs[index + 1]).focus();
+                        } else {
+                            saveProduct();
+                        }
+                    }
+                });
+            });
         }
 
         async function loadInventory() {
@@ -530,19 +755,15 @@
                 return;
             }
 
-            // Ordenar jerárquicamente: Categoría → Proveedor → Producto
             inventory = (data || []).sort((a, b) => {
-                // 1. Ordenar por categoría
                 const catCompare = a.category.localeCompare(b.category);
                 if (catCompare !== 0) return catCompare;
                 
-                // 2. Dentro de la categoría, ordenar por proveedor
                 const provA = (a.provider || 'Sin proveedor').toLowerCase();
                 const provB = (b.provider || 'Sin proveedor').toLowerCase();
                 const provCompare = provA.localeCompare(provB);
                 if (provCompare !== 0) return provCompare;
                 
-                // 3. Dentro del proveedor, ordenar por nombre de producto
                 return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
             });
 
@@ -589,9 +810,10 @@
         }
 
         async function updateStock(id, newStock) {
+            const value = newStock.trim() === '' ? null : parseFloat(newStock);
             const { error } = await db
                 .from("inventory")
-                .update({ stock: newStock })
+                .update({ stock: value })
                 .eq("id", id);
 
             if (error) {
@@ -600,13 +822,33 @@
         }
 
         async function updatePedido(id, newPedido) {
+            const value = newPedido.trim() === '' ? null : parseFloat(newPedido);
             const { error } = await db
                 .from("inventory")
-                .update({ pedido: newPedido })
+                .update({ pedido: value })
                 .eq("id", id);
 
             if (error) {
                 console.error("Error actualizando pedido:", error);
+            }
+        }
+
+        async function resetAllQuantities() {
+            if (!confirm("¿Vaciar todas las cantidades de Stock y Pedido? Esta acción no se puede deshacer.")) return;
+
+            const updates = inventory.map(item => 
+                db.from("inventory")
+                    .update({ stock: null, pedido: null })
+                    .eq("id", item.id)
+            );
+
+            try {
+                await Promise.all(updates);
+                showAlert("🔄 Cantidades vaciadas exitosamente");
+                await loadInventory();
+            } catch (error) {
+                console.error("Error vaciando cantidades:", error);
+                alert("Error al vaciar cantidades");
             }
         }
 
@@ -641,10 +883,12 @@
 
             inventory.forEach(item => {
                 const row = document.createElement("tr");
-                const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
-                const statusText = item.stock <= item.min_stock ? '⚠️ Bajo' : '✓ OK';
+                const stockStatus = (item.stock !== null && item.stock <= item.min_stock) ? 'stock-low' : 'stock-ok';
+                const statusText = (item.stock !== null && item.stock <= item.min_stock) ? '⚠️ Bajo' : '✓ OK';
                 const unit = item.unit || 'Ud';
                 const provider = item.provider || 'Sin proveedor';
+                const stockValue = item.stock !== null ? item.stock : '';
+                const pedidoValue = item.pedido !== null ? item.pedido : '';
 
                 row.innerHTML = `
                     <td>${item.name}</td>
@@ -652,14 +896,14 @@
                     <td><span class="category-badge">${item.category}</span></td>
                     <td class="center">
                         <input type="number" class="stock-input ${stockStatus}" 
-                               value="${item.stock}" min="0" step="0.01"
+                               value="${stockValue}" min="0" step="0.01"
                                onchange="updateStock(${item.id}, this.value)">
                     </td>
                     <td class="center">${unit}</td>
                     <td class="center">${item.min_stock}</td>
                     <td class="center">
                         <input type="number" class="pedido-input" 
-                               value="${item.pedido}" min="0" step="0.01"
+                               value="${pedidoValue}" min="0" step="0.01"
                                onchange="updatePedido(${item.id}, this.value)">
                     </td>
                     <td class="center ${stockStatus}">${statusText}</td>
@@ -676,8 +920,8 @@
 
         function updateStats() {
             const total = inventory.length;
-            const lowStock = inventory.filter(i => i.stock <= i.min_stock).length;
-            const toPurchase = inventory.filter(i => i.pedido > 0).length;
+            const lowStock = inventory.filter(i => i.stock !== null && i.stock <= i.min_stock).length;
+            const toPurchase = inventory.filter(i => i.pedido !== null && i.pedido > 0).length;
 
             document.getElementById("totalProducts").textContent = total;
             document.getElementById("lowStock").textContent = lowStock;
@@ -690,7 +934,6 @@
                 return;
             }
 
-            // Agrupar por categoría manteniendo el orden alfabético
             const grouped = {};
             inventory.forEach(item => {
                 if (!grouped[item.category]) {
@@ -699,20 +942,17 @@
                 grouped[item.category].push(item);
             });
 
-            // Crear workbook con ExcelJS
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Pedido');
 
-            // Configurar anchos de columna
             worksheet.columns = [
-                { width: 25 }, // Producto
-                { width: 20 }, // Proveedor
-                { width: 15 }, // Stock Actual
-                { width: 15 }, // Stock Mínimo
-                { width: 18 }  // Pedido Sugerido
+                { width: 25 },
+                { width: 20 },
+                { width: 15 },
+                { width: 15 },
+                { width: 18 }
             ];
 
-            // Título principal
             const titleRow = worksheet.addRow(['HOJA DE PEDIDO DE BAR']);
             worksheet.mergeCells('A1:E1');
             titleRow.getCell(1).style = {
@@ -722,14 +962,11 @@
             };
             titleRow.height = 30;
 
-            // Fila vacía
             worksheet.addRow([]);
 
-            // Categorías ya ordenadas alfabéticamente
             const categories = Object.keys(grouped).sort();
             
             categories.forEach(category => {
-                // Encabezado de categoría (azul)
                 const headerRow = worksheet.addRow([category, 'Proveedor', 'Stock Actual', 'Stock Mínimo', 'Pedido Sugerido']);
                 headerRow.eachCell((cell) => {
                     cell.style = {
@@ -746,7 +983,6 @@
                 });
                 headerRow.height = 25;
                 
-                // Productos ya vienen ordenados por proveedor → producto
                 grouped[category].forEach(item => {
                     const unit = item.unit || 'Ud';
                     const stockDisplay = `${item.stock} ${unit}`;
@@ -762,9 +998,7 @@
                         pedidoValue
                     ]);
 
-                    // Estilos de las celdas
                     dataRow.eachCell((cell, colNumber) => {
-                        // Color de fondo: rojo tenue si hay pedido en columna 5
                         const bgColor = (colNumber === 5 && item.pedido > 0) ? 'FFFFE6E6' : 'FFFFFFFF';
                         
                         cell.style = {
@@ -784,11 +1018,9 @@
                     dataRow.height = 20;
                 });
                 
-                // Fila vacía entre categorías
                 worksheet.addRow([]);
             });
 
-            // Generar el archivo
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { 
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
