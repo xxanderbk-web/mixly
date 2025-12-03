@@ -800,6 +800,10 @@
 
                         // Continuación del código JavaScript desde el addEventListener de Enter
 
+                        // Continuación del código JavaScript desde el addEventListener de Enter
+
+                        // Continuación del código JavaScript desde el addEventListener de Enter
+
                         e.preventDefault();
                         if (index < formInputs.length - 1) {
                             document.getElementById(formInputs[index + 1]).focus();
@@ -836,12 +840,24 @@
                 const { data, error } = await db
                     .from('inventory')
                     .select('*')
-                    .eq('user_id', currentUserId)
-                    .order('name', { ascending: true });
+                    .eq('user_id', currentUserId);
 
                 if (error) throw error;
 
-                inventory = data || [];
+                // Ordenar jerárquicamente: categoría > proveedor > producto
+                inventory = (data || []).sort((a, b) => {
+                    // Primero por categoría
+                    if (a.category !== b.category) {
+                        return a.category.localeCompare(b.category);
+                    }
+                    // Luego por proveedor
+                    if (a.provider !== b.provider) {
+                        return a.provider.localeCompare(b.provider);
+                    }
+                    // Finalmente por nombre de producto
+                    return a.name.localeCompare(b.name);
+                });
+
                 renderInventory();
                 updateStats();
             } catch (error) {
@@ -1121,80 +1137,96 @@
                     }
                 });
 
-                // Crear hojas individuales por proveedor (solo con pedidos > 0)
-                Object.keys(providerGroups).forEach(providerName => {
-                    const productsWithOrders = providerGroups[providerName].filter(item => item.pedido > 0);
-                    
-                    if (productsWithOrders.length === 0) return;
+                // Agrupar productos por categoría para las hojas de pedido
+                const categoryGroups = {};
+                inventory.forEach(item => {
+                    if (!categoryGroups[item.category]) {
+                        categoryGroups[item.category] = {};
+                    }
+                    if (!categoryGroups[item.category][item.provider]) {
+                        categoryGroups[item.category][item.provider] = [];
+                    }
+                    categoryGroups[item.category][item.provider].push(item);
+                });
 
-                    const sheet = workbook.addWorksheet(providerName.substring(0, 31));
+                // Crear hoja de pedido con todas las categorías organizadas
+                const pedidoSheet = workbook.addWorksheet('Pedido');
+                pedidoSheet.columns = [
+                    { key: 'name', width: 30 },
+                    { key: 'provider', width: 20 },
+                    { key: 'stock', width: 15 },
+                    { key: 'min_stock', width: 15 },
+                    { key: 'pedido', width: 18 }
+                ];
+
+                let currentRow = 1;
+
+                // Ordenar categorías alfabéticamente
+                const sortedCategories = Object.keys(categoryGroups).sort();
+
+                sortedCategories.forEach(category => {
+                    const providers = categoryGroups[category];
+                    const productsInCategory = Object.values(providers).flat().filter(item => item.pedido > 0);
                     
-                    // Título del proveedor
-                    sheet.mergeCells('A1:E1');
-                    const titleRow = sheet.getCell('A1');
-                    titleRow.value = `HOJA DE PEDIDO - ${providerName.toUpperCase()}`;
-                    titleRow.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
-                    titleRow.fill = {
+                    if (productsInCategory.length === 0) return;
+
+                    // Encabezado de categoría
+                    pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
+                    const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
+                    categoryHeader.value = category;
+                    categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+                    categoryHeader.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FFFF4646' }
+                        fgColor: { argb: 'FF3B82F6' }
                     };
-                    titleRow.alignment = { vertical: 'middle', horizontal: 'center' };
-                    sheet.getRow(1).height = 30;
+                    categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
+                    pedidoSheet.getRow(currentRow).height = 25;
+                    currentRow++;
 
-                    // Fecha
-                    sheet.mergeCells('A2:E2');
-                    const dateRow = sheet.getCell('A2');
-                    dateRow.value = `Fecha: ${new Date().toLocaleDateString('es-CL')}`;
-                    dateRow.alignment = { vertical: 'middle', horizontal: 'right' };
-                    sheet.getRow(2).height = 20;
-
-                    // Espacio
-                    sheet.addRow([]);
-
-                    // Encabezados
-                    sheet.columns = [
-                        { header: 'PRODUCTO', key: 'name', width: 35 },
-                        { header: 'CATEGORÍA', key: 'category', width: 15 },
-                        { header: 'STOCK ACTUAL', key: 'stock', width: 15 },
-                        { header: 'UNIDAD', key: 'unit', width: 10 },
-                        { header: 'CANTIDAD A PEDIR', key: 'pedido', width: 20 }
-                    ];
-
-                    const headerRow = sheet.getRow(4);
+                    // Encabezados de columnas
+                    const headers = ['Proveedor', 'Stock Actual', 'Stock Mínimo', 'Pedido Sugerido'];
+                    const headerRow = pedidoSheet.getRow(currentRow);
+                    headerRow.getCell(2).value = headers[0];
+                    headerRow.getCell(3).value = headers[1];
+                    headerRow.getCell(4).value = headers[2];
+                    headerRow.getCell(5).value = headers[3];
                     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
                     headerRow.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF10B981' }
+                        fgColor: { argb: 'FF1E40AF' }
                     };
                     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                    // Agregar productos
-                    productsWithOrders.forEach(item => {
-                        const row = sheet.addRow({
-                            name: item.name,
-                            category: item.category,
-                            stock: item.stock,
-                            unit: item.unit,
-                            pedido: item.pedido
-                        });
-                        row.alignment = { vertical: 'middle' };
+                    headerRow.eachCell((cell) => {
+                        cell.border = {
+                            top: { style: 'thin' },
+                            left: { style: 'thin' },
+                            bottom: { style: 'thin' },
+                            right: { style: 'thin' }
+                        };
                     });
+                    currentRow++;
 
-                    // Total de items
-                    sheet.addRow([]);
-                    const totalRow = sheet.addRow(['TOTAL ITEMS:', '', '', '', productsWithOrders.length]);
-                    totalRow.font = { bold: true };
-                    totalRow.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFE5E5E5' }
-                    };
+                    // Ordenar proveedores alfabéticamente
+                    const sortedProviders = Object.keys(providers).sort();
 
-                    // Bordes
-                    sheet.eachRow((row, rowNumber) => {
-                        if (rowNumber >= 4) {
+                    sortedProviders.forEach(provider => {
+                        const products = providers[provider].filter(item => item.pedido > 0);
+                        if (products.length === 0) return;
+
+                        // Ordenar productos alfabéticamente
+                        products.sort((a, b) => a.name.localeCompare(b.name));
+
+                        products.forEach(item => {
+                            const row = pedidoSheet.getRow(currentRow);
+                            row.getCell(1).value = item.name;
+                            row.getCell(2).value = provider;
+                            row.getCell(3).value = `${item.stock} ${item.unit}`;
+                            row.getCell(4).value = `${item.min_stock} ${item.unit}`;
+                            row.getCell(5).value = item.pedido;
+                            
+                            row.alignment = { vertical: 'middle' };
                             row.eachCell((cell) => {
                                 cell.border = {
                                     top: { style: 'thin' },
@@ -1203,8 +1235,12 @@
                                     right: { style: 'thin' }
                                 };
                             });
-                        }
+                            currentRow++;
+                        });
                     });
+
+                    // Espacio entre categorías
+                    currentRow++;
                 });
 
                 // Generar archivo
