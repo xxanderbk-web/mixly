@@ -866,35 +866,37 @@
             }
         }
         function handleTableNavigation(event) {
+    // Solo procesar Enter, no Tab en móvil
     if (event.key === 'Enter') {
         event.preventDefault();
+        event.stopPropagation();
         
         const currentInput = event.target;
         const currentRow = parseInt(currentInput.getAttribute('data-row'));
         const currentType = currentInput.getAttribute('data-type');
         
-        // Buscar el input de la misma columna en la siguiente fila
-        const nextRowInput = document.querySelector(
-            `input[data-row="${currentRow + 1}"][data-type="${currentType}"]`
-        );
+        // Forzar blur para guardar el valor actual
+        currentInput.blur();
         
-        if (nextRowInput) {
-            // Hacer focus y seleccionar todo el texto para que pueda escribir inmediatamente
-            nextRowInput.focus();
-            nextRowInput.select();
-        }
-    }
-    
-    // Tab para moverse horizontal (opcional)
-    if (event.key === 'Tab') {
-        event.preventDefault();
-        const allInputs = Array.from(document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]'));
-        const currentIndex = allInputs.indexOf(event.target);
-        const nextInput = allInputs[currentIndex + 1];
-        if (nextInput) {
-            nextInput.focus();
-            nextInput.select();
-        }
+        // Esperar un momento antes de saltar
+        setTimeout(() => {
+            // Buscar el input de la misma columna en la siguiente fila
+            const nextRowInput = document.querySelector(
+                `input[data-row="${currentRow + 1}"][data-type="${currentType}"]`
+            );
+            
+            if (nextRowInput) {
+                // Hacer focus y seleccionar todo el texto
+                nextRowInput.focus();
+                nextRowInput.select();
+                
+                // En móvil, scroll suave hacia el input
+                nextRowInput.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
+        }, 100);
     }
 }
 
