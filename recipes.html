@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mixly - Recetario</title>
     <link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
     <style>
         * {
             margin: 0;
@@ -14,92 +14,214 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(160deg, #0a0a0a 0%, #1a0a0f 40%, #2a0a15 70%, #0f0a0a 100%);
+            background-attachment: fixed;
+            color: #e5e5e5;
             min-height: 100vh;
-            padding: 40px 20px;
+            padding: 0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated warm glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255, 70, 70, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 70% 60%, rgba(255, 100, 100, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(200, 50, 50, 0.06) 0%, transparent 40%);
+            animation: warmGlow 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes warmGlow {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(5%, -5%) rotate(120deg) scale(1.1); }
+            66% { transform: translate(-5%, 5%) rotate(240deg) scale(0.9); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, rgba(255, 70, 70, 0.3), transparent),
+                radial-gradient(2px 2px at 60% 70%, rgba(255, 100, 100, 0.2), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(255, 80, 80, 0.25), transparent),
+                radial-gradient(1px 1px at 80% 10%, rgba(255, 90, 90, 0.2), transparent),
+                radial-gradient(2px 2px at 90% 60%, rgba(255, 70, 70, 0.3), transparent);
+            background-size: 200% 200%;
+            animation: floatingParticles 30s ease-in-out infinite;
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+        @keyframes floatingParticles {
+            0%, 100% { background-position: 0% 0%, 100% 100%, 50% 50%, 80% 20%, 20% 80%; }
+            50% { background-position: 100% 100%, 0% 0%, 60% 40%, 30% 70%, 90% 30%; }
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 40px 60px;
+            position: relative;
+            z-index: 1;
         }
 
         .nav-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 24px 32px;
+            background: rgba(20, 10, 15, 0.5);
+            backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(255, 70, 70, 0.1);
+            border-radius: 20px;
             margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #2a2a2a;
+            animation: slideDown 0.6s ease-out;
+            transition: all 0.4s ease;
+        }
+
+        .nav-bar:hover {
+            background: rgba(25, 10, 15, 0.6);
+            border-color: rgba(255, 70, 70, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(255, 70, 70, 0.1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .nav-title {
-            font-size: 1.5em;
-            font-weight: 300;
-            letter-spacing: 2px;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.3px;
         }
 
         .nav-links {
             display: flex;
-            gap: 20px;
+            gap: 12px;
         }
 
         .nav-btn {
             color: #888;
             text-decoration: none;
             padding: 10px 20px;
-            border: 1px solid #2a2a2a;
-            transition: all 0.3s;
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 10px;
+            transition: all 0.3s ease;
             font-size: 0.9em;
-            letter-spacing: 1px;
+            background: rgba(255, 70, 70, 0.05);
         }
 
         .nav-btn:hover {
             color: #fff;
-            border-color: #dc2626;
+            border-color: rgba(255, 70, 70, 0.3);
+            background: rgba(255, 70, 70, 0.1);
+            transform: translateY(-2px);
         }
 
         .header {
             margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
-            font-size: 2.5em;
-            font-weight: 300;
-            letter-spacing: 1px;
+            font-size: 3em;
+            font-weight: 700;
+            letter-spacing: -1px;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #ff8888 50%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 1em;
+            color: #999;
+            font-size: 1.1em;
+            font-weight: 400;
         }
 
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 30px;
         }
 
         @media (max-width: 1000px) {
             .main-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .container {
+                padding: 30px 24px;
+            }
         }
 
         .card {
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
+            background: rgba(20, 10, 15, 0.4);
+            backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            border-radius: 20px;
             padding: 40px;
+            animation: cardFadeIn 0.6s ease-out both;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 70, 70, 0.2);
+            box-shadow: 0 8px 32px rgba(255, 70, 70, 0.1);
+        }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .card h2 {
-            font-size: 1.5em;
-            font-weight: 300;
+            font-size: 1.8em;
+            font-weight: 600;
             margin-bottom: 30px;
-            letter-spacing: 1px;
+            letter-spacing: -0.5px;
+            color: #fff;
         }
 
         .form-group {
@@ -108,10 +230,9 @@
 
         .form-label {
             display: block;
-            color: #888;
-            font-size: 0.85em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            font-weight: 500;
             margin-bottom: 10px;
         }
 
@@ -119,12 +240,13 @@
         textarea,
         select {
             width: 100%;
-            padding: 15px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            padding: 14px 16px;
+            background: rgba(255, 70, 70, 0.05);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 12px;
             color: #fff;
             font-size: 1em;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
             font-family: inherit;
         }
 
@@ -132,7 +254,14 @@
         textarea:focus,
         select:focus {
             outline: none;
-            border-color: #dc2626;
+            background: rgba(255, 70, 70, 0.08);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 70, 70, 0.2);
+        }
+
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
         }
 
         textarea {
@@ -143,118 +272,139 @@
         .ingredient-row {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr auto;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 12px;
+            margin-bottom: 12px;
             align-items: end;
         }
 
         input[type="number"] {
-            padding: 12px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            padding: 14px 16px;
+            background: rgba(255, 70, 70, 0.05);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 12px;
             color: #fff;
             font-size: 0.95em;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
         }
 
         input[type="number"]:focus {
             outline: none;
-            border-color: #dc2626;
+            background: rgba(255, 70, 70, 0.08);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 70, 70, 0.2);
         }
 
         .remove-btn {
-            background: transparent;
-            color: #666;
-            border: 1px solid #2a2a2a;
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 10px;
             padding: 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .remove-btn:hover {
-            color: #dc2626;
-            border-color: #dc2626;
+            color: #fff;
+            background: rgba(255, 70, 70, 0.2);
+            border-color: rgba(255, 70, 70, 0.3);
+            transform: scale(1.05);
         }
 
         .add-btn {
             width: 100%;
-            background: transparent;
-            color: #888;
-            border: 1px solid #2a2a2a;
-            padding: 12px;
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 12px;
+            padding: 14px;
             cursor: pointer;
-            font-size: 0.9em;
-            letter-spacing: 1px;
+            font-size: 0.95em;
+            font-weight: 500;
             margin-top: 15px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .add-btn:hover {
             color: #fff;
-            border-color: #444;
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.3);
+            transform: translateY(-2px);
         }
 
         .profile-selector {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 12px;
             margin-top: 15px;
         }
 
         .profile-option {
-            background: #0a0a0a;
-            border: 2px solid #2a2a2a;
-            padding: 15px 10px;
+            background: rgba(255, 70, 70, 0.05);
+            border: 2px solid rgba(255, 70, 70, 0.15);
+            border-radius: 12px;
+            padding: 16px 10px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             font-size: 0.85em;
         }
 
         .profile-option:hover {
-            border-color: #444;
+            background: rgba(255, 70, 70, 0.1);
+            border-color: rgba(255, 70, 70, 0.3);
+            transform: translateY(-2px);
         }
 
         .profile-option.selected {
-            border-color: #dc2626;
-            background: #1a0a0a;
-            color: #dc2626;
+            border-color: #ff6b6b;
+            background: rgba(255, 70, 70, 0.2);
+            color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 70, 70, 0.3);
         }
 
         .profile-icon {
             display: block;
-            font-size: 1.5em;
+            font-size: 1.8em;
             margin-bottom: 8px;
         }
 
         .save-btn {
             width: 100%;
-            background: #dc2626;
+            background: linear-gradient(135deg, #ff4646 0%, #ff6b6b 100%);
             color: #fff;
             border: none;
+            border-radius: 12px;
             padding: 18px;
             cursor: pointer;
             font-size: 1em;
-            letter-spacing: 1px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             margin-top: 30px;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 70, 70, 0.4);
         }
 
         .save-btn:hover {
-            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 70, 70, 0.6);
         }
 
         .recipe-card {
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            background: rgba(15, 8, 12, 0.6);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            border-radius: 16px;
             padding: 25px;
             margin-bottom: 20px;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .recipe-card:hover {
-            border-color: #444;
+            border-color: rgba(255, 70, 70, 0.3);
+            background: rgba(20, 10, 15, 0.7);
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(255, 70, 70, 0.15);
         }
 
         .recipe-card-header {
@@ -263,23 +413,26 @@
             align-items: start;
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #1a1a1a;
+            border-bottom: 1px solid rgba(255, 70, 70, 0.1);
         }
 
         .recipe-name {
             font-size: 1.3em;
-            font-weight: 400;
-            letter-spacing: 1px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
             margin-bottom: 8px;
+            color: #fff;
         }
 
         .recipe-profile {
             display: inline-block;
-            background: #1a1a1a;
-            padding: 5px 12px;
+            background: rgba(255, 70, 70, 0.15);
+            border: 1px solid rgba(255, 70, 70, 0.2);
+            border-radius: 8px;
+            padding: 6px 14px;
             font-size: 0.8em;
-            color: #dc2626;
-            border: 1px solid #2a2a2a;
+            color: #ff8888;
+            font-weight: 500;
         }
 
         .recipe-actions {
@@ -288,22 +441,25 @@
         }
 
         .action-btn {
-            background: transparent;
-            color: #666;
-            border: 1px solid #2a2a2a;
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 8px;
             padding: 8px 16px;
             cursor: pointer;
             font-size: 0.85em;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .action-btn:hover {
-            color: #dc2626;
-            border-color: #dc2626;
+            color: #fff;
+            background: rgba(255, 70, 70, 0.2);
+            border-color: rgba(255, 70, 70, 0.3);
+            transform: scale(1.05);
         }
 
         .recipe-description {
-            color: #888;
+            color: #aaa;
             font-size: 0.9em;
             line-height: 1.6;
             margin-bottom: 15px;
@@ -314,18 +470,17 @@
         }
 
         .recipe-ingredients h4 {
-            color: #666;
-            font-size: 0.8em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            color: #ff8888;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
 
         .ingredient-item {
-            padding: 8px 0;
-            color: #888;
+            padding: 10px 0;
+            color: #999;
             font-size: 0.9em;
-            border-bottom: 1px solid #1a1a1a;
+            border-bottom: 1px solid rgba(255, 70, 70, 0.08);
         }
 
         .ingredient-item:last-child {
@@ -335,27 +490,27 @@
         .recipe-preparation {
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px solid #1a1a1a;
+            border-top: 1px solid rgba(255, 70, 70, 0.1);
         }
 
         .recipe-preparation h4 {
-            color: #666;
-            font-size: 0.8em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            color: #ff8888;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
 
         .recipe-preparation p {
-            color: #888;
+            color: #999;
             font-size: 0.9em;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #444;
+            color: #666;
+            font-size: 1.1em;
         }
 
         .search-box {
@@ -364,11 +519,20 @@
 
         .search-box input {
             width: 100%;
-            padding: 15px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            padding: 14px 16px;
+            background: rgba(255, 70, 70, 0.05);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 12px;
             color: #fff;
             font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            background: rgba(255, 70, 70, 0.08);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 70, 70, 0.2);
         }
 
         .filter-pills {
@@ -379,22 +543,26 @@
         }
 
         .filter-pill {
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
+            background: rgba(255, 70, 70, 0.05);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 20px;
             padding: 8px 16px;
             cursor: pointer;
             font-size: 0.85em;
-            transition: all 0.3s;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .filter-pill:hover {
-            border-color: #444;
+            background: rgba(255, 70, 70, 0.1);
+            border-color: rgba(255, 70, 70, 0.3);
         }
 
         .filter-pill.active {
-            border-color: #dc2626;
-            color: #dc2626;
-            background: #1a0a0a;
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+            background: rgba(255, 70, 70, 0.2);
+            box-shadow: 0 2px 10px rgba(255, 70, 70, 0.3);
         }
     </style>
 </head>
@@ -402,7 +570,7 @@
     <div class="container">
         <!-- Navigation -->
         <div class="nav-bar">
-            <div class="nav-title">RECETARIO</div>
+            <div class="nav-title">📖 RECETARIO</div>
             <div class="nav-links">
                 <a href="index.html" class="nav-btn">INICIO</a>
                 <a href="productos.html" class="nav-btn">PRODUCTOS</a>
@@ -629,7 +797,6 @@
             }
 
             try {
-                // Guardar en Supabase
                 const { data, error } = await db
                     .from('recipes')
                     .insert([{
@@ -643,44 +810,37 @@
                     .select();
 
                 if (error) {
-                    console.error("Error guardando en Supabase:", error);
-                    alert("Error al guardar la receta: " + error.message);
+                    console.error("Error al guardar:", error);
+                    alert("Error al guardar la receta");
                     return;
                 }
 
                 alert("✅ Receta guardada exitosamente");
-
-                clearForm();
+                
+                // Limpiar formulario
+                document.getElementById("recipeName").value = "";
+                document.getElementById("recipeDescription").value = "";
+                document.getElementById("recipePreparation").value = "";
+                document.getElementById("ingredientsContainer").innerHTML = "";
+                ingredients = [];
+                selectedProfile = null;
+                document.querySelectorAll('.profile-option').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                
+                // Agregar un nuevo campo de ingrediente
+                addIngredient();
+                
+                // Recargar recetas
                 await loadRecipes();
             } catch (err) {
-                console.error("Error al guardar:", err);
+                console.error("Error:", err);
                 alert("Error al guardar la receta");
             }
         };
 
-        function clearForm() {
-            document.getElementById("recipeName").value = "";
-            document.getElementById("recipeDescription").value = "";
-            document.getElementById("recipePreparation").value = "";
-            document.getElementById("ingredientsContainer").innerHTML = "";
-            
-            document.querySelectorAll('.profile-option').forEach(el => {
-                el.classList.remove('selected');
-            });
-            
-            ingredients = [];
-            selectedProfile = null;
-            addIngredient();
-        }
-
         async function loadRecipes() {
-            if (!currentUser) {
-                console.log("No hay usuario autenticado");
-                return;
-            }
-
             try {
-                // Cargar recetas desde Supabase
                 const { data, error } = await db
                     .from('recipes')
                     .select('*')
@@ -688,37 +848,38 @@
                     .order('created_at', { ascending: false });
 
                 if (error) {
-                    console.error("Error cargando recetas:", error);
+                    console.error("Error al cargar recetas:", error);
                     return;
                 }
 
                 savedRecipes = data || [];
-                console.log("Recetas cargadas:", savedRecipes.length);
                 renderRecipes();
             } catch (err) {
-                console.error("Error al cargar recetas:", err);
+                console.error("Error:", err);
             }
         }
 
         function renderRecipes() {
             const container = document.getElementById("recipesContainer");
             
-            let filtered = savedRecipes;
+            let filteredRecipes = savedRecipes;
             
+            // Filtrar por perfil
             if (currentFilter !== 'all') {
-                filtered = savedRecipes.filter(r => r.profile === currentFilter);
+                filteredRecipes = filteredRecipes.filter(r => r.profile === currentFilter);
             }
-
+            
+            // Filtrar por búsqueda
             const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
             if (searchTerm) {
-                filtered = filtered.filter(r => 
+                filteredRecipes = filteredRecipes.filter(r => 
                     r.name.toLowerCase().includes(searchTerm) ||
-                    r.description.toLowerCase().includes(searchTerm)
+                    r.description?.toLowerCase().includes(searchTerm)
                 );
             }
 
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-state">No hay recetas que coincidan</div>';
+            if (filteredRecipes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No se encontraron recetas</div>';
                 return;
             }
 
@@ -738,22 +899,24 @@
                 'extra-fuerte': 'Extra Fuerte'
             };
 
-            container.innerHTML = filtered.map(recipe => `
+            container.innerHTML = filteredRecipes.map(recipe => `
                 <div class="recipe-card">
                     <div class="recipe-card-header">
                         <div>
                             <div class="recipe-name">${recipe.name}</div>
-                            <span class="recipe-profile">${profileIcons[recipe.profile]} ${profileNames[recipe.profile]}</span>
+                            <span class="recipe-profile">
+                                ${profileIcons[recipe.profile]} ${profileNames[recipe.profile]}
+                            </span>
                         </div>
                         <div class="recipe-actions">
-                            <button class="action-btn" onclick="deleteRecipe(${recipe.id})">✕</button>
+                            <button class="action-btn" onclick="deleteRecipe(${recipe.id})">Eliminar</button>
                         </div>
                     </div>
                     
                     ${recipe.description ? `<div class="recipe-description">${recipe.description}</div>` : ''}
                     
                     <div class="recipe-ingredients">
-                        <h4>Ingredientes</h4>
+                        <h4>INGREDIENTES</h4>
                         ${recipe.ingredients.map(ing => `
                             <div class="ingredient-item">
                                 ${ing.name} - ${ing.quantity} ${ing.unit}
@@ -763,8 +926,8 @@
                     
                     ${recipe.preparation ? `
                         <div class="recipe-preparation">
-                            <h4>Preparación</h4>
-                            <p>${recipe.preparation.replace(/\n/g, '<br>')}</p>
+                            <h4>PREPARACIÓN</h4>
+                            <p>${recipe.preparation}</p>
                         </div>
                     ` : ''}
                 </div>
@@ -772,7 +935,9 @@
         }
 
         window.deleteRecipe = async function(id) {
-            if (!confirm("¿Eliminar esta receta?")) return;
+            if (!confirm("¿Seguro que quieres eliminar esta receta?")) {
+                return;
+            }
 
             try {
                 const { error } = await db
@@ -782,15 +947,14 @@
                     .eq('user_id', currentUser.id);
 
                 if (error) {
-                    console.error("Error eliminando receta:", error);
+                    console.error("Error al eliminar:", error);
                     alert("Error al eliminar la receta");
                     return;
                 }
 
-                alert("Receta eliminada");
                 await loadRecipes();
             } catch (err) {
-                console.error("Error al eliminar:", err);
+                console.error("Error:", err);
                 alert("Error al eliminar la receta");
             }
         };
@@ -798,8 +962,8 @@
         window.filterByProfile = function(profile) {
             currentFilter = profile;
             
-            document.querySelectorAll('.filter-pill').forEach(el => {
-                el.classList.remove('active');
+            document.querySelectorAll('.filter-pill').forEach(pill => {
+                pill.classList.remove('active');
             });
             
             document.querySelector(`[data-filter="${profile}"]`).classList.add('active');
