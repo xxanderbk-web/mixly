@@ -865,38 +865,318 @@
                 showAlert('Error al cargar el inventario', 'error');
             }
         }
-        function handleTableNavigation(event) {
-    // Solo procesar Enter, no Tab en móvil
+        // Variables globales para manejar el estado
+let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+let currentFocusedInput = null;
+let isProcessingEnter = false;
+
+function handleTableNavigation(event) {
+    // Solo procesar Enter
     if (event.key === 'Enter') {
         event.preventDefault();
         event.stopPropagation();
         
+        // Prevenir múltiples Enter rápidos
+        if (isProcessingEnter) return;
+        isProcessingEnter = true;
+        
         const currentInput = event.target;
+        currentFocusedInput = currentInput;
         const currentRow = parseInt(currentInput.getAttribute('data-row'));
         const currentType = currentInput.getAttribute('data-type');
         
-        // Forzar blur para guardar el valor actual
-        currentInput.blur();
+        // Guardar el valor actual si cambió
+        if (currentInput.value !== currentInput.defaultValue) {
+            const changeEvent = new Event('change', { bubbles: true });
+            currentInput.dispatchEvent(changeEvent);
+        }
         
-        // Esperar un momento antes de saltar
+        // En móvil, manejar el teclado de forma diferente
+        if (isMobile) {
+            handleMobileNavigation(currentRow, currentType, currentInput);
+        } else {
+            handleDesktopNavigation(currentRow, currentType);
+        }
+        
         setTimeout(() => {
-            // Buscar el input de la misma columna en la siguiente fila
-            const nextRowInput = document.querySelector(
-                `input[data-row="${currentRow + 1}"][data-type="${currentType}"]`
-            );
-            
-            if (nextRowInput) {
-                // Hacer focus y seleccionar todo el texto
-                nextRowInput.focus();
-                nextRowInput.select();
-                
-                // En móvil, scroll suave hacia el input
-                nextRowInput.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
-                });
-            }
+            isProcessingEnter = false;
         }, 100);
+    }
+}
+
+function handleDesktopNavigation(currentRow, currentType) {
+    setTimeout(() => {
+        // Buscar el input de la misma columna en la siguiente fila
+        let nextRow = currentRow + 1;
+        let nextRowInput = document.querySelector(
+            `input[data-row="${nextRow}"][data-type="${currentType}"]`
+        );
+        
+        // Si no hay siguiente fila en la misma columna, buscar en la primera fila
+        if (!nextRowInput) {
+            nextRow = 0;
+            nextRowInput = document.querySelector(
+                `input[data-row="${nextRow}"][data-type="${currentType}"]`
+            );
+        }
+        
+        if (nextRowInput) {
+            // En PC: focus inmediato con selección de texto
+            nextRowInput.focus();
+            nextRowInput.select();
+        }
+    }, 50);
+}
+
+function handleMobileNavigation(currentRow, currentType, currentInput) {
+    // En móvil: primero ocultamos el teclado actual
+    currentInput.blur();
+    
+    // Pequeño delay para que se oculte el teclado
+    setTimeout(() => {
+        // Buscar el siguiente input
+        let nextRow = currentRow + 1;
+        let nextRowInput = document.querySelector(
+            `input[data-row="${nextRow}"][data-type="${currentType}"]`
+        );
+        
+        if (!nextRowInput) {
+            nextRow = 0;
+            nextRowInput = document.querySelector(
+                `input[data-row="${nextRow}"][data-type="${currentType}"]`
+            );
+        }
+        
+        if (nextRowInput) {
+            // Scroll suave a la posición del input
+            nextRowInput.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+            });
+            
+            // Pequeño delay antes de hacer focus (para que el scroll termine)
+            setTimeout(() => {
+                // En móvil necesitamos un enfoque diferente
+                nextRowInput.focus({ preventScroll: true });
+                
+                // Mostrar teclado virtual automáticamente (solo funciona con user gesture)
+                // Para iOS necesitamos un truco especial
+                if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                    forceIOSKeyboard(nextRowInput);
+                }
+            }, 300);
+        }
+    }, 200);
+}
+
+// Función especial para iOS
+function forceIOSKeyboard(input) {
+    // iOS requiere una acción de usuario directa para mostrar el teclado
+    // Creamos un área temporal de texto y la removemos
+    const tempInput = document.createElement('input');
+    tempInput.style.position = 'absolute';
+    tempInput.style.opacity = '0';
+    tempInput.style.height = '0';
+    tempInput.style.fontSize = '16px'; // Previene zoom en iOS
+    
+    document.body.appendChild(tempInput);
+    
+    // Enfocar temporalmente y luego enfocar el input real
+    tempInput.focus();
+    
+    setTimeout(() => {
+        input.focus({ preventScroll: true });
+        document.body.removeChild(tempInput);
+        
+        // Forzar re-enfoque si iOS lo bloquea
+        setTimeout(() => {
+            if (document.activeElement !== input) {
+                input.focus({ preventScroll: true });
+            }
+        }, 50);
+    }, 10);
+}
+
+function handleInputBlur(event) {
+    const input = event.target;
+    
+    // Solo actualizar si el valor cambió y no estamos procesando un Enter
+    if (input.value !== input.defaultValue && !isProcessingEnter) {
+        const id = parseInt(input.getAttribute('data-id'));
+        const type = input.getAttribute('data-type');
+        const value = input.value;
+        
+        if (type === 'stock') {
+            updateStock(id, value);
+        } else if (type === 'pedido') {
+            updatePedido(id, value);
+        }
+        
+        // Actualizar el defaultValue
+        input.defaultValue = value;
+    }
+}
+
+// También actualiza la función attachTableInputListeners para mejor manejo móvil
+function attachTableInputListeners() {
+    const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
+    
+    allInputs.forEach((input, index) => {
+        // Guardar el valor inicial como defaultValue
+        input.defaultValue = input.value;
+        
+        // Establecer atributos para mejor UX en móvil
+        if (isMobile) {
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('autocorrect', 'off');
+            input.setAttribute('autocapitalize', 'off');
+            input.setAttribute('spellcheck', 'false');
+            
+            // Prevenir zoom en iOS al enfocar
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                input.style.fontSize = '16px';
+            }
+        }
+        
+        // Remover listeners anteriores
+        input.removeEventListener('keydown', handleTableNavigation);
+        input.removeEventListener('blur', handleInputBlur);
+        input.removeEventListener('focus', handleInputFocus);
+        
+        // Agregar listeners
+        input.addEventListener('keydown', handleTableNavigation);
+        input.addEventListener('blur', handleInputBlur);
+        input.addEventListener('focus', handleInputFocus);
+        
+        // También manejar el evento input para guardar en tiempo real en móvil
+        if (isMobile) {
+            input.addEventListener('input', handleMobileInput);
+        }
+    });
+}
+
+function handleInputFocus(event) {
+    currentFocusedInput = event.target;
+    
+    // En móvil, asegurarse de que el input esté visible
+    if (isMobile) {
+        setTimeout(() => {
+            event.target.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+            });
+        }, 100);
+    }
+}
+
+function handleMobileInput(event) {
+    // En móvil, guardar automáticamente después de un delay
+    const input = event.target;
+    
+    // Limpiar timeout anterior si existe
+    if (input.saveTimeout) {
+        clearTimeout(input.saveTimeout);
+    }
+    
+    // Guardar después de 1 segundo de inactividad
+    input.saveTimeout = setTimeout(() => {
+        if (input.value !== input.defaultValue) {
+            const id = parseInt(input.getAttribute('data-id'));
+            const type = input.getAttribute('data-type');
+            
+            if (type === 'stock') {
+                updateStock(id, input.value);
+            } else if (type === 'pedido') {
+                updatePedido(id, input.value);
+            }
+            
+            input.defaultValue = input.value;
+        }
+    }, 1000);
+}
+
+// También mejora las funciones updateStock y updatePedido para móvil
+async function updateStock(id, newStock) {
+    try {
+        const stockValue = parseFloat(newStock);
+        if (isNaN(stockValue) || stockValue < 0) {
+            // En móvil, mostrar un mensaje más amigable
+            if (isMobile) {
+                showAlert('Valor inválido para stock', 'error');
+            } else {
+                alert('Por favor ingresa un valor válido para el stock');
+            }
+            return;
+        }
+
+        const { error } = await db
+            .from('inventory')
+            .update({ stock: stockValue })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        // Actualizar solo el item en el array inventory
+        const itemIndex = inventory.findIndex(item => item.id === id);
+        if (itemIndex !== -1) {
+            inventory[itemIndex].stock = stockValue;
+        }
+        
+        // Actualizar estadísticas
+        updateStats();
+        
+        // En móvil, feedback visual
+        if (isMobile) {
+            showAlert('✓ Stock actualizado');
+        }
+    } catch (error) {
+        console.error('Error al actualizar stock:', error);
+        if (isMobile) {
+            showAlert('✗ Error al actualizar stock', 'error');
+        } else {
+            alert('Error al actualizar el stock');
+        }
+    }
+}
+
+async function updatePedido(id, newPedido) {
+    try {
+        const pedidoValue = parseFloat(newPedido);
+        if (isNaN(pedidoValue) || pedidoValue < 0) {
+            if (isMobile) {
+                showAlert('Valor inválido para pedido', 'error');
+            } else {
+                alert('Por favor ingresa un valor válido para la cantidad de pedido');
+            }
+            return;
+        }
+
+        const { error } = await db
+            .from('inventory')
+            .update({ pedido: pedidoValue })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        const itemIndex = inventory.findIndex(item => item.id === id);
+        if (itemIndex !== -1) {
+            inventory[itemIndex].pedido = pedidoValue;
+        }
+        
+        updateStats();
+        
+        if (isMobile) {
+            showAlert('✓ Pedido actualizado');
+        }
+    } catch (error) {
+        console.error('Error al actualizar pedido:', error);
+        if (isMobile) {
+            showAlert('✗ Error al actualizar pedido', 'error');
+        } else {
+            alert('Error al actualizar la cantidad de pedido');
+        }
     }
 }
 
