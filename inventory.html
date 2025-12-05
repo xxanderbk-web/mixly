@@ -763,797 +763,685 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
-    <script>
-        const db = supabase.createClient(
-            "https://hhfpaviwuuqcuhcsfwdj.supabase.co",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg"
-        );
+    // REEMPLAZA TODO EL JAVASCRIPT DESDE window.onload HASTA EL FINAL DEL ARCHIVO
 
-        let inventory = [];
-        let currentUserId = null;
+<script>
+    const db = supabase.createClient(
+        "https://hhfpaviwuuqcuhcsfwdj.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg"
+    );
 
-        window.onload = async function() {
-            const { data } = await db.auth.getSession();
-            if (!data.session) {
-                window.location.href = "login.html";
-                return;
+    let inventory = [];
+    let currentUserId = null;
+    let isProcessingEnter = false;
+    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Configuración para móvil
+    (function setupMobileConfig() {
+        if (isMobile) {
+            // Configurar viewport para prevenir zoom
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
             }
-            currentUserId = data.session.user.id;
-            await loadInventory();
-            setupEventListeners();
-        };
-
-        function setupEventListeners() {
-            document.getElementById('addProductBtn').addEventListener('click', toggleForm);
-            document.getElementById('cancelBtn').addEventListener('click', toggleForm);
-            document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
-            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-            document.getElementById('resetBtn').addEventListener('click', resetAllQuantities);
             
-            const formInputs = ['productName', 'productProvider', 'productStock', 'productMinStock', 'productPedido'];
-            formInputs.forEach((inputId, index) => {
-                const input = document.getElementById(inputId);
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {// Continuación del código JavaScript desde el addEventListener de Enter
+            // CSS para prevenir zoom
+            const style = document.createElement('style');
+            style.textContent = `
+                input, select, textarea {
+                    font-size: 16px !important;
+                }
+                
+                .stock-input, .pedido-input {
+                    font-size: 16px !important;
+                    min-height: 44px !important;
+                }
+                
+                body {
+                    touch-action: pan-y !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    })();
 
-                        // Continuación del código JavaScript desde el addEventListener de Enter
+    window.onload = async function() {
+        const { data } = await db.auth.getSession();
+        if (!data.session) {
+            window.location.href = "login.html";
+            return;
+        }
+        currentUserId = data.session.user.id;
+        await loadInventory();
+        setupEventListeners();
+    };
 
-                        // Continuación del código JavaScript desde el addEventListener de Enter
-
-                        // Continuación del código JavaScript desde el addEventListener de Enter
-
-                        // Continuación del código JavaScript desde el addEventListener de Enter
-
-                        e.preventDefault();
-                        if (index < formInputs.length - 1) {
-                            document.getElementById(formInputs[index + 1]).focus();
-                        } else {
-                            saveProduct();
-                        }
+    function setupEventListeners() {
+        document.getElementById('addProductBtn').addEventListener('click', toggleForm);
+        document.getElementById('cancelBtn').addEventListener('click', toggleForm);
+        document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
+        document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+        document.getElementById('resetBtn').addEventListener('click', resetAllQuantities);
+        
+        const formInputs = ['productName', 'productProvider', 'productStock', 'productMinStock', 'productPedido'];
+        formInputs.forEach((inputId, index) => {
+            const input = document.getElementById(inputId);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (index < formInputs.length - 1) {
+                        document.getElementById(formInputs[index + 1]).focus();
+                    } else {
+                        saveProduct();
                     }
-                });
+                }
             });
-        }
+        });
+    }
 
-        function toggleForm() {
-            const formContainer = document.getElementById('formContainer');
-            formContainer.classList.toggle('show');
-            
-            if (formContainer.classList.contains('show')) {
-                document.getElementById('productName').focus();
-                clearForm();
-            }
-        }
-
-        function clearForm() {
-            document.getElementById('productName').value = '';
-            document.getElementById('productProvider').value = '';
-            document.getElementById('productCategory').value = 'BEBIDAS';
-            document.getElementById('productStock').value = '';
-            document.getElementById('productUnit').value = 'Ud';
-            document.getElementById('productMinStock').value = '';
-            document.getElementById('productPedido').value = '';
-        }
-
-        async function loadInventory() {
-            try {
-                const { data, error } = await db
-                    .from('inventory')
-                    .select('*')
-                    .eq('user_id', currentUserId);
-
-                if (error) throw error;
-
-                // Ordenar jerárquicamente: categoría > proveedor > producto
-                inventory = (data || []).sort((a, b) => {
-                    // Primero por categoría
-                    if (a.category !== b.category) {
-                        return a.category.localeCompare(b.category);
-                    }
-                    // Luego por proveedor
-                    if (a.provider !== b.provider) {
-                        return a.provider.localeCompare(b.provider);
-                    }
-                    // Finalmente por nombre de producto
-                    return a.name.localeCompare(b.name);
-                });
-
-                renderInventory();
-                updateStats();
-            } catch (error) {
-                console.error('Error al cargar inventario:', error);
-                showAlert('Error al cargar el inventario', 'error');
-            }
-        }
-        // Reemplaza TODO el código JavaScript desde la línea donde comienza con:
-// "// Variables globales mejoradas"
-// HASTA donde termina la función "renderInventory()" existente
-
-// ========== REEMPLAZA DESDE AQUÍ ==========
-
-// Variables globales mejoradas
-let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-let currentFocusedInput = null;
-let isProcessingEnter = false;
-let deviceType = isMobile ? 'mobile' : 'desktop';
-
-// Configuración inicial para prevenir zoom en móvil
-function setupMobileConfig() {
-    if (isMobile) {
-        document.addEventListener('touchstart', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }, { passive: false });
+    function toggleForm() {
+        const formContainer = document.getElementById('formContainer');
+        formContainer.classList.toggle('show');
         
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-        
-        // Configurar viewport para móvil
-        const viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (viewportMeta) {
-            viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        if (formContainer.classList.contains('show')) {
+            document.getElementById('productName').focus();
+            clearForm();
         }
     }
-}
 
-function handleTableNavigation(event) {
-    // Solo procesar Enter
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        event.stopPropagation();
+    function clearForm() {
+        document.getElementById('productName').value = '';
+        document.getElementById('productProvider').value = '';
+        document.getElementById('productCategory').value = 'BEBIDAS';
+        document.getElementById('productStock').value = '';
+        document.getElementById('productUnit').value = 'Ud';
+        document.getElementById('productMinStock').value = '';
+        document.getElementById('productPedido').value = '';
+    }
+
+    async function loadInventory() {
+        try {
+            const { data, error } = await db
+                .from('inventory')
+                .select('*')
+                .eq('user_id', currentUserId);
+
+            if (error) throw error;
+
+            inventory = (data || []).sort((a, b) => {
+                if (a.category !== b.category) {
+                    return a.category.localeCompare(b.category);
+                }
+                if (a.provider !== b.provider) {
+                    return a.provider.localeCompare(b.provider);
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            renderInventory();
+            updateStats();
+        } catch (error) {
+            console.error('Error al cargar inventario:', error);
+            showAlert('Error al cargar el inventario', 'error');
+        }
+    }
+
+    function renderInventory() {
+        const tbody = document.getElementById('inventoryTable');
         
-        if (isProcessingEnter) return;
-        isProcessingEnter = true;
+        if (inventory.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        No hay productos en el inventario
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = inventory.map((item, index) => {
+            const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
+            const statusText = item.stock <= item.min_stock ? '⚠️ BAJO' : '✓ OK';
+            
+            return `
+                <tr>
+                    <td>${item.name}</td>
+                    <td><span class="provider-badge">${item.provider}</span></td>
+                    <td><span class="category-badge">${item.category}</span></td>
+                    <td class="center">
+                        <input type="number" 
+                               class="stock-input ${stockStatus}" 
+                               value="${item.stock}" 
+                               min="0" 
+                               step="0.01"
+                               data-row="${index}"
+                               data-type="stock"
+                               data-id="${item.id}"
+                               ${isMobile ? 'inputmode="decimal"' : ''}>
+                    </td>
+                    <td class="center">${item.unit}</td>
+                    <td class="center">${item.min_stock}</td>
+                    <td class="center">
+                        <input type="number" 
+                               class="pedido-input" 
+                               value="${item.pedido || 0}" 
+                               min="0" 
+                               step="0.01"
+                               data-row="${index}"
+                               data-type="pedido"
+                               data-id="${item.id}"
+                               ${isMobile ? 'inputmode="decimal"' : ''}>
+                    </td>
+                    <td class="center ${stockStatus}">${statusText}</td>
+                    <td class="center">
+                        <button class="delete-btn" onclick="deleteProduct(${item.id})">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        attachTableInputListeners();
+    }
+
+    function attachTableInputListeners() {
+        const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
         
-        const currentInput = event.target;
-        currentFocusedInput = currentInput;
-        const currentRow = parseInt(currentInput.getAttribute('data-row'));
-        const currentType = currentInput.getAttribute('data-type');
-        
-        // Guardar inmediatamente el valor actual
-        saveInputValue(currentInput);
-        
-        // Determinar siguiente input
-        let nextRow = currentRow + 1;
-        let nextInput = document.querySelector(
-            `input[data-row="${nextRow}"][data-type="${currentType}"]`
-        );
-        
-        // Si no hay más abajo, volver al inicio de la misma columna
-        if (!nextInput) {
-            nextRow = 0;
-            nextInput = document.querySelector(
+        allInputs.forEach((input) => {
+            input.defaultValue = input.value;
+            
+            // Configuración para PC
+            if (!isMobile) {
+                input.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        this.select();
+                    }, 10);
+                });
+            }
+            
+            // Remover listeners antiguos
+            input.removeEventListener('keydown', handleTableKeyDown);
+            input.removeEventListener('blur', handleInputBlur);
+            
+            // Agregar listeners nuevos
+            input.addEventListener('keydown', handleTableKeyDown);
+            input.addEventListener('blur', handleInputBlur);
+        });
+    }
+
+    function handleTableKeyDown(event) {
+        // Solo procesar Enter
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (isProcessingEnter) return;
+            isProcessingEnter = true;
+            
+            const currentInput = event.target;
+            const currentRow = parseInt(currentInput.getAttribute('data-row'));
+            const currentType = currentInput.getAttribute('data-type');
+            
+            // Guardar valor actual
+            if (currentInput.value !== currentInput.defaultValue) {
+                saveInputValue(currentInput);
+            }
+            
+            // Buscar siguiente input en la MISMA columna
+            let nextRow = currentRow + 1;
+            let nextInput = document.querySelector(
                 `input[data-row="${nextRow}"][data-type="${currentType}"]`
             );
+            
+            // Si no hay más abajo, volver al inicio de la MISMA columna
+            if (!nextInput) {
+                nextRow = 0;
+                nextInput = document.querySelector(
+                    `input[data-row="${nextRow}"][data-type="${currentType}"]`
+                );
+            }
+            
+            if (nextInput) {
+                if (isMobile) {
+                    // Móvil: cerrar teclado, scroll, luego enfocar
+                    currentInput.blur();
+                    
+                    setTimeout(() => {
+                        nextInput.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center'
+                        });
+                        
+                        setTimeout(() => {
+                            nextInput.focus();
+                            nextInput.defaultValue = nextInput.value;
+                        }, 300);
+                    }, 200);
+                } else {
+                    // PC: enfocar y seleccionar todo
+                    setTimeout(() => {
+                        currentInput.blur();
+                        setTimeout(() => {
+                            nextInput.focus();
+                            nextInput.select();
+                            nextInput.defaultValue = nextInput.value;
+                        }, 10);
+                    }, 10);
+                }
+            }
+            
+            setTimeout(() => {
+                isProcessingEnter = false;
+            }, 150);
         }
         
-        if (nextInput) {
-            // En PC: focus inmediato
-            if (deviceType === 'desktop') {
-                // Pequeño delay para asegurar blur
+        // Tab solo en PC
+        if (!isMobile && event.key === 'Tab') {
+            event.preventDefault();
+            
+            const currentInput = event.target;
+            const currentRow = parseInt(currentInput.getAttribute('data-row'));
+            const currentType = currentInput.getAttribute('data-type');
+            
+            if (currentInput.value !== currentInput.defaultValue) {
+                saveInputValue(currentInput);
+            }
+            
+            // Navegación lateral inteligente
+            let nextRow = currentRow;
+            let nextType = currentType === 'stock' ? 'pedido' : 'stock';
+            
+            if (!event.shiftKey && currentType === 'pedido') {
+                nextRow = currentRow + 1;
+                nextType = 'stock';
+            } else if (event.shiftKey && currentType === 'stock') {
+                nextRow = currentRow - 1;
+                nextType = 'pedido';
+                if (nextRow < 0) {
+                    const totalRows = document.querySelectorAll('input[data-type="stock"]').length;
+                    nextRow = totalRows - 1;
+                }
+            }
+            
+            let nextInput = document.querySelector(
+                `input[data-row="${nextRow}"][data-type="${nextType}"]`
+            );
+            
+            if (!nextInput) {
+                nextInput = document.querySelector(
+                    `input[data-row="${currentRow}"][data-type="${nextType}"]`
+                );
+            }
+            
+            if (nextInput) {
                 setTimeout(() => {
-                    nextInput.focus();
-                    // Seleccionar TODO el texto
+                    currentInput.blur();
                     setTimeout(() => {
-                        nextInput.setSelectionRange(0, nextInput.value.length);
+                        nextInput.focus();
+                        nextInput.select();
                         nextInput.defaultValue = nextInput.value;
                     }, 10);
                 }, 10);
-            } 
-            // En móvil: cerrar teclado primero, luego focus
-            else {
-                currentInput.blur();
-                setTimeout(() => {
-                    nextInput.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center'
-                    });
-                    setTimeout(() => {
-                        nextInput.focus({ preventScroll: true });
-                        // En móvil, poner cursor al final
-                        setTimeout(() => {
-                            const len = nextInput.value.length;
-                            nextInput.setSelectionRange(len, len);
-                            nextInput.defaultValue = nextInput.value;
-                        }, 50);
-                    }, 300);
-                }, 200);
             }
         }
-        
-        setTimeout(() => {
-            isProcessingEnter = false;
-        }, 100);
     }
-}
 
-function saveInputValue(input) {
-    if (input.value !== input.defaultValue) {
+    function saveInputValue(input) {
         const id = parseInt(input.getAttribute('data-id'));
         const type = input.getAttribute('data-type');
         const value = input.value;
         
         input.defaultValue = value;
         
-        // Actualizar inmediatamente
         if (type === 'stock') {
             updateStock(id, value, true);
         } else if (type === 'pedido') {
             updatePedido(id, value, true);
         }
     }
-}
 
-function attachTableInputListeners() {
-    const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
-    
-    allInputs.forEach((input) => {
-        // Guardar valor inicial
-        input.defaultValue = input.value;
+    function handleInputBlur(event) {
+        const input = event.target;
         
-        // Configuración específica para dispositivos
-        if (deviceType === 'mobile') {
-            // Configuración para prevenir zoom y mejorar UX móvil
-            input.setAttribute('inputmode', 'decimal');
-            input.setAttribute('autocomplete', 'off');
-            input.setAttribute('autocorrect', 'off');
-            input.setAttribute('spellcheck', 'false');
-            
-            // Prevenir zoom en iOS
-            input.style.fontSize = '16px';
-            input.style.minHeight = '44px';
-            
-            // Focus en móvil - scroll suave
-            input.addEventListener('focus', function() {
-                setTimeout(() => {
-                    this.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center'
-                    });
-                }, 100);
-            });
-        } else {
-            // Para PC: seleccionar texto al hacer focus
-            input.addEventListener('focus', function() {
-                // Pequeño delay para asegurar que el focus esté completo
-                setTimeout(() => {
-                    this.setSelectionRange(0, this.value.length);
-                }, 10);
-            });
-        }
-        
-        // Remover listeners antiguos
-        input.removeEventListener('keydown', handleTableNavigation);
-        input.removeEventListener('blur', handleInputBlur);
-        
-        // Agregar listeners nuevos
-        input.addEventListener('keydown', handleTableNavigation);
-        input.addEventListener('blur', handleInputBlur);
-    });
-}
-
-function handleInputBlur(event) {
-    const input = event.target;
-    
-    // Solo guardar si el valor cambió y no estamos procesando navegación
-    if (input.value !== input.defaultValue && !isProcessingEnter) {
-        const id = parseInt(input.getAttribute('data-id'));
-        const type = input.getAttribute('data-type');
-        const value = input.value;
-        
-        input.defaultValue = value;
-        
-        if (type === 'stock') {
-            updateStock(id, value, false);
-        } else if (type === 'pedido') {
-            updatePedido(id, value, false);
-        }
-    }
-}
-
-// Función updateStock actualizada
-async function updateStock(id, newStock, silent = false) {
-    try {
-        const stockValue = parseFloat(newStock);
-        if (isNaN(stockValue) || stockValue < 0) {
-            if (!silent) {
-                alert('Por favor ingresa un valor válido para el stock');
-            }
-            return;
-        }
-
-        const { error } = await db
-            .from('inventory')
-            .update({ stock: stockValue })
-            .eq('id', id);
-
-        if (error) throw error;
-
-        // Actualizar localmente
-        const itemIndex = inventory.findIndex(item => item.id === id);
-        if (itemIndex !== -1) {
-            inventory[itemIndex].stock = stockValue;
-        }
-        
-        updateStats();
-        
-        if (!silent) {
-            showAlert('Stock actualizado');
-        }
-    } catch (error) {
-        console.error('Error al actualizar stock:', error);
-        if (!silent) {
-            alert('Error al actualizar el stock');
-        }
-    }
-}
-
-// Función updatePedido actualizada
-async function updatePedido(id, newPedido, silent = false) {
-    try {
-        const pedidoValue = parseFloat(newPedido);
-        if (isNaN(pedidoValue) || pedidoValue < 0) {
-            if (!silent) {
-                alert('Por favor ingresa un valor válido para el pedido');
-            }
-            return;
-        }
-
-        const { error } = await db
-            .from('inventory')
-            .update({ pedido: pedidoValue })
-            .eq('id', id);
-
-        if (error) throw error;
-
-        const itemIndex = inventory.findIndex(item => item.id === id);
-        if (itemIndex !== -1) {
-            inventory[itemIndex].pedido = pedidoValue;
-        }
-        
-        updateStats();
-        
-        if (!silent) {
-            showAlert('Pedido actualizado');
-        }
-    } catch (error) {
-        console.error('Error al actualizar pedido:', error);
-        if (!silent) {
-            alert('Error al actualizar el pedido');
-        }
-    }
-}
-
-// Función renderInventory actualizada
-function renderInventory() {
-    const tbody = document.getElementById('inventoryTable');
-    
-    if (inventory.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="empty-state">
-                    No hay productos en el inventario
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = inventory.map((item, index) => {
-        const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
-        const statusText = item.stock <= item.min_stock ? '⚠️ BAJO' : '✓ OK';
-        
-        return `
-            <tr>
-                <td>${item.name}</td>
-                <td><span class="provider-badge">${item.provider}</span></td>
-                <td><span class="category-badge">${item.category}</span></td>
-                <td class="center">
-                    <input type="number" 
-                           class="stock-input ${stockStatus}" 
-                           value="${item.stock}" 
-                           min="0" 
-                           step="0.01"
-                           data-row="${index}"
-                           data-type="stock"
-                           data-id="${item.id}">
-                </td>
-                <td class="center">${item.unit}</td>
-                <td class="center">${item.min_stock}</td>
-                <td class="center">
-                    <input type="number" 
-                           class="pedido-input" 
-                           value="${item.pedido || 0}" 
-                           min="0" 
-                           step="0.01"
-                           data-row="${index}"
-                           data-type="pedido"
-                           data-id="${item.id}">
-                </td>
-                <td class="center ${stockStatus}">${statusText}</td>
-                <td class="center">
-                    <button class="delete-btn" onclick="deleteProduct(${item.id})">🗑️</button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-
-    // Agregar event listeners después de renderizar
-    attachTableInputListeners();
-}
-
-// ========== REEMPLAZA HASTA AQUÍ ==========
-
-// Luego, al inicio del código (donde está window.onload), agrega:
-window.onload = async function() {
-    const { data } = await db.auth.getSession();
-    if (!data.session) {
-        window.location.href = "login.html";
-        return;
-    }
-    currentUserId = data.session.user.id;
-    setupMobileConfig();  // Agrega esta línea
-    await loadInventory();
-    setupEventListeners();
-};
-
-        function attachTableInputListeners() {
-            const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
-            
-            allInputs.forEach(input => {
-                // Remover listeners anteriores para evitar duplicados
-                input.removeEventListener('keydown', handleTableNavigation);
-                input.removeEventListener('change', handleInputChange);
-                
-                // Agregar listeners
-                input.addEventListener('keydown', handleTableNavigation);
-                input.addEventListener('change', handleInputChange);
-            });
-        }
-
-        function handleInputChange(event) {
-            const input = event.target;
+        if (input.value !== input.defaultValue && !isProcessingEnter) {
             const id = parseInt(input.getAttribute('data-id'));
             const type = input.getAttribute('data-type');
             const value = input.value;
             
-            if (type === 'stock') {
-                updateStock(id, value);
-            } else if (type === 'pedido') {
-                updatePedido(id, value);
-            }
-        }
-
-        async function saveProduct() {
-            const name = document.getElementById('productName').value.trim();
-            const provider = document.getElementById('productProvider').value.trim();
-            const category = document.getElementById('productCategory').value;
-            const stock = parseFloat(document.getElementById('productStock').value) || 0;
-            const unit = document.getElementById('productUnit').value;
-            const minStock = parseFloat(document.getElementById('productMinStock').value) || 1;
-            const pedido = parseFloat(document.getElementById('productPedido').value) || 0;
-
-            if (!name || !provider) {
-                alert('Por favor completa el nombre y proveedor del producto');
-                return;
-            }
-
-            try {
-                const { data, error } = await db
-                    .from('inventory')
-                    .insert([{
-                        user_id: currentUserId,
-                        name: name,
-                        provider: provider,
-                        category: category,
-                        stock: stock,
-                        unit: unit,
-                        min_stock: minStock,
-                        pedido: pedido
-                    }])
-                    .select();
-
-                if (error) throw error;
-
-                await loadInventory();
-                toggleForm();
-                showAlert('Producto agregado exitosamente');
-            } catch (error) {
-                console.error('Error al guardar producto:', error);
-                alert('Error al guardar el producto');
-            }
-        }
-
-        async function updateStock(id, newStock) {
-            try {
-                const stockValue = parseFloat(newStock);
-                if (isNaN(stockValue) || stockValue < 0) {
-                    alert('Por favor ingresa un valor válido para el stock');
-                    await loadInventory();
-                    return;
-                }
-
-                const { error } = await db
-                    .from('inventory')
-                    .update({ stock: stockValue })
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                await loadInventory();
-                showAlert('Stock actualizado');
-            } catch (error) {
-                console.error('Error al actualizar stock:', error);
-                alert('Error al actualizar el stock');
-            }
-        }
-
-        async function updatePedido(id, newPedido) {
-            try {
-                const pedidoValue = parseFloat(newPedido);
-                if (isNaN(pedidoValue) || pedidoValue < 0) {
-                    alert('Por favor ingresa un valor válido para la cantidad de pedido');
-                    await loadInventory();
-                    return;
-                }
-
-                const { error } = await db
-                    .from('inventory')
-                    .update({ pedido: pedidoValue })
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                await loadInventory();
-                showAlert('Cantidad de pedido actualizada');
-            } catch (error) {
-                console.error('Error al actualizar pedido:', error);
-                alert('Error al actualizar la cantidad de pedido');
-            }
-        }
-
-        async function deleteProduct(id) {
-            if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-
-            try {
-                const { error } = await db
-                    .from('inventory')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                await loadInventory();
-                showAlert('Producto eliminado');
-            } catch (error) {
-                console.error('Error al eliminar producto:', error);
-                alert('Error al eliminar el producto');
-            }
-        }
-
-        async function resetAllQuantities() {
-            if (!confirm('¿Vaciar TODAS las cantidades (stock actual y pedidos)? Esta acción no se puede deshacer.')) return;
-
-            try {
-                const { error } = await db
-                    .from('inventory')
-                    .update({ 
-                        stock: 0,
-                        pedido: 0 
-                    })
-                    .eq('user_id', currentUserId);
-
-                if (error) throw error;
-
-                await loadInventory();
-                showAlert('Stock y cantidades de pedido vaciadas');
-            } catch (error) {
-                console.error('Error al resetear cantidades:', error);
-                alert('Error al vaciar las cantidades');
-            }
-        }
-
-        function updateStats() {
-            const totalProducts = inventory.length;
-            const lowStock = inventory.filter(item => item.stock <= item.min_stock).length;
-            const toPurchase = inventory.filter(item => item.pedido > 0).length;
-
-            document.getElementById('totalProducts').textContent = totalProducts;
-            document.getElementById('lowStock').textContent = lowStock;
-            document.getElementById('toPurchase').textContent = toPurchase;
-        }
-
-        function showAlert(message, type = 'success') {
-            const alert = document.getElementById('successAlert');
-            alert.textContent = message;
-            alert.style.display = 'block';
+            input.defaultValue = value;
             
-            if (type === 'error') {
-                alert.style.background = 'rgba(239, 68, 68, 0.1)';
-                alert.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                alert.style.borderLeft = '4px solid #ef4444';
+            if (type === 'stock') {
+                updateStock(id, value, false);
+            } else if (type === 'pedido') {
+                updatePedido(id, value, false);
             }
-
-            setTimeout(() => {
-                alert.style.display = 'none';
-                alert.style.background = 'rgba(16, 185, 129, 0.1)';
-                alert.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-                alert.style.borderLeft = '4px solid #10b981';
-            }, 3000);
         }
+    }
 
-        async function exportToExcel() {
-            if (inventory.length === 0) {
-                alert('No hay productos para exportar');
+    async function updateStock(id, newStock, silent = false) {
+        try {
+            const stockValue = parseFloat(newStock);
+            if (isNaN(stockValue) || stockValue < 0) {
+                if (!silent) alert('Por favor ingresa un valor válido para el stock');
+                await loadInventory();
                 return;
             }
 
-            try {
-                const workbook = new ExcelJS.Workbook();
+            const { error } = await db
+                .from('inventory')
+                .update({ stock: stockValue })
+                .eq('id', id);
 
-                // Crear hoja de pedido tipo "HOJA DE PEDIDO DE BAR"
-                const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
-                pedidoSheet.columns = [
-                    { key: 'producto', width: 35 },
-                    { key: 'proveedor', width: 25 },
-                    { key: 'stock_actual', width: 18 },
-                    { key: 'stock_minimo', width: 18 },
-                    { key: 'pedido_sugerido', width: 20 }
-                ];
+            if (error) throw error;
 
-                let currentRow = 1;
+            const itemIndex = inventory.findIndex(item => item.id === id);
+            if (itemIndex !== -1) {
+                inventory[itemIndex].stock = stockValue;
+            }
+            
+            updateStats();
+            
+            if (!silent) showAlert('Stock actualizado');
+        } catch (error) {
+            console.error('Error al actualizar stock:', error);
+            if (!silent) alert('Error al actualizar el stock');
+            await loadInventory();
+        }
+    }
 
-                // Agrupar productos por categoría > proveedor > producto
-                const categoryGroups = {};
-                inventory.forEach(item => {
-                    if (!categoryGroups[item.category]) {
-                        categoryGroups[item.category] = {};
-                    }
-                    if (!categoryGroups[item.category][item.provider]) {
-                        categoryGroups[item.category][item.provider] = [];
-                    }
-                    categoryGroups[item.category][item.provider].push(item);
-                });
+    async function updatePedido(id, newPedido, silent = false) {
+        try {
+            const pedidoValue = parseFloat(newPedido);
+            if (isNaN(pedidoValue) || pedidoValue < 0) {
+                if (!silent) alert('Por favor ingresa un valor válido para el pedido');
+                await loadInventory();
+                return;
+            }
 
-                // Ordenar categorías alfabéticamente
-                const sortedCategories = Object.keys(categoryGroups).sort();
+            const { error } = await db
+                .from('inventory')
+                .update({ pedido: pedidoValue })
+                .eq('id', id);
 
-                sortedCategories.forEach((category, catIndex) => {
-                    const providers = categoryGroups[category];
-                    
-                    // Encabezado de categoría (fila azul oscuro)
-                    pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
-                    const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
-                    categoryHeader.value = category;
-                    categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-                    categoryHeader.fill = {
+            if (error) throw error;
+
+            const itemIndex = inventory.findIndex(item => item.id === id);
+            if (itemIndex !== -1) {
+                inventory[itemIndex].pedido = pedidoValue;
+            }
+            
+            updateStats();
+            
+            if (!silent) showAlert('Pedido actualizado');
+        } catch (error) {
+            console.error('Error al actualizar pedido:', error);
+            if (!silent) alert('Error al actualizar el pedido');
+            await loadInventory();
+        }
+    }
+
+    async function saveProduct() {
+        const name = document.getElementById('productName').value.trim();
+        const provider = document.getElementById('productProvider').value.trim();
+        const category = document.getElementById('productCategory').value;
+        const stock = parseFloat(document.getElementById('productStock').value) || 0;
+        const unit = document.getElementById('productUnit').value;
+        const minStock = parseFloat(document.getElementById('productMinStock').value) || 1;
+        const pedido = parseFloat(document.getElementById('productPedido').value) || 0;
+
+        if (!name || !provider) {
+            alert('Por favor completa el nombre y proveedor del producto');
+            return;
+        }
+
+        try {
+            const { data, error } = await db
+                .from('inventory')
+                .insert([{
+                    user_id: currentUserId,
+                    name: name,
+                    provider: provider,
+                    category: category,
+                    stock: stock,
+                    unit: unit,
+                    min_stock: minStock,
+                    pedido: pedido
+                }])
+                .select();
+
+            if (error) throw error;
+
+            await loadInventory();
+            toggleForm();
+            showAlert('Producto agregado exitosamente');
+        } catch (error) {
+            console.error('Error al guardar producto:', error);
+            alert('Error al guardar el producto');
+        }
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+
+        try {
+            const { error } = await db
+                .from('inventory')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+
+            await loadInventory();
+            showAlert('Producto eliminado');
+        } catch (error) {
+            console.error('Error al eliminar producto:', error);
+            alert('Error al eliminar el producto');
+        }
+    }
+
+    async function resetAllQuantities() {
+        if (!confirm('¿Vaciar TODAS las cantidades (stock actual y pedidos)? Esta acción no se puede deshacer.')) return;
+
+        try {
+            const { error } = await db
+                .from('inventory')
+                .update({ 
+                    stock: 0,
+                    pedido: 0 
+                })
+                .eq('user_id', currentUserId);
+
+            if (error) throw error;
+
+            await loadInventory();
+            showAlert('Stock y cantidades de pedido vaciadas');
+        } catch (error) {
+            console.error('Error al resetear cantidades:', error);
+            alert('Error al vaciar las cantidades');
+        }
+    }
+
+    function updateStats() {
+        const totalProducts = inventory.length;
+        const lowStock = inventory.filter(item => item.stock <= item.min_stock).length;
+        const toPurchase = inventory.filter(item => item.pedido > 0).length;
+
+        document.getElementById('totalProducts').textContent = totalProducts;
+        document.getElementById('lowStock').textContent = lowStock;
+        document.getElementById('toPurchase').textContent = toPurchase;
+    }
+
+    function showAlert(message, type = 'success') {
+        const alert = document.getElementById('successAlert');
+        alert.textContent = message;
+        alert.style.display = 'block';
+        
+        if (type === 'error') {
+            alert.style.background = 'rgba(239, 68, 68, 0.1)';
+            alert.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            alert.style.borderLeft = '4px solid #ef4444';
+        }
+
+        setTimeout(() => {
+            alert.style.display = 'none';
+            alert.style.background = 'rgba(16, 185, 129, 0.1)';
+            alert.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            alert.style.borderLeft = '4px solid #10b981';
+        }, 3000);
+    }
+
+    async function exportToExcel() {
+        if (inventory.length === 0) {
+            alert('No hay productos para exportar');
+            return;
+        }
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+
+            const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
+            pedidoSheet.columns = [
+                { key: 'producto', width: 35 },
+                { key: 'proveedor', width: 25 },
+                { key: 'stock_actual', width: 18 },
+                { key: 'stock_minimo', width: 18 },
+                { key: 'pedido_sugerido', width: 20 }
+            ];
+
+            let currentRow = 1;
+
+            const categoryGroups = {};
+            inventory.forEach(item => {
+                if (!categoryGroups[item.category]) {
+                    categoryGroups[item.category] = {};
+                }
+                if (!categoryGroups[item.category][item.provider]) {
+                    categoryGroups[item.category][item.provider] = [];
+                }
+                categoryGroups[item.category][item.provider].push(item);
+            });
+
+            const sortedCategories = Object.keys(categoryGroups).sort();
+
+            sortedCategories.forEach((category, catIndex) => {
+                const providers = categoryGroups[category];
+                
+                pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
+                const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
+                categoryHeader.value = category;
+                categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+                categoryHeader.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF4472C4' }
+                };
+                categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
+                categoryHeader.border = {
+                    top: { style: 'thin', color: { argb: 'FF000000' } },
+                    left: { style: 'thin', color: { argb: 'FF000000' } },
+                    bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                    right: { style: 'thin', color: { argb: 'FF000000' } }
+                };
+                pedidoSheet.getRow(currentRow).height = 25;
+                currentRow++;
+
+                const headerRow = pedidoSheet.getRow(currentRow);
+                headerRow.getCell(1).value = category;
+                headerRow.getCell(2).value = 'Proveedor';
+                headerRow.getCell(3).value = 'Stock Actual';
+                headerRow.getCell(4).value = 'Stock Mínimo';
+                headerRow.getCell(5).value = 'Pedido Sugerido';
+                
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                headerRow.height = 22;
+                
+                for (let col = 1; col <= 5; col++) {
+                    const cell = headerRow.getCell(col);
+                    cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FF4472C4' }
+                        fgColor: { argb: 'FF5B9BD5' }
                     };
-                    categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
-                    categoryHeader.border = {
+                    cell.border = {
                         top: { style: 'thin', color: { argb: 'FF000000' } },
                         left: { style: 'thin', color: { argb: 'FF000000' } },
                         bottom: { style: 'thin', color: { argb: 'FF000000' } },
                         right: { style: 'thin', color: { argb: 'FF000000' } }
                     };
-                    pedidoSheet.getRow(currentRow).height = 25;
-                    currentRow++;
+                }
+                currentRow++;
 
-                    // Encabezados de columnas (azul celeste)
-                    const headerRow = pedidoSheet.getRow(currentRow);
-                    headerRow.getCell(1).value = category;
-                    headerRow.getCell(2).value = 'Proveedor';
-                    headerRow.getCell(3).value = 'Stock Actual';
-                    headerRow.getCell(4).value = 'Stock Mínimo';
-                    headerRow.getCell(5).value = 'Pedido Sugerido';
+                const sortedProviders = Object.keys(providers).sort();
+
+                sortedProviders.forEach(provider => {
+                    const products = providers[provider];
                     
-                    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-                    headerRow.height = 22;
-                    
-                    for (let col = 1; col <= 5; col++) {
-                        const cell = headerRow.getCell(col);
-                        cell.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: 'FF5B9BD5' }
-                        };
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'FF000000' } },
-                            left: { style: 'thin', color: { argb: 'FF000000' } },
-                            bottom: { style: 'thin', color: { argb: 'FF000000' } },
-                            right: { style: 'thin', color: { argb: 'FF000000' } }
-                        };
-                    }
-                    currentRow++;
+                    products.sort((a, b) => a.name.localeCompare(b.name));
 
-                    // Ordenar proveedores alfabéticamente
-                    const sortedProviders = Object.keys(providers).sort();
-
-                    sortedProviders.forEach(provider => {
-                        const products = providers[provider];
+                    products.forEach(item => {
+                        const row = pedidoSheet.getRow(currentRow);
+                        row.getCell(1).value = item.name;
+                        row.getCell(2).value = provider;
+                        row.getCell(3).value = `${item.stock} ${item.unit}`;
+                        row.getCell(4).value = `${item.min_stock} ${item.unit}`;
+                        row.getCell(5).value = item.pedido || 0;
                         
-                        // Ordenar productos alfabéticamente
-                        products.sort((a, b) => a.name.localeCompare(b.name));
-
-                        products.forEach(item => {
-                            const row = pedidoSheet.getRow(currentRow);
-                            row.getCell(1).value = item.name;
-                            row.getCell(2).value = provider;
-                            row.getCell(3).value = `${item.stock} ${item.unit}`;
-                            row.getCell(4).value = `${item.min_stock} ${item.unit}`;
-                            row.getCell(5).value = item.pedido || 0;
+                        row.alignment = { vertical: 'middle' };
+                        row.height = 20;
+                        
+                        const stockPercentage = (item.stock / item.min_stock) * 100;
+                        
+                        for (let col = 1; col <= 5; col++) {
+                            const cell = row.getCell(col);
+                            cell.border = {
+                                top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
+                            };
                             
-                            row.alignment = { vertical: 'middle' };
-                            row.height = 20;
-                            
-                            // Calcular el porcentaje de stock
-                            const stockPercentage = (item.stock / item.min_stock) * 100;
-                            
-                            for (let col = 1; col <= 5; col++) {
-                                const cell = row.getCell(col);
-                                cell.border = {
-                                    top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                                    left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                                    bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                                    right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
-                                };
-                                
-                                // Aplicar color de fondo a la columna "Pedido Sugerido"
-                                if (col === 5) {
-                                    if (stockPercentage < 50) {
-                                        // Rojo suave si está por debajo del 50%
-                                        cell.fill = {
-                                            type: 'pattern',
-                                            pattern: 'solid',
-                                            fgColor: { argb: 'FFFFE6E6' }
-                                        };
-                                    } else if (stockPercentage >= 50 && stockPercentage <= 100) {
-                                        // Amarillo suave si está entre 50% y 100%
-                                        cell.fill = {
-                                            type: 'pattern',
-                                            pattern: 'solid',
-                                            fgColor: { argb: 'FFFFF4CC' }
-                                        };
-                                    }
+                            if (col === 5) {
+                                if (stockPercentage < 50) {
+                                    cell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FFFFE6E6' }
+                                    };
+                                } else if (stockPercentage >= 50 && stockPercentage <= 100) {
+                                    cell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FFFFF4CC' }
+                                    };
                                 }
                             }
-                            
-                            currentRow++;
-                        });
-                    });
-
-                    // Fila vacía entre categorías (excepto después de la última)
-                    if (catIndex < sortedCategories.length - 1) {
+                        }
+                        
                         currentRow++;
-                    }
+                    });
                 });
 
-                // Generar archivo
-                const buffer = await workbook.xlsx.writeBuffer();
-                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
-                link.click();
-                window.URL.revokeObjectURL(url);
+                if (catIndex < sortedCategories.length - 1) {
+                    currentRow++;
+                }
+            });
 
-                showAlert('Excel exportado exitosamente');
-            } catch (error) {
-                console.error('Error al exportar Excel:', error);
-                alert('Error al exportar el archivo Excel');
-            }
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+
+            showAlert('Excel exportado exitosamente');
+        } catch (error) {
+            console.error('Error al exportar Excel:', error);
+            alert('Error al exportar el archivo Excel');
         }
-    </script>
+    }
+</script>
 </body>
 </html>
