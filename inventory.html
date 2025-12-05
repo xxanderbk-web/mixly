@@ -865,28 +865,42 @@
                 showAlert('Error al cargar el inventario', 'error');
             }
         }
-        // Variables globales mejoradas
+        // Reemplaza TODO el código JavaScript desde la línea donde comienza con:
+// "// Variables globales mejoradas"
+// HASTA donde termina la función "renderInventory()" existente
+
+// ========== REEMPLAZA DESDE AQUÍ ==========
+
+// Variables globales mejoradas
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 let currentFocusedInput = null;
 let isProcessingEnter = false;
 let deviceType = isMobile ? 'mobile' : 'desktop';
 
 // Configuración inicial para prevenir zoom en móvil
-if (isMobile) {
-    document.addEventListener('touchstart', function(event) {
-        if (event.touches.length > 1) {
-            event.preventDefault();
+function setupMobileConfig() {
+    if (isMobile) {
+        document.addEventListener('touchstart', function(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Configurar viewport para móvil
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+            viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
         }
-    }, { passive: false });
-    
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(event) {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
+    }
 }
 
 function handleTableNavigation(event) {
@@ -906,33 +920,57 @@ function handleTableNavigation(event) {
         // Guardar inmediatamente el valor actual
         saveInputValue(currentInput);
         
-        // En móvil, manejar diferente
-        if (deviceType === 'mobile') {
-            handleMobileNavigation(currentRow, currentType, currentInput);
-        } else {
-            handleDesktopNavigation(currentRow, currentType, currentInput);
+        // Determinar siguiente input
+        let nextRow = currentRow + 1;
+        let nextInput = document.querySelector(
+            `input[data-row="${nextRow}"][data-type="${currentType}"]`
+        );
+        
+        // Si no hay más abajo, volver al inicio de la misma columna
+        if (!nextInput) {
+            nextRow = 0;
+            nextInput = document.querySelector(
+                `input[data-row="${nextRow}"][data-type="${currentType}"]`
+            );
+        }
+        
+        if (nextInput) {
+            // En PC: focus inmediato
+            if (deviceType === 'desktop') {
+                // Pequeño delay para asegurar blur
+                setTimeout(() => {
+                    nextInput.focus();
+                    // Seleccionar TODO el texto
+                    setTimeout(() => {
+                        nextInput.setSelectionRange(0, nextInput.value.length);
+                        nextInput.defaultValue = nextInput.value;
+                    }, 10);
+                }, 10);
+            } 
+            // En móvil: cerrar teclado primero, luego focus
+            else {
+                currentInput.blur();
+                setTimeout(() => {
+                    nextInput.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center'
+                    });
+                    setTimeout(() => {
+                        nextInput.focus({ preventScroll: true });
+                        // En móvil, poner cursor al final
+                        setTimeout(() => {
+                            const len = nextInput.value.length;
+                            nextInput.setSelectionRange(len, len);
+                            nextInput.defaultValue = nextInput.value;
+                        }, 50);
+                    }, 300);
+                }, 200);
+            }
         }
         
         setTimeout(() => {
             isProcessingEnter = false;
         }, 100);
-    }
-    
-    // También manejar Tab para navegación en PC
-    if (event.key === 'Tab' && deviceType === 'desktop') {
-        event.preventDefault();
-        saveInputValue(event.target);
-        
-        const currentRow = parseInt(event.target.getAttribute('data-row'));
-        const currentType = event.target.getAttribute('data-type');
-        
-        if (event.shiftKey) {
-            // Tab hacia atrás
-            handleTabNavigation(currentRow, currentType, -1);
-        } else {
-            // Tab hacia adelante
-            handleTabNavigation(currentRow, currentType, 1);
-        }
     }
 }
 
@@ -942,204 +980,21 @@ function saveInputValue(input) {
         const type = input.getAttribute('data-type');
         const value = input.value;
         
-        // Guardar en variable temporal mientras se procesa
         input.defaultValue = value;
         
         // Actualizar inmediatamente
         if (type === 'stock') {
-            updateStock(id, value, true); // true para actualización silenciosa
+            updateStock(id, value, true);
         } else if (type === 'pedido') {
             updatePedido(id, value, true);
         }
     }
 }
 
-function handleDesktopNavigation(currentRow, currentType, currentInput) {
-    // Determinar el siguiente input basado en la lógica correcta
-    let nextRow, nextType;
-    
-    // Lógica de navegación: primero hacia abajo en la misma columna
-    nextRow = currentRow + 1;
-    nextType = currentType;
-    
-    // Buscar siguiente input disponible
-    let nextInput = document.querySelector(
-        `input[data-row="${nextRow}"][data-type="${nextType}"]`
-    );
-    
-    // Si no hay más abajo, ir a la primera fila de la MISMA columna
-    if (!nextInput) {
-        nextRow = 0;
-        nextInput = document.querySelector(
-            `input[data-row="${nextRow}"][data-type="${nextType}"]`
-        );
-    }
-    
-    if (nextInput) {
-        // Desenfocar el input actual
-        currentInput.blur();
-        
-        // Pequeño delay para asegurar el blur
-        setTimeout(() => {
-            nextInput.focus();
-            
-            // Seleccionar TODO el texto (esto es lo que faltaba)
-            setTimeout(() => {
-                nextInput.setSelectionRange(0, nextInput.value.length);
-                nextInput.defaultValue = nextInput.value;
-                
-                // Scroll suave si es necesario
-                const inputRect = nextInput.getBoundingClientRect();
-                const isVisible = (
-                    inputRect.top >= 0 &&
-                    inputRect.left >= 0 &&
-                    inputRect.bottom <= window.innerHeight &&
-                    inputRect.right <= window.innerWidth
-                );
-                
-                if (!isVisible) {
-                    nextInput.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center'
-                    });
-                }
-            }, 10);
-        }, 10);
-    }
-}
-
-function handleMobileNavigation(currentRow, currentType, currentInput) {
-    // En móvil: cerrar teclado actual primero
-    currentInput.blur();
-    
-    // Determinar siguiente input
-    let nextRow = currentRow;
-    let nextType = currentType;
-    
-    // Siempre ir a la SIGUIENTE FILA en la MISMA columna
-    nextRow = currentRow + 1;
-    
-    let nextInput = document.querySelector(
-        `input[data-row="${nextRow}"][data-type="${nextType}"]`
-    );
-    
-    // Si no hay más abajo, volver al inicio de la MISMA columna
-    if (!nextInput) {
-        nextRow = 0;
-        nextInput = document.querySelector(
-            `input[data-row="${nextRow}"][data-type="${nextType}"]`
-        );
-    }
-    
-    if (nextInput) {
-        // Delay para que se cierre el teclado
-        setTimeout(() => {
-            // Scroll suave a la posición
-            nextInput.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center',
-                inline: 'nearest'
-            });
-            
-            // Delay antes de enfocar
-            setTimeout(() => {
-                // Enfocar el input
-                nextInput.focus({ preventScroll: true });
-                
-                // Para iOS, necesitamos un enfoque especial
-                if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                    handleIOSFocus(nextInput);
-                }
-                
-                // En móvil, NO seleccionar todo el texto (mejor UX)
-                setTimeout(() => {
-                    // Mover cursor al final
-                    nextInput.selectionStart = nextInput.selectionEnd = nextInput.value.length;
-                    nextInput.defaultValue = nextInput.value;
-                }, 100);
-                
-            }, 300);
-        }, 200);
-    }
-}
-
-function handleTabNavigation(currentRow, currentType, direction) {
-    // Para navegación con Tab: cambiar entre columnas stock/pedido
-    
-    let nextRow = currentRow;
-    let nextType = currentType === 'stock' ? 'pedido' : 'stock';
-    
-    // Si direction es 1 (Tab normal) y estamos en pedido, ir a stock de la siguiente fila
-    if (direction === 1 && currentType === 'pedido') {
-        nextRow = currentRow + 1;
-        nextType = 'stock';
-    }
-    // Si direction es -1 (Shift+Tab) y estamos en stock, ir a pedido de la fila anterior
-    else if (direction === -1 && currentType === 'stock') {
-        nextRow = currentRow - 1;
-        nextType = 'pedido';
-        
-        // Si estamos en la primera fila, ir a la última
-        if (nextRow < 0) {
-            const totalRows = document.querySelectorAll('input[data-type="stock"]').length;
-            nextRow = totalRows - 1;
-        }
-    }
-    
-    let nextInput = document.querySelector(
-        `input[data-row="${nextRow}"][data-type="${nextType}"]`
-    );
-    
-    // Si no encontramos el input, buscar alternativas
-    if (!nextInput) {
-        // Buscar cualquier input en la misma fila
-        nextInput = document.querySelector(
-            `input[data-row="${currentRow}"][data-type="${nextType}"]`
-        );
-    }
-    
-    if (nextInput) {
-        nextInput.focus();
-        nextInput.setSelectionRange(0, nextInput.value.length);
-        nextInput.defaultValue = nextInput.value;
-    }
-}
-
-function handleIOSFocus(input) {
-    // Solución mejorada para iOS
-    if (document.activeElement !== input) {
-        // Crear y enfocar un input temporal
-        const tempInput = document.createElement('input');
-        tempInput.style.cssText = `
-            position: absolute;
-            opacity: 0;
-            height: 0;
-            width: 0;
-            pointer-events: none;
-        `;
-        tempInput.setAttribute('inputmode', 'decimal');
-        
-        document.body.appendChild(tempInput);
-        tempInput.focus();
-        
-        setTimeout(() => {
-            input.focus({ preventScroll: true });
-            document.body.removeChild(tempInput);
-            
-            // Segundo intento si aún no funciona
-            setTimeout(() => {
-                if (document.activeElement !== input) {
-                    input.focus({ preventScroll: true });
-                }
-            }, 50);
-        }, 10);
-    }
-}
-
 function attachTableInputListeners() {
     const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
     
-    allInputs.forEach((input, index) => {
+    allInputs.forEach((input) => {
         // Guardar valor inicial
         input.defaultValue = input.value;
         
@@ -1147,43 +1002,26 @@ function attachTableInputListeners() {
         if (deviceType === 'mobile') {
             // Configuración para prevenir zoom y mejorar UX móvil
             input.setAttribute('inputmode', 'decimal');
-            input.setAttribute('pattern', '[0-9]*');
             input.setAttribute('autocomplete', 'off');
             input.setAttribute('autocorrect', 'off');
-            input.setAttribute('autocapitalize', 'off');
             input.setAttribute('spellcheck', 'false');
             
-            // CSS para prevenir zoom en iOS
-            input.style.fontSize = '16px !important';
-            input.style.maxHeight = '44px !important'; // Tamaño mínimo para iOS
+            // Prevenir zoom en iOS
+            input.style.fontSize = '16px';
+            input.style.minHeight = '44px';
             
-            // Prevenir acciones de zoom
-            input.addEventListener('touchstart', function(e) {
-                e.stopPropagation();
-            });
-            
-            input.addEventListener('touchend', function(e) {
-                e.stopPropagation();
-            });
-            
-            // Manejar focus para scroll
+            // Focus en móvil - scroll suave
             input.addEventListener('focus', function() {
-                currentFocusedInput = this;
-                
-                // Scroll suave al input
                 setTimeout(() => {
                     this.scrollIntoView({ 
                         behavior: 'smooth', 
-                        block: 'center',
-                        inline: 'nearest'
+                        block: 'center'
                     });
                 }, 100);
             });
         } else {
             // Para PC: seleccionar texto al hacer focus
             input.addEventListener('focus', function() {
-                currentFocusedInput = this;
-                
                 // Pequeño delay para asegurar que el focus esté completo
                 setTimeout(() => {
                     this.setSelectionRange(0, this.value.length);
@@ -1194,15 +1032,10 @@ function attachTableInputListeners() {
         // Remover listeners antiguos
         input.removeEventListener('keydown', handleTableNavigation);
         input.removeEventListener('blur', handleInputBlur);
-        input.removeEventListener('input', handleMobileInput);
         
         // Agregar listeners nuevos
         input.addEventListener('keydown', handleTableNavigation);
         input.addEventListener('blur', handleInputBlur);
-        
-        if (deviceType === 'mobile') {
-            input.addEventListener('input', handleMobileInput);
-        }
     });
 }
 
@@ -1225,40 +1058,12 @@ function handleInputBlur(event) {
     }
 }
 
-function handleMobileInput(event) {
-    // Auto-guardado en móvil después de un delay
-    const input = event.target;
-    
-    // Limpiar timeout anterior
-    if (input.saveTimeout) {
-        clearTimeout(input.saveTimeout);
-    }
-    
-    // Guardar después de 1.5 segundos de inactividad
-    input.saveTimeout = setTimeout(() => {
-        if (input.value !== input.defaultValue) {
-            const id = parseInt(input.getAttribute('data-id'));
-            const type = input.getAttribute('data-type');
-            
-            input.defaultValue = input.value;
-            
-            if (type === 'stock') {
-                updateStock(id, input.value, true);
-            } else if (type === 'pedido') {
-                updatePedido(id, input.value, true);
-            }
-        }
-    }, 1500);
-}
-
-// Añade un parámetro 'silent' para actualizaciones silenciosas
+// Función updateStock actualizada
 async function updateStock(id, newStock, silent = false) {
     try {
         const stockValue = parseFloat(newStock);
         if (isNaN(stockValue) || stockValue < 0) {
-            if (!silent && deviceType === 'mobile') {
-                showAlert('Valor inválido', 'error');
-            } else if (!silent) {
+            if (!silent) {
                 alert('Por favor ingresa un valor válido para el stock');
             }
             return;
@@ -1279,26 +1084,23 @@ async function updateStock(id, newStock, silent = false) {
         
         updateStats();
         
-        if (!silent && deviceType === 'mobile') {
-            showAlert('✓ Stock actualizado');
+        if (!silent) {
+            showAlert('Stock actualizado');
         }
     } catch (error) {
         console.error('Error al actualizar stock:', error);
-        if (!silent && deviceType === 'mobile') {
-            showAlert('✗ Error', 'error');
-        } else if (!silent) {
+        if (!silent) {
             alert('Error al actualizar el stock');
         }
     }
 }
 
+// Función updatePedido actualizada
 async function updatePedido(id, newPedido, silent = false) {
     try {
         const pedidoValue = parseFloat(newPedido);
         if (isNaN(pedidoValue) || pedidoValue < 0) {
-            if (!silent && deviceType === 'mobile') {
-                showAlert('Valor inválido', 'error');
-            } else if (!silent) {
+            if (!silent) {
                 alert('Por favor ingresa un valor válido para el pedido');
             }
             return;
@@ -1318,119 +1120,89 @@ async function updatePedido(id, newPedido, silent = false) {
         
         updateStats();
         
-        if (!silent && deviceType === 'mobile') {
-            showAlert('✓ Pedido actualizado');
+        if (!silent) {
+            showAlert('Pedido actualizado');
         }
     } catch (error) {
         console.error('Error al actualizar pedido:', error);
-        if (!silent && deviceType === 'mobile') {
-            showAlert('✗ Error', 'error');
-        } else if (!silent) {
+        if (!silent) {
             alert('Error al actualizar el pedido');
         }
     }
 }
 
-// Añade esto al final del script para prevenir zoom
-function setupMobileViewport() {
-    if (isMobile) {
-        // Asegurar que la viewport esté configurada correctamente
-        const viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (viewportMeta) {
-            viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no';
-        } else {
-            const meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no';
-            document.head.appendChild(meta);
-        }
-        
-        // CSS adicional para prevenir zoom
-        const style = document.createElement('style');
-        style.textContent = `
-            @media screen and (max-width: 768px) {
-                input, select, textarea {
-                    font-size: 16px !important;
-                    max-height: 44px !important;
-                    min-height: 44px !important;
-                }
-                
-                input:focus, select:focus, textarea:focus {
-                    font-size: 16px !important;
-                }
-                
-                body {
-                    -webkit-text-size-adjust: 100% !important;
-                    text-size-adjust: 100% !important;
-                    touch-action: pan-y !important;
-                }
-            }
+// Función renderInventory actualizada
+function renderInventory() {
+    const tbody = document.getElementById('inventoryTable');
+    
+    if (inventory.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty-state">
+                    No hay productos en el inventario
+                </td>
+            </tr>
         `;
-        document.head.appendChild(style);
+        return;
     }
+
+    tbody.innerHTML = inventory.map((item, index) => {
+        const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
+        const statusText = item.stock <= item.min_stock ? '⚠️ BAJO' : '✓ OK';
+        
+        return `
+            <tr>
+                <td>${item.name}</td>
+                <td><span class="provider-badge">${item.provider}</span></td>
+                <td><span class="category-badge">${item.category}</span></td>
+                <td class="center">
+                    <input type="number" 
+                           class="stock-input ${stockStatus}" 
+                           value="${item.stock}" 
+                           min="0" 
+                           step="0.01"
+                           data-row="${index}"
+                           data-type="stock"
+                           data-id="${item.id}">
+                </td>
+                <td class="center">${item.unit}</td>
+                <td class="center">${item.min_stock}</td>
+                <td class="center">
+                    <input type="number" 
+                           class="pedido-input" 
+                           value="${item.pedido || 0}" 
+                           min="0" 
+                           step="0.01"
+                           data-row="${index}"
+                           data-type="pedido"
+                           data-id="${item.id}">
+                </td>
+                <td class="center ${stockStatus}">${statusText}</td>
+                <td class="center">
+                    <button class="delete-btn" onclick="deleteProduct(${item.id})">🗑️</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Agregar event listeners después de renderizar
+    attachTableInputListeners();
 }
 
-// Ejecutar configuración al cargar
-window.addEventListener('DOMContentLoaded', function() {
-    setupMobileViewport();
-});
+// ========== REEMPLAZA HASTA AQUÍ ==========
 
-        function renderInventory() {
-            const tbody = document.getElementById('inventoryTable');
-            
-            if (inventory.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="9" class="empty-state">
-                            No hay productos en el inventario
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = inventory.map((item, index) => {
-                const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
-                const statusText = item.stock <= item.min_stock ? '⚠️ BAJO' : '✓ OK';
-                
-                return `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td><span class="provider-badge">${item.provider}</span></td>
-                        <td><span class="category-badge">${item.category}</span></td>
-                        <td class="center">
-                            <input type="number" 
-                                   class="stock-input ${stockStatus}" 
-                                   value="${item.stock}" 
-                                   min="0" 
-                                   step="0.01"
-                                   data-row="${index}"
-                                   data-type="stock"
-                                   data-id="${item.id}">
-                        </td>
-                        <td class="center">${item.unit}</td>
-                        <td class="center">${item.min_stock}</td>
-                        <td class="center">
-                            <input type="number" 
-                                   class="pedido-input" 
-                                   value="${item.pedido || 0}" 
-                                   min="0" 
-                                   step="0.01"
-                                   data-row="${index}"
-                                   data-type="pedido"
-                                   data-id="${item.id}">
-                        </td>
-                        <td class="center ${stockStatus}">${statusText}</td>
-                        <td class="center">
-                            <button class="delete-btn" onclick="deleteProduct(${item.id})">🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Agregar event listeners después de renderizar
-            attachTableInputListeners();
-        }
+// Luego, al inicio del código (donde está window.onload), agrega:
+window.onload = async function() {
+    const { data } = await db.auth.getSession();
+    if (!data.session) {
+        window.location.href = "login.html";
+        return;
+    }
+    currentUserId = data.session.user.id;
+    setupMobileConfig();  // Agrega esta línea
+    await loadInventory();
+    setupEventListeners();
+};
 
         function attachTableInputListeners() {
             const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
