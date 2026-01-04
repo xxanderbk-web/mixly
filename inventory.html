@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mixly - Inventario</title>
+    <title>Mixly - Inventario Barra & Bodega</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <style>
@@ -20,62 +20,12 @@
             color: #e5e5e5;
             min-height: 100vh;
             padding: 0;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 40%, rgba(255, 70, 70, 0.08) 0%, transparent 40%),
-                        radial-gradient(circle at 70% 60%, rgba(255, 100, 100, 0.05) 0%, transparent 50%),
-                        radial-gradient(circle at 50% 80%, rgba(200, 50, 50, 0.06) 0%, transparent 40%);
-            animation: warmGlow 20s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        @keyframes warmGlow {
-            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-            33% { transform: translate(5%, -5%) rotate(120deg) scale(1.1); }
-            66% { transform: translate(-5%, 5%) rotate(240deg) scale(0.9); }
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(2px 2px at 20% 30%, rgba(255, 70, 70, 0.3), transparent),
-                radial-gradient(2px 2px at 60% 70%, rgba(255, 100, 100, 0.2), transparent),
-                radial-gradient(1px 1px at 50% 50%, rgba(255, 80, 80, 0.25), transparent),
-                radial-gradient(1px 1px at 80% 10%, rgba(255, 90, 90, 0.2), transparent),
-                radial-gradient(2px 2px at 90% 60%, rgba(255, 70, 70, 0.3), transparent);
-            background-size: 200% 200%;
-            animation: floatingParticles 30s ease-in-out infinite;
-            pointer-events: none;
-            opacity: 0.4;
-            z-index: 0;
-        }
-
-        @keyframes floatingParticles {
-            0%, 100% { background-position: 0% 0%, 100% 100%, 50% 50%, 80% 20%, 20% 80%; }
-            50% { background-position: 100% 100%, 0% 0%, 60% 40%, 30% 70%, 90% 30%; }
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
             padding: 40px 60px;
-            position: relative;
-            z-index: 1;
         }
 
         .nav-bar {
@@ -84,43 +34,16 @@
             align-items: center;
             padding: 24px 32px;
             background: rgba(20, 10, 15, 0.5);
-            backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 70, 70, 0.1);
             border-radius: 20px;
             margin-bottom: 40px;
-            animation: slideDown 0.6s ease-out;
-            transition: all 0.4s ease;
-        }
-
-        .nav-bar:hover {
-            background: rgba(25, 10, 15, 0.6);
-            border-color: rgba(255, 70, 70, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(255, 70, 70, 0.1);
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .nav-title {
             font-size: 1.2em;
             font-weight: 600;
             color: #ffffff;
-            letter-spacing: -0.3px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-bar:hover .nav-title {
-            color: #ff6b6b;
-            transform: translateX(2px);
         }
 
         .back-btn {
@@ -132,20 +55,12 @@
             cursor: pointer;
             font-size: 0.85em;
             font-weight: 500;
-            letter-spacing: 0.3px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            transition: all 0.3s;
         }
 
         .back-btn:hover {
-            background: linear-gradient(135deg, rgba(255, 70, 70, 0.2) 0%, rgba(255, 100, 100, 0.15) 100%);
-            border-color: rgba(255, 70, 70, 0.3);
-            color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(255, 70, 70, 0.2);
+            background: rgba(255, 70, 70, 0.2);
         }
 
         .header {
@@ -154,47 +69,24 @@
             align-items: center;
             padding: 40px;
             background: rgba(20, 10, 15, 0.4);
-            backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 70, 70, 0.12);
             border-radius: 20px;
             margin-bottom: 40px;
-            animation: fadeInUp 0.8s ease-out 0.2s both;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .header-left h1 {
             font-size: 3em;
             font-weight: 700;
-            letter-spacing: -2px;
-            margin-bottom: 12px;
             background: linear-gradient(135deg, #ffffff 0%, #ff8888 50%, #ff6b6b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 3s ease-in-out infinite;
-            background-size: 200% 200%;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            margin-bottom: 12px;
         }
 
         .subtitle {
             color: #999;
             font-size: 1em;
-            font-weight: 400;
-            line-height: 1.6;
         }
 
         .action-buttons {
@@ -203,48 +95,68 @@
             flex-wrap: wrap;
         }
 
-        .export-btn, .reset-btn, .add-btn {
+        .export-btn, .reset-btn, .add-btn, .undo-btn {
             border: none;
             padding: 12px 28px;
             border-radius: 12px;
             cursor: pointer;
             font-size: 0.85em;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
+            color: #fff;
+        }
+
+        .undo-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            padding: 12px 20px;
+            font-size: 1.2em;
+        }
+
+        .undo-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .export-btn {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .export-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
         }
 
         .reset-btn {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-        }
-
-        .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
         }
 
         .add-btn {
             background: linear-gradient(135deg, #ff4646 0%, #ff6b6b 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(255, 70, 70, 0.3);
         }
 
-        .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(255, 70, 70, 0.5);
+        .location-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(20, 10, 15, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            border-radius: 15px;
+            padding: 10px;
+        }
+
+        .location-tab {
+            flex: 1;
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            color: #999;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .location-tab.active {
+            background: linear-gradient(135deg, rgba(255, 70, 70, 0.2) 0%, rgba(255, 100, 100, 0.15) 100%);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.3);
         }
 
         .stats {
@@ -252,51 +164,21 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 24px;
             margin-bottom: 40px;
-            animation: fadeInUp 0.8s ease-out 0.4s both;
         }
 
         .stat-card {
             background: rgba(20, 10, 15, 0.4);
-            backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 70, 70, 0.12);
             border-radius: 20px;
             padding: 32px;
             text-align: center;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #ff6b6b, #ff4646, #ff6b6b, transparent);
-            background-size: 200% 100%;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-            animation: borderSlide 2s linear infinite;
-        }
-
-        @keyframes borderSlide {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            transition: all 0.3s;
         }
 
         .stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            background: rgba(25, 12, 18, 0.6);
+            transform: translateY(-5px);
             border-color: rgba(255, 70, 70, 0.3);
-            box-shadow: 
-                0 20px 40px rgba(255, 70, 70, 0.15),
-                0 0 60px rgba(255, 70, 70, 0.08);
         }
 
         .stat-label {
@@ -305,14 +187,12 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 16px;
-            font-weight: 500;
         }
 
         .stat-value {
             font-size: 2.5em;
             font-weight: 700;
             color: #ff6b6b;
-            letter-spacing: -1px;
         }
 
         .stat-value.warning {
@@ -321,25 +201,12 @@
 
         .form-container {
             background: rgba(20, 10, 15, 0.4);
-            backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 70, 70, 0.15);
             border-radius: 20px;
             padding: 40px;
             margin-bottom: 30px;
             display: none;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            animation: formSlideDown 0.4s ease-out;
-        }
-
-        @keyframes formSlideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .form-container.show {
@@ -348,9 +215,7 @@
 
         .form-container h2 {
             font-size: 1.8em;
-            font-weight: 600;
             margin-bottom: 30px;
-            letter-spacing: -0.5px;
             color: #fff;
         }
 
@@ -370,9 +235,7 @@
             color: #999;
             font-size: 0.85em;
             text-transform: uppercase;
-            letter-spacing: 1px;
             margin-bottom: 8px;
-            font-weight: 500;
         }
 
         input, select {
@@ -383,13 +246,12 @@
             border-radius: 12px;
             color: #fff;
             font-size: 1em;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
         }
 
         input:focus, select:focus {
             outline: none;
             border-color: #ff6b6b;
-            background: rgba(10, 10, 10, 0.95);
             box-shadow: 0 0 0 3px rgba(255, 70, 70, 0.1);
         }
 
@@ -408,14 +270,7 @@
             cursor: pointer;
             font-size: 1em;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(255, 70, 70, 0.3);
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(255, 70, 70, 0.5);
+            transition: all 0.3s;
         }
 
         .cancel-btn {
@@ -425,25 +280,15 @@
             border: 1px solid rgba(255, 70, 70, 0.2);
             border-radius: 12px;
             cursor: pointer;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .cancel-btn:hover {
-            color: #fff;
-            background: rgba(255, 70, 70, 0.2);
-            border-color: #ff6b6b;
+            transition: all 0.3s;
         }
 
         .table-container {
             background: rgba(20, 10, 15, 0.4);
-            backdrop-filter: blur(20px) saturate(150%);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 70, 70, 0.15);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            animation: fadeInUp 0.8s ease-out 0.6s both;
         }
 
         table {
@@ -453,7 +298,6 @@
 
         thead {
             background: rgba(255, 70, 70, 0.1);
-            border-bottom: 1px solid rgba(255, 70, 70, 0.2);
         }
 
         th {
@@ -463,7 +307,6 @@
             color: #ff6b6b;
             font-size: 0.85em;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         th.center {
@@ -480,7 +323,7 @@
         }
 
         tbody tr {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
         }
 
         tbody tr:hover {
@@ -495,8 +338,6 @@
             border-radius: 8px;
             color: #ff6b6b;
             font-size: 0.85em;
-            letter-spacing: 0.5px;
-            font-weight: 500;
         }
 
         .provider-badge {
@@ -507,8 +348,6 @@
             border-radius: 8px;
             color: #10b981;
             font-size: 0.8em;
-            letter-spacing: 0.5px;
-            font-weight: 500;
         }
 
         .stock-input, .pedido-input {
@@ -519,12 +358,11 @@
             border-radius: 8px;
             color: #fff;
             text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
         }
 
         .stock-input:focus, .pedido-input:focus {
             border-color: #ff6b6b;
-            background: rgba(10, 10, 10, 0.95);
             box-shadow: 0 0 0 3px rgba(255, 70, 70, 0.1);
         }
 
@@ -545,15 +383,13 @@
             border: 1px solid rgba(255, 70, 70, 0.2);
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
+            transition: all 0.3s;
         }
 
         .delete-btn:hover {
             color: #fff;
             background: rgba(255, 70, 70, 0.2);
             border-color: #ff6b6b;
-            transform: scale(1.05);
         }
 
         .alert {
@@ -565,7 +401,6 @@
             padding: 15px 20px;
             margin-bottom: 20px;
             display: none;
-            animation: slideDown 0.3s ease-out;
         }
 
         .empty-state {
@@ -575,59 +410,40 @@
             font-size: 1.1em;
         }
 
-        .unit-group {
-            display: flex;
-            gap: 10px;
+        .location-info {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background: rgba(255, 70, 70, 0.1);
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #ff6b6b;
         }
 
-        .unit-group input {
-            flex: 1;
-        }
-
-        .unit-group select {
-            width: 100px;
+        .error-banner {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-left: 4px solid #ef4444;
+            border-radius: 12px;
+            color: #fff;
+            padding: 15px 20px;
+            margin-bottom: 20px;
         }
 
         @media (max-width: 768px) {
             .container {
                 padding: 30px 24px;
             }
-
-            .nav-bar {
-                flex-direction: column;
-                gap: 15px;
-                padding: 20px;
-            }
-
             .header {
                 flex-direction: column;
                 gap: 20px;
-                text-align: center;
             }
-
-            .header-left h1 {
-                font-size: 2em;
-            }
-
             .action-buttons {
                 width: 100%;
                 flex-direction: column;
             }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
             .table-container {
                 overflow-x: auto;
-            }
-
-            table {
-                min-width: 900px;
             }
         }
     </style>
@@ -635,8 +451,12 @@
 <body>
     <div class="container">
         <div class="nav-bar">
-            <div class="nav-title">📊 INVENTARIO</div>
+            <div class="nav-title">📊 INVENTARIO BARRA & BODEGA</div>
             <a href="index.html" class="back-btn">← VOLVER AL INICIO</a>
+        </div>
+
+        <div id="errorBanner" class="error-banner" style="display: none;">
+            ⚠️ <span id="errorMessage"></span>
         </div>
 
         <div id="successAlert" class="alert">
@@ -646,13 +466,19 @@
         <div class="header">
             <div class="header-left">
                 <h1>Control de Stock</h1>
-                <p class="subtitle">Gestiona tu inventario con proveedores y genera hojas de pedido</p>
+                <p class="subtitle">Gestiona inventarios separados para Barra y Bodega. Los valores se guardan independientemente.</p>
             </div>
             <div class="action-buttons">
+                <button class="undo-btn" id="undoBtn" title="Deshacer última acción">↺</button>
                 <button class="reset-btn" id="resetBtn">🔄 VACIAR CANTIDADES</button>
                 <button class="export-btn" id="exportBtn">📥 EXPORTAR EXCEL</button>
                 <button class="add-btn" id="addProductBtn">+ AGREGAR</button>
             </div>
+        </div>
+
+        <div class="location-tabs">
+            <button class="location-tab active" data-location="barra">🍸 BARRA</button>
+            <button class="location-tab" data-location="bodega">📦 BODEGA</button>
         </div>
 
         <div class="stats">
@@ -679,7 +505,7 @@
                 </div>
                 <div class="form-group">
                     <label>Proveedor</label>
-                    <input type="text" id="productProvider" placeholder="Ej: Coca-Cola, Colina, Andes Blend">
+                    <input type="text" id="productProvider" placeholder="Ej: Coca-Cola">
                 </div>
                 <div class="form-group">
                     <label>Categoría</label>
@@ -695,22 +521,7 @@
                         <option value="WHISKY">WHISKY</option>
                         <option value="VINO">VINO</option>
                         <option value="INSUMOS">INSUMOS</option>
-                        <option value="PULPAS">PULPAS</option>
-                        <option value="FRUTAS">FRUTAS</option>
-                        <option value="VERDURAS">VERDURAS</option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label>Stock Actual</label>
-                    <div class="unit-group">
-                        <input type="number" id="productStock" placeholder="0" min="0" step="0.01">
-                        <select id="productUnit">
-                            <option value="Ud">Ud</option>
-                            <option value="L">L</option>
-                            <option value="Kg">Kg</option>
-                            <option value="Gr">Gr</option>
-                        </select>
-                    </div>
                 </div>
                 <div class="form-group">
                     <label>Stock Mínimo</label>
@@ -734,7 +545,7 @@
                         <th>Producto</th>
                         <th>Proveedor</th>
                         <th>Categoría</th>
-                        <th class="center">Stock</th>
+                        <th class="center">Stock <span class="location-info" id="locationIndicator">BARRA</span></th>
                         <th class="center">Unidad</th>
                         <th class="center">Stock Mín.</th>
                         <th class="center">Pedido</th>
@@ -745,7 +556,7 @@
                 <tbody id="inventoryTable">
                     <tr>
                         <td colspan="9" class="empty-state">
-                            No hay productos en el inventario
+                            Cargando inventario...
                         </td>
                     </tr>
                 </tbody>
@@ -756,51 +567,91 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
     <script>
-    const db = supabase.createClient(
-        "https://hhfpaviwuuqcuhcsfwdj.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg"
-    );
-
+    let db;
     let inventory = [];
     let currentUserId = null;
-    let isProcessingEnter = false;
-    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    let currentLocation = 'barra';
+    let changeHistory = [];
+    const maxHistorySize = 50;
 
-    (function setupMobileConfig() {
-        if (isMobile) {
-            const viewport = document.querySelector('meta[name="viewport"]');
-            if (viewport) {
-                viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-            }
-            
-            const style = document.createElement('style');
-            style.textContent = `
-                input, select, textarea {
-                    font-size: 16px !important;
-                }
-                
-                .stock-input, .pedido-input {
-                    font-size: 16px !important;
-                    min-height: 44px !important;
-                }
-                
-                body {
-                    touch-action: pan-y !important;
-                }
-            `;
-            document.head.appendChild(style);
+    // Función para mostrar errores
+    function showError(message) {
+        const errorBanner = document.getElementById('errorBanner');
+        const errorMessage = document.getElementById('errorMessage');
+        if (errorBanner && errorMessage) {
+            errorMessage.textContent = message;
+            errorBanner.style.display = 'block';
+            setTimeout(() => {
+                errorBanner.style.display = 'none';
+            }, 5000);
         }
-    })();
+        console.error(message);
+    }
 
+    // Inicializar Supabase
+    async function initializeSupabase() {
+        try {
+            const supabaseUrl = "https://hhfpaviwuuqcuhcsfwdj.supabase.co";
+            const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZnBhdml3dXVxY3VoY3Nmd2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzgwMDgsImV4cCI6MjA3ODg1NDAwOH0.LpccdL9cQqf4vZ5BPqRKnL2Mh5GiLd57pQKujcDHDLg";
+            
+            db = supabase.createClient(supabaseUrl, supabaseKey);
+            console.log("✓ Supabase inicializado correctamente");
+            return true;
+        } catch (error) {
+            showError("Error al conectar con la base de datos: " + error.message);
+            return false;
+        }
+    }
+
+    // Verificar si las columnas existen
+    async function checkDatabaseSchema() {
+        try {
+            // Intentar cargar un registro para verificar estructura
+            const { data, error } = await db
+                .from('inventory')
+                .select('id, name, provider, category, stock, unit, min_stock, pedido, stock_barra, stock_bodega')
+                .limit(1);
+
+            if (error && error.message.includes('column')) {
+                showError("La tabla no tiene las columnas stock_barra y stock_bodega. Se usará la columna 'stock' original.");
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.warn("No se pudo verificar el esquema:", error);
+            return false;
+        }
+    }
+
+    // Hacer funciones globales
+    window.deleteProduct = deleteProduct;
+    window.updateStock = updateStock;
+    window.updatePedido = updatePedido;
+
+    // Inicialización
     window.onload = async function() {
+        const initialized = await initializeSupabase();
+        
+        if (!initialized) {
+            showError("No se pudo conectar con la base de datos");
+            return;
+        }
+
         const { data } = await db.auth.getSession();
         if (!data.session) {
             window.location.href = "login.html";
             return;
         }
+        
         currentUserId = data.session.user.id;
-        await loadInventory();
+        
+        // Verificar esquema de base de datos
+        const hasNewColumns = await checkDatabaseSchema();
+        console.log("Columnas Barra/Bodega disponibles:", hasNewColumns);
+        
+        await loadInventory(hasNewColumns);
         setupEventListeners();
+        updateUndoButton();
     };
 
     function setupEventListeners() {
@@ -809,21 +660,76 @@
         document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
         document.getElementById('exportBtn').addEventListener('click', exportToExcel);
         document.getElementById('resetBtn').addEventListener('click', resetAllQuantities);
+        document.getElementById('undoBtn').addEventListener('click', undoLastChange);
         
-        const formInputs = ['productName', 'productProvider', 'productStock', 'productMinStock', 'productPedido'];
-        formInputs.forEach((inputId, index) => {
-            const input = document.getElementById(inputId);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (index < formInputs.length - 1) {
-                        document.getElementById(formInputs[index + 1]).focus();
-                    } else {
-                        saveProduct();
-                    }
-                }
-            });
+        document.querySelectorAll('.location-tab').forEach(tab => {
+            tab.addEventListener('click', () => switchLocation(tab.dataset.location));
         });
+    }
+
+    function switchLocation(location) {
+        currentLocation = location;
+        
+        document.querySelectorAll('.location-tab').forEach(tab => {
+            tab.classList.remove('active');
+            if (tab.dataset.location === location) {
+                tab.classList.add('active');
+            }
+        });
+        
+        document.getElementById('locationIndicator').textContent = 
+            location === 'barra' ? 'BARRA' : 'BODEGA';
+        
+        renderInventory();
+    }
+
+    function addToHistory(action, details) {
+        changeHistory.push({
+            timestamp: new Date().toISOString(),
+            action: action,
+            details: details
+        });
+        
+        if (changeHistory.length > maxHistorySize) {
+            changeHistory.shift();
+        }
+        
+        updateUndoButton();
+    }
+
+    function updateUndoButton() {
+        const undoBtn = document.getElementById('undoBtn');
+        undoBtn.disabled = changeHistory.length === 0;
+    }
+
+    async function undoLastChange() {
+        if (changeHistory.length === 0) return;
+        
+        const lastChange = changeHistory.pop();
+        
+        try {
+            switch (lastChange.action) {
+                case 'update_stock':
+                    const item = inventory.find(i => i.id == lastChange.details.id);
+                    if (item) {
+                        if (lastChange.details.location === 'barra') {
+                            item.stock_barra = lastChange.details.oldValue;
+                            await db.from('inventory').update({ stock_barra: lastChange.details.oldValue }).eq('id', lastChange.details.id);
+                        } else {
+                            item.stock_bodega = lastChange.details.oldValue;
+                            await db.from('inventory').update({ stock_bodega: lastChange.details.oldValue }).eq('id', lastChange.details.id);
+                        }
+                    }
+                    break;
+            }
+            
+            renderInventory();
+            updateStats();
+            updateUndoButton();
+            showAlert('Acción deshecha');
+        } catch (error) {
+            showError('Error al deshacer: ' + error.message);
+        }
     }
 
     function toggleForm() {
@@ -840,36 +746,56 @@
         document.getElementById('productName').value = '';
         document.getElementById('productProvider').value = '';
         document.getElementById('productCategory').value = 'BEBIDAS';
-        document.getElementById('productStock').value = '';
-        document.getElementById('productUnit').value = 'Ud';
         document.getElementById('productMinStock').value = '';
         document.getElementById('productPedido').value = '';
     }
 
-    async function loadInventory() {
+    async function loadInventory(hasNewColumns = true) {
         try {
+            let selectQuery = 'id, name, provider, category, unit, min_stock, pedido';
+            
+            if (hasNewColumns) {
+                selectQuery += ', stock_barra, stock_bodega';
+            } else {
+                selectQuery += ', stock';
+            }
+
             const { data, error } = await db
                 .from('inventory')
-                .select('*')
+                .select(selectQuery)
                 .eq('user_id', currentUserId);
 
             if (error) throw error;
 
-            inventory = (data || []).sort((a, b) => {
-                if (a.category !== b.category) {
-                    return a.category.localeCompare(b.category);
+            inventory = (data || []).map(item => {
+                if (hasNewColumns) {
+                    return {
+                        ...item,
+                        stock_barra: item.stock_barra || 0,
+                        stock_bodega: item.stock_bodega || 0
+                    };
+                } else {
+                    // Si no tiene las columnas nuevas, dividir el stock entre barra y bodega
+                    const totalStock = item.stock || 0;
+                    return {
+                        ...item,
+                        stock_barra: totalStock,
+                        stock_bodega: 0
+                    };
                 }
-                if (a.provider !== b.provider) {
-                    return a.provider.localeCompare(b.provider);
-                }
-                return a.name.localeCompare(b.name);
-            });
+            }).sort((a, b) => a.name.localeCompare(b.name));
 
             renderInventory();
             updateStats();
         } catch (error) {
-            console.error('Error al cargar inventario:', error);
-            showAlert('Error al cargar el inventario', 'error');
+            showError('Error al cargar inventario: ' + error.message);
+            document.getElementById('inventoryTable').innerHTML = `
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        Error al cargar el inventario. Por favor recarga la página.
+                    </td>
+                </tr>
+            `;
         }
     }
 
@@ -887,252 +813,103 @@
             return;
         }
 
-        tbody.innerHTML = inventory.map((item, index) => {
-            const stockStatus = item.stock <= item.min_stock ? 'stock-low' : 'stock-ok';
-            const statusText = item.stock <= item.min_stock ? '⚠️ BAJO' : '✓ OK';
+        tbody.innerHTML = inventory.map((item) => {
+            const currentStock = currentLocation === 'barra' ? (item.stock_barra || 0) : (item.stock_bodega || 0);
+            const totalStock = (item.stock_barra || 0) + (item.stock_bodega || 0);
+            const stockStatus = totalStock <= (item.min_stock || 0) ? 'stock-low' : 'stock-ok';
+            const statusText = totalStock <= (item.min_stock || 0) ? '⚠️ BAJO' : '✓ OK';
             
             return `
                 <tr>
-                    <td>${item.name}</td>
-                    <td><span class="provider-badge">${item.provider}</span></td>
-                    <td><span class="category-badge">${item.category}</span></td>
+                    <td>${item.name || ''}</td>
+                    <td><span class="provider-badge">${item.provider || ''}</span></td>
+                    <td><span class="category-badge">${item.category || ''}</span></td>
                     <td class="center">
                         <input type="number" 
                                class="stock-input ${stockStatus}" 
-                               value="${item.stock}" 
+                               value="${currentStock}" 
                                min="0" 
                                step="0.01"
-                               data-row="${index}"
-                               data-type="stock"
-                               data-id="${item.id}"
-                               ${isMobile ? 'inputmode="decimal"' : ''}>
+                               onchange="updateStock('${item.id}', this.value)"
+                               data-id="${item.id}">
+                        <br>
+                        <small style="color: #999; font-size:0.8em;">
+                            Total: ${totalStock.toFixed(2)}
+                        </small>
                     </td>
-                    <td class="center">${item.unit}</td>
-                    <td class="center">${item.min_stock}</td>
+                    <td class="center">${item.unit || 'Ud'}</td>
+                    <td class="center">${item.min_stock || 0}</td>
                     <td class="center">
                         <input type="number" 
                                class="pedido-input" 
                                value="${item.pedido || 0}" 
                                min="0" 
                                step="0.01"
-                               data-row="${index}"
-                               data-type="pedido"
-                               data-id="${item.id}"
-                               ${isMobile ? 'inputmode="decimal"' : ''}>
+                               onchange="updatePedido('${item.id}', this.value)">
                     </td>
                     <td class="center ${stockStatus}">${statusText}</td>
                     <td class="center">
-                        <button class="delete-btn" onclick="deleteProduct(${item.id})">🗑️</button>
+                        <button class="delete-btn" onclick="deleteProduct('${item.id}')">🗑️</button>
                     </td>
                 </tr>
             `;
         }).join('');
-
-        attachTableInputListeners();
     }
 
-    function attachTableInputListeners() {
-        const allInputs = document.querySelectorAll('input[data-type="stock"], input[data-type="pedido"]');
-        
-        allInputs.forEach((input) => {
-            input.defaultValue = input.value;
-            
-            if (!isMobile) {
-                input.addEventListener('focus', function() {
-                    setTimeout(() => {
-                        this.select();
-                    }, 10);
-                });
-            }
-            
-            input.removeEventListener('keydown', handleTableKeyDown);
-            input.removeEventListener('blur', handleInputBlur);
-            
-            input.addEventListener('keydown', handleTableKeyDown);
-            input.addEventListener('blur', handleInputBlur);
-        });
-    }
-
-    function handleTableKeyDown(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            if (isProcessingEnter) return;
-            isProcessingEnter = true;
-            
-            const currentInput = event.target;
-            const currentRow = parseInt(currentInput.getAttribute('data-row'));
-            const currentType = currentInput.getAttribute('data-type');
-            
-            if (currentInput.value !== currentInput.defaultValue) {
-                saveInputValue(currentInput);
-            }
-            
-            let nextRow = currentRow + 1;
-            let nextInput = document.querySelector(
-                `input[data-row="${nextRow}"][data-type="${currentType}"]`
-            );
-            
-            if (!nextInput) {
-                nextRow = 0;
-                nextInput = document.querySelector(
-                    `input[data-row="${nextRow}"][data-type="${currentType}"]`
-                );
-            }
-            
-            if (nextInput) {
-                if (isMobile) {
-                    currentInput.blur();
-                    
-                    setTimeout(() => {
-                        nextInput.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'center'
-                        });
-                        
-                        setTimeout(() => {
-                            nextInput.focus();
-                            nextInput.defaultValue = nextInput.value;
-                        }, 300);
-                    }, 200);
-                } else {
-                    setTimeout(() => {
-                        currentInput.blur();
-                        setTimeout(() => {
-                            nextInput.focus();
-                            nextInput.select();
-                            nextInput.defaultValue = nextInput.value;
-                        }, 10);
-                    }, 10);
-                }
-            }
-            
-            setTimeout(() => {
-                isProcessingEnter = false;
-            }, 150);
-        }
-        
-        if (!isMobile && event.key === 'Tab') {
-            event.preventDefault();
-            
-            const currentInput = event.target;
-            const currentRow = parseInt(currentInput.getAttribute('data-row'));
-            const currentType = currentInput.getAttribute('data-type');
-            
-            if (currentInput.value !== currentInput.defaultValue) {
-                saveInputValue(currentInput);
-            }
-            
-            let nextRow = currentRow;
-            let nextType = currentType === 'stock' ? 'pedido' : 'stock';
-            
-            if (!event.shiftKey && currentType === 'pedido') {
-                nextRow = currentRow + 1;
-                nextType = 'stock';
-            } else if (event.shiftKey && currentType === 'stock') {
-                nextRow = currentRow - 1;
-                nextType = 'pedido';
-                if (nextRow < 0) {
-                    const totalRows = document.querySelectorAll('input[data-type="stock"]').length;
-                    nextRow = totalRows - 1;
-                }
-            }
-            
-            let nextInput = document.querySelector(
-                `input[data-row="${nextRow}"][data-type="${nextType}"]`
-            );
-            
-            if (!nextInput) {
-                nextInput = document.querySelector(
-                    `input[data-row="${currentRow}"][data-type="${nextType}"]`
-                );
-            }
-            
-            if (nextInput) {
-                setTimeout(() => {
-                    currentInput.blur();
-                    setTimeout(() => {
-                        nextInput.focus();
-                        nextInput.select();
-                        nextInput.defaultValue = nextInput.value;
-                    }, 10);
-                }, 10);
-            }
-        }
-    }
-
-    function saveInputValue(input) {
-        const id = parseInt(input.getAttribute('data-id'));
-        const type = input.getAttribute('data-type');
-        const value = input.value;
-        
-        input.defaultValue = value;
-        
-        if (type === 'stock') {
-            updateStock(id, value, true);
-        } else if (type === 'pedido') {
-            updatePedido(id, value, true);
-        }
-    }
-
-    function handleInputBlur(event) {
-        const input = event.target;
-        
-        if (input.value !== input.defaultValue && !isProcessingEnter) {
-            const id = parseInt(input.getAttribute('data-id'));
-            const type = input.getAttribute('data-type');
-            const value = input.value;
-            
-            input.defaultValue = value;
-            
-            if (type === 'stock') {
-                updateStock(id, value, false);
-            } else if (type === 'pedido') {
-                updatePedido(id, value, false);
-            }
-        }
-    }
-
-    async function updateStock(id, newStock, silent = false) {
+    async function updateStock(id, newStock) {
         try {
             const stockValue = parseFloat(newStock);
             if (isNaN(stockValue) || stockValue < 0) {
-                if (!silent) alert('Por favor ingresa un valor válido para el stock');
-                await loadInventory();
+                showError('Por favor ingresa un valor válido');
                 return;
             }
 
+            const item = inventory.find(i => i.id == id);
+            if (!item) return;
+
+            const oldValue = currentLocation === 'barra' ? item.stock_barra : item.stock_bodega;
+
+            const updateData = currentLocation === 'barra' 
+                ? { stock_barra: stockValue } 
+                : { stock_bodega: stockValue };
+
             const { error } = await db
                 .from('inventory')
-                .update({ stock: stockValue })
+                .update(updateData)
                 .eq('id', id);
 
             if (error) throw error;
 
-            const itemIndex = inventory.findIndex(item => item.id === id);
-            if (itemIndex !== -1) {
-                inventory[itemIndex].stock = stockValue;
+            if (currentLocation === 'barra') {
+                item.stock_barra = stockValue;
+            } else {
+                item.stock_bodega = stockValue;
             }
+
+            addToHistory('update_stock', {
+                id: id,
+                oldValue: oldValue,
+                newValue: stockValue,
+                location: currentLocation
+            });
             
             updateStats();
-            
-            if (!silent) showAlert('Stock actualizado');
+            showAlert('Stock actualizado');
         } catch (error) {
-            console.error('Error al actualizar stock:', error);
-            if (!silent) alert('Error al actualizar el stock');
-            await loadInventory();
+            showError('Error al actualizar stock: ' + error.message);
         }
     }
 
-    async function updatePedido(id, newPedido, silent = false) {
+    async function updatePedido(id, newPedido) {
         try {
             const pedidoValue = parseFloat(newPedido);
             if (isNaN(pedidoValue) || pedidoValue < 0) {
-                if (!silent) alert('Por favor ingresa un valor válido para el pedido');
-                await loadInventory();
+                showError('Por favor ingresa un valor válido');
                 return;
             }
+
+            const item = inventory.find(i => i.id == id);
+            if (!item) return;
 
             const { error } = await db
                 .from('inventory')
@@ -1141,18 +918,11 @@
 
             if (error) throw error;
 
-            const itemIndex = inventory.findIndex(item => item.id === id);
-            if (itemIndex !== -1) {
-                inventory[itemIndex].pedido = pedidoValue;
-            }
-            
+            item.pedido = pedidoValue;
             updateStats();
-            
-            if (!silent) showAlert('Pedido actualizado');
+            showAlert('Pedido actualizado');
         } catch (error) {
-            console.error('Error al actualizar pedido:', error);
-            if (!silent) alert('Error al actualizar el pedido');
-            await loadInventory();
+            showError('Error al actualizar pedido: ' + error.message);
         }
     }
 
@@ -1160,13 +930,11 @@
         const name = document.getElementById('productName').value.trim();
         const provider = document.getElementById('productProvider').value.trim();
         const category = document.getElementById('productCategory').value;
-        const stock = parseFloat(document.getElementById('productStock').value) || 0;
-        const unit = document.getElementById('productUnit').value;
         const minStock = parseFloat(document.getElementById('productMinStock').value) || 1;
         const pedido = parseFloat(document.getElementById('productPedido').value) || 0;
 
         if (!name || !provider) {
-            alert('Por favor completa el nombre y proveedor del producto');
+            showError('Por favor completa el nombre y proveedor');
             return;
         }
 
@@ -1178,8 +946,9 @@
                     name: name,
                     provider: provider,
                     category: category,
-                    stock: stock,
-                    unit: unit,
+                    stock_barra: 0,
+                    stock_bodega: 0,
+                    unit: 'Ud',
                     min_stock: minStock,
                     pedido: pedido
                 }])
@@ -1187,12 +956,11 @@
 
             if (error) throw error;
 
-            await loadInventory();
+            await loadInventory(true);
             toggleForm();
             showAlert('Producto agregado exitosamente');
         } catch (error) {
-            console.error('Error al guardar producto:', error);
-            alert('Error al guardar el producto');
+            showError('Error al guardar producto: ' + error.message);
         }
     }
 
@@ -1207,39 +975,43 @@
 
             if (error) throw error;
 
-            await loadInventory();
+            await loadInventory(true);
             showAlert('Producto eliminado');
         } catch (error) {
-            console.error('Error al eliminar producto:', error);
-            alert('Error al eliminar el producto');
+            showError('Error al eliminar producto: ' + error.message);
         }
     }
 
     async function resetAllQuantities() {
-        if (!confirm('¿Vaciar TODAS las cantidades (stock actual y pedidos)? Esta acción no se puede deshacer.')) return;
+        if (!confirm('¿Vaciar TODAS las cantidades (stock y pedidos) en Barra y Bodega?')) return;
 
         try {
             const { error } = await db
                 .from('inventory')
                 .update({ 
-                    stock: 0,
+                    stock_barra: 0,
+                    stock_bodega: 0,
                     pedido: 0 
                 })
                 .eq('user_id', currentUserId);
 
             if (error) throw error;
 
-            await loadInventory();
-            showAlert('Stock y cantidades de pedido vaciadas');
+            await loadInventory(true);
+            showAlert('Stock y cantidades vaciadas');
         } catch (error) {
-            console.error('Error al resetear cantidades:', error);
-            alert('Error al vaciar las cantidades');
+            showError('Error al resetear cantidades: ' + error.message);
         }
     }
 
     function updateStats() {
         const totalProducts = inventory.length;
-        const lowStock = inventory.filter(item => item.stock <= item.min_stock).length;
+        
+        const lowStock = inventory.filter(item => {
+            const totalStock = (item.stock_barra || 0) + (item.stock_bodega || 0);
+            return totalStock <= (item.min_stock || 0);
+        }).length;
+        
         const toPurchase = inventory.filter(item => item.pedido > 0).length;
 
         document.getElementById('totalProducts').textContent = totalProducts;
@@ -1247,176 +1019,187 @@
         document.getElementById('toPurchase').textContent = toPurchase;
     }
 
-    function showAlert(message, type = 'success') {
+    function showAlert(message) {
         const alert = document.getElementById('successAlert');
-        alert.textContent = message;
+        alert.textContent = '✓ ' + message;
         alert.style.display = 'block';
-        
-        if (type === 'error') {
-            alert.style.background = 'rgba(239, 68, 68, 0.1)';
-            alert.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-            alert.style.borderLeft = '4px solid #ef4444';
-        }
 
         setTimeout(() => {
             alert.style.display = 'none';
-            alert.style.background = 'rgba(16, 185, 129, 0.1)';
-            alert.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-            alert.style.borderLeft = '4px solid #10b981';
         }, 3000);
     }
 
     async function exportToExcel() {
-        if (inventory.length === 0) {
-            alert('No hay productos para exportar');
-            return;
-        }
+    if (inventory.length === 0) {
+        showError('No hay productos para exportar');
+        return;
+    }
 
-        try {
-            const workbook = new ExcelJS.Workbook();
-            const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
+    try {
+        const workbook = new ExcelJS.Workbook();
+        const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
+        
+        pedidoSheet.columns = [
+            { key: 'producto', width: 35 },
+            { key: 'proveedor', width: 25 },
+            { key: 'stock_total', width: 15 },
+            { key: 'stock_minimo', width: 15 },
+            { key: 'pedido_sugerido', width: 20 }
+        ];
+
+        let currentRow = 1;
+        const categoryGroups = {};
+        
+        // Agrupar por categoría y proveedor
+        inventory.forEach(item => {
+            if (!categoryGroups[item.category]) {
+                categoryGroups[item.category] = {};
+            }
+            if (!categoryGroups[item.category][item.provider]) {
+                categoryGroups[item.category][item.provider] = [];
+            }
+            categoryGroups[item.category][item.provider].push(item);
+        });
+
+        // Ordenar categorías alfabéticamente
+        const sortedCategories = Object.keys(categoryGroups).sort();
+
+        sortedCategories.forEach((category, catIndex) => {
+            const providers = categoryGroups[category];
             
-            pedidoSheet.columns = [
-                { key: 'producto', width: 35 },
-                { key: 'proveedor', width: 25 },
-                { key: 'stock_actual', width: 18 },
-                { key: 'stock_minimo', width: 18 },
-                { key: 'pedido_sugerido', width: 20 }
-            ];
+            // Encabezado de categoría
+            pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
+            const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
+            categoryHeader.value = category;
+            categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+            categoryHeader.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF4472C4' }
+            };
+            categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
+            categoryHeader.border = {
+                top: { style: 'thin', color: { argb: 'FF000000' } },
+                left: { style: 'thin', color: { argb: 'FF000000' } },
+                bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                right: { style: 'thin', color: { argb: 'FF000000' } }
+            };
+            pedidoSheet.getRow(currentRow).height = 25;
+            currentRow++;
 
-            let currentRow = 1;
-            const categoryGroups = {};
+            // Encabezados de columnas
+            const headerRow = pedidoSheet.getRow(currentRow);
+            headerRow.getCell(1).value = 'Producto';
+            headerRow.getCell(2).value = 'Proveedor';
+            headerRow.getCell(3).value = 'Stock Total';
+            headerRow.getCell(4).value = 'Stock Mínimo';
+            headerRow.getCell(5).value = 'Pedido Sugerido';
             
-            inventory.forEach(item => {
-                if (!categoryGroups[item.category]) {
-                    categoryGroups[item.category] = {};
-                }
-                if (!categoryGroups[item.category][item.provider]) {
-                    categoryGroups[item.category][item.provider] = [];
-                }
-                categoryGroups[item.category][item.provider].push(item);
-            });
-
-            const sortedCategories = Object.keys(categoryGroups).sort();
-
-            sortedCategories.forEach((category, catIndex) => {
-                const providers = categoryGroups[category];
-                
-                pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
-                const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
-                categoryHeader.value = category;
-                categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-                categoryHeader.fill = {
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+            headerRow.height = 22;
+            
+            for (let col = 1; col <= 5; col++) {
+                const cell = headerRow.getCell(col);
+                cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: 'FF4472C4' }
+                    fgColor: { argb: 'FF5B9BD5' }
                 };
-                categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
-                categoryHeader.border = {
+                cell.border = {
                     top: { style: 'thin', color: { argb: 'FF000000' } },
                     left: { style: 'thin', color: { argb: 'FF000000' } },
                     bottom: { style: 'thin', color: { argb: 'FF000000' } },
                     right: { style: 'thin', color: { argb: 'FF000000' } }
                 };
-                pedidoSheet.getRow(currentRow).height = 25;
-                currentRow++;
+            }
+            currentRow++;
 
-                const headerRow = pedidoSheet.getRow(currentRow);
-                headerRow.getCell(1).value = category;
-                headerRow.getCell(2).value = 'Proveedor';
-                headerRow.getCell(3).value = 'Stock Actual';
-                headerRow.getCell(4).value = 'Stock Mínimo';
-                headerRow.getCell(5).value = 'Pedido Sugerido';
-                
-                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-                headerRow.height = 22;
-                
-                for (let col = 1; col <= 5; col++) {
-                    const cell = headerRow.getCell(col);
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FF5B9BD5' }
-                    };
-                    cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF000000' } },
-                        left: { style: 'thin', color: { argb: 'FF000000' } },
-                        bottom: { style: 'thin', color: { argb: 'FF000000' } },
-                        right: { style: 'thin', color: { argb: 'FF000000' } }
-                    };
-                }
-                currentRow++;
+            // Ordenar proveedores alfabéticamente
+            const sortedProviders = Object.keys(providers).sort();
 
-                const sortedProviders = Object.keys(providers).sort();
+            sortedProviders.forEach(provider => {
+                const products = providers[provider];
+                // Ordenar productos alfabéticamente
+                products.sort((a, b) => a.name.localeCompare(b.name));
 
-                sortedProviders.forEach(provider => {
-                    const products = providers[provider];
-                    products.sort((a, b) => a.name.localeCompare(b.name));
-
-                    products.forEach(item => {
-                        const row = pedidoSheet.getRow(currentRow);
-                        row.getCell(1).value = item.name;
-                        row.getCell(2).value = provider;
-                        row.getCell(3).value = `${item.stock} ${item.unit}`;
-                        row.getCell(4).value = `${item.min_stock} ${item.unit}`;
-                        row.getCell(5).value = item.pedido || 0;
+                products.forEach(item => {
+                    const row = pedidoSheet.getRow(currentRow);
+                    const stockBarra = item.stock_barra || 0;
+                    const stockBodega = item.stock_bodega || 0;
+                    const stockTotal = stockBarra + stockBodega;
+                    
+                    row.getCell(1).value = item.name;
+                    row.getCell(2).value = provider;
+                    row.getCell(3).value = `${stockTotal} ${item.unit}`;
+                    row.getCell(4).value = `${item.min_stock} ${item.unit}`;
+                    row.getCell(5).value = item.pedido || 0;
+                    
+                    row.alignment = { vertical: 'middle' };
+                    row.height = 20;
+                    
+                    const stockPercentage = (stockTotal / item.min_stock) * 100;
+                    
+                    for (let col = 1; col <= 5; col++) {
+                        const cell = row.getCell(col);
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                            left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                            bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                            right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
+                        };
                         
-                        row.alignment = { vertical: 'middle' };
-                        row.height = 20;
-                        
-                        const stockPercentage = (item.stock / item.min_stock) * 100;
-                        
-                        for (let col = 1; col <= 5; col++) {
-                            const cell = row.getCell(col);
-                            cell.border = {
-                                top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                                left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                                bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                                right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
-                            };
-                            
-                            if (col === 5) {
-                                if (stockPercentage < 50) {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FFFFE6E6' }
-                                    };
-                                } else if (stockPercentage >= 50 && stockPercentage <= 100) {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FFFFF4CC' }
-                                    };
-                                }
+                        // Resaltar pedido según el stock
+                        if (col === 5) {
+                            if (stockPercentage < 50) {
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFFFE6E6' }
+                                };
+                            } else if (stockPercentage >= 50 && stockPercentage <= 100) {
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFFFF4CC' }
+                                };
                             }
                         }
                         
-                        currentRow++;
-                    });
-                });
-
-                if (catIndex < sortedCategories.length - 1) {
+                        // Resaltar columna de stock total si está bajo mínimo
+                        if (col === 3 && stockTotal <= item.min_stock) {
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFFFCCCC' }
+                            };
+                        }
+                    }
+                    
                     currentRow++;
-                }
+                });
             });
 
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
-            link.click();
-            window.URL.revokeObjectURL(url);
+            // Espacio entre categorías
+            if (catIndex < sortedCategories.length - 1) {
+                currentRow++;
+            }
+        });
 
-            showAlert('Excel exportado exitosamente');
-        } catch (error) {
-            console.error('Error al exportar Excel:', error);
-            alert('Error al exportar el archivo Excel');
-        }
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        showAlert('Excel exportado exitosamente');
+    } catch (error) {
+        showError('Error al exportar Excel: ' + error.message);
     }
+}
     </script>
 </body>
 </html>
