@@ -95,7 +95,7 @@
             flex-wrap: wrap;
         }
 
-        .export-btn, .reset-btn, .add-btn, .undo-btn {
+        .export-btn, .reset-btn, .add-btn, .undo-btn, .template-btn, .import-btn {
             border: none;
             padding: 12px 28px;
             border-radius: 12px;
@@ -127,6 +127,14 @@
 
         .add-btn {
             background: linear-gradient(135deg, #ff4646 0%, #ff6b6b 100%);
+        }
+
+        .template-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .import-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         }
 
         .location-tabs {
@@ -410,6 +418,21 @@
             font-size: 1.1em;
         }
 
+        .file-input-hidden {
+            display: none;
+        }
+
+        .import-status {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-left: 4px solid #3b82f6;
+            border-radius: 12px;
+            color: #fff;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
         .location-info {
             display: inline-block;
             margin-left: 8px;
@@ -463,6 +486,10 @@
             ✓ Cambios guardados exitosamente
         </div>
 
+        <div id="importStatus" class="import-status">
+            📤 Procesando archivo...
+        </div>
+
         <div class="header">
             <div class="header-left">
                 <h1>Control de Stock</h1>
@@ -470,6 +497,8 @@
             </div>
             <div class="action-buttons">
                 <button class="undo-btn" id="undoBtn" title="Deshacer última acción">↺</button>
+                <button class="import-btn" id="importBtn">📤 IMPORTAR PLANTILLA</button>
+                <button class="template-btn" id="templateBtn">📋 EXPORTAR PLANTILLA</button>
                 <button class="reset-btn" id="resetBtn">🔄 VACIAR CANTIDADES</button>
                 <button class="export-btn" id="exportBtn">📥 EXPORTAR EXCEL</button>
                 <button class="add-btn" id="addProductBtn">+ AGREGAR</button>
@@ -577,6 +606,8 @@
         </div>
     </div>
 
+    <input type="file" id="fileInput" class="file-input-hidden" accept=".xlsx,.xls">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
     <script>
@@ -672,6 +703,11 @@
         document.getElementById('cancelBtn').addEventListener('click', toggleForm);
         document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
         document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+        document.getElementById('templateBtn').addEventListener('click', exportTemplate);
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+        document.getElementById('fileInput').addEventListener('change', importTemplate);
         document.getElementById('resetBtn').addEventListener('click', resetAllQuantities);
         document.getElementById('undoBtn').addEventListener('click', undoLastChange);
         
@@ -1247,6 +1283,180 @@
             showAlert('Excel exportado exitosamente');
         } catch (error) {
             showError('Error al exportar Excel: ' + error.message);
+        }
+    }
+
+    async function exportTemplate() {
+        if (inventory.length === 0) {
+            showError('No hay productos para exportar como plantilla');
+            return;
+        }
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const templateSheet = workbook.addWorksheet('PLANTILLA PRODUCTOS');
+            
+            // Definir columnas
+            templateSheet.columns = [
+                { header: 'Nombre', key: 'name', width: 35 },
+                { header: 'Proveedor', key: 'provider', width: 25 },
+                { header: 'Categoría', key: 'category', width: 20 },
+                { header: 'Unidad', key: 'unit', width: 15 },
+                { header: 'Stock Mínimo', key: 'min_stock', width: 15 }
+            ];
+
+            // Estilo del encabezado
+            const headerRow = templateSheet.getRow(1);
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF4472C4' }
+            };
+            headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+            headerRow.height = 25;
+
+            // Agregar bordes al encabezado
+            for (let col = 1; col <= 5; col++) {
+                const cell = headerRow.getCell(col);
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF000000' } },
+                    left: { style: 'thin', color: { argb: 'FF000000' } },
+                    bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                    right: { style: 'thin', color: { argb: 'FF000000' } }
+                };
+            }
+
+            // Agregar productos sin stock
+            inventory.forEach((item, index) => {
+                const row = templateSheet.addRow({
+                    name: item.name,
+                    provider: item.provider,
+                    category: item.category,
+                    unit: item.unit || 'Ud',
+                    min_stock: item.min_stock || 1
+                });
+
+                row.alignment = { vertical: 'middle' };
+                row.height = 20;
+
+                // Alternar color de filas
+                if (index % 2 === 0) {
+                    row.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FFF8F9FA' }
+                    };
+                }
+
+                // Bordes
+                for (let col = 1; col <= 5; col++) {
+                    const cell = row.getCell(col);
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                        left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                        bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                        right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
+                    };
+                }
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Plantilla_Productos_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+
+            showAlert('Plantilla exportada exitosamente');
+        } catch (error) {
+            showError('Error al exportar plantilla: ' + error.message);
+        }
+    }
+
+    async function importTemplate(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const importStatus = document.getElementById('importStatus');
+        importStatus.style.display = 'block';
+        importStatus.textContent = '📤 Procesando archivo...';
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(arrayBuffer);
+            
+            const worksheet = workbook.worksheets[0];
+            if (!worksheet) {
+                throw new Error('El archivo no contiene hojas de cálculo');
+            }
+
+            const products = [];
+            let headerRow = null;
+
+            worksheet.eachRow((row, rowNumber) => {
+                if (rowNumber === 1) {
+                    headerRow = row.values;
+                    return;
+                }
+
+                const rowValues = row.values;
+                if (!rowValues[1] || !rowValues[2]) return; // Skip si no tiene nombre o proveedor
+
+                products.push({
+                    name: String(rowValues[1] || '').trim(),
+                    provider: String(rowValues[2] || '').trim(),
+                    category: String(rowValues[3] || 'BEBIDAS').trim(),
+                    unit: String(rowValues[4] || 'Ud').trim(),
+                    min_stock: parseFloat(rowValues[5]) || 1
+                });
+            });
+
+            if (products.length === 0) {
+                throw new Error('No se encontraron productos válidos en el archivo');
+            }
+
+            importStatus.textContent = `📤 Importando ${products.length} productos...`;
+
+            // Insertar productos en la base de datos
+            const productsToInsert = products.map(p => ({
+                user_id: currentUserId,
+                name: p.name,
+                provider: p.provider,
+                category: p.category,
+                stock_barra: 0,
+                stock_bodega: 0,
+                unit: p.unit,
+                min_stock: p.min_stock,
+                pedido: 0
+            }));
+
+            const { data, error } = await db
+                .from('inventory')
+                .insert(productsToInsert)
+                .select();
+
+            if (error) throw error;
+
+            await loadInventory(true);
+            
+            importStatus.textContent = `✓ ${products.length} productos importados exitosamente`;
+            setTimeout(() => {
+                importStatus.style.display = 'none';
+            }, 5000);
+
+            showAlert(`${products.length} productos importados`);
+            
+            // Limpiar el input
+            event.target.value = '';
+
+        } catch (error) {
+            importStatus.style.display = 'none';
+            showError('Error al importar plantilla: ' + error.message);
+            event.target.value = '';
         }
     }
     </script>
