@@ -521,6 +521,19 @@
                         <option value="WHISKY">WHISKY</option>
                         <option value="VINO">VINO</option>
                         <option value="INSUMOS">INSUMOS</option>
+                        <option value="VERDURAS">VERDURAS</option>
+                        <option value="FRUTAS">FRUTAS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Unidad</label>
+                    <select id="productUnit">
+                        <option value="Ud">Unidad</option>
+                        <option value="gr">Gramos</option>
+                        <option value="kg">Kilogramos</option>
+                        <option value="ml">Mililitros</option>
+                        <option value="L">Litros</option>
+                        <option value="paq">Paquete</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -746,6 +759,7 @@
         document.getElementById('productName').value = '';
         document.getElementById('productProvider').value = '';
         document.getElementById('productCategory').value = 'BEBIDAS';
+        document.getElementById('productUnit').value = 'Ud';
         document.getElementById('productMinStock').value = '';
         document.getElementById('productPedido').value = '';
     }
@@ -767,7 +781,7 @@
 
             if (error) throw error;
 
-            inventory = (data || []).map(item => {
+            const mappedData = (data || []).map(item => {
                 if (hasNewColumns) {
                     return {
                         ...item,
@@ -783,7 +797,25 @@
                         stock_bodega: 0
                     };
                 }
-            }).sort((a, b) => a.name.localeCompare(b.name));
+            });
+
+            // Ordenar por categoría, luego proveedor, luego nombre
+            inventory = mappedData.sort((a, b) => {
+                const categoryA = (a.category || '').toUpperCase();
+                const categoryB = (b.category || '').toUpperCase();
+                const providerA = (a.provider || '').toUpperCase();
+                const providerB = (b.provider || '').toUpperCase();
+                const nameA = (a.name || '').toUpperCase();
+                const nameB = (b.name || '').toUpperCase();
+
+                if (categoryA !== categoryB) {
+                    return categoryA.localeCompare(categoryB);
+                }
+                if (providerA !== providerB) {
+                    return providerA.localeCompare(providerB);
+                }
+                return nameA.localeCompare(nameB);
+            });
 
             renderInventory();
             updateStats();
@@ -930,6 +962,7 @@
         const name = document.getElementById('productName').value.trim();
         const provider = document.getElementById('productProvider').value.trim();
         const category = document.getElementById('productCategory').value;
+        const unit = document.getElementById('productUnit').value;
         const minStock = parseFloat(document.getElementById('productMinStock').value) || 1;
         const pedido = parseFloat(document.getElementById('productPedido').value) || 0;
 
@@ -948,7 +981,7 @@
                     category: category,
                     stock_barra: 0,
                     stock_bodega: 0,
-                    unit: 'Ud',
+                    unit: unit,
                     min_stock: minStock,
                     pedido: pedido
                 }])
@@ -1030,176 +1063,192 @@
     }
 
     async function exportToExcel() {
-    if (inventory.length === 0) {
-        showError('No hay productos para exportar');
-        return;
-    }
+        if (inventory.length === 0) {
+            showError('No hay productos para exportar');
+            return;
+        }
 
-    try {
-        const workbook = new ExcelJS.Workbook();
-        const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
-        
-        pedidoSheet.columns = [
-            { key: 'producto', width: 35 },
-            { key: 'proveedor', width: 25 },
-            { key: 'stock_total', width: 15 },
-            { key: 'stock_minimo', width: 15 },
-            { key: 'pedido_sugerido', width: 20 }
-        ];
-
-        let currentRow = 1;
-        const categoryGroups = {};
-        
-        // Agrupar por categoría y proveedor
-        inventory.forEach(item => {
-            if (!categoryGroups[item.category]) {
-                categoryGroups[item.category] = {};
-            }
-            if (!categoryGroups[item.category][item.provider]) {
-                categoryGroups[item.category][item.provider] = [];
-            }
-            categoryGroups[item.category][item.provider].push(item);
-        });
-
-        // Ordenar categorías alfabéticamente
-        const sortedCategories = Object.keys(categoryGroups).sort();
-
-        sortedCategories.forEach((category, catIndex) => {
-            const providers = categoryGroups[category];
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const pedidoSheet = workbook.addWorksheet('HOJA DE PEDIDO DE BAR');
             
-            // Encabezado de categoría
-            pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
-            const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
-            categoryHeader.value = category;
-            categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-            categoryHeader.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF4472C4' }
-            };
-            categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
-            categoryHeader.border = {
-                top: { style: 'thin', color: { argb: 'FF000000' } },
-                left: { style: 'thin', color: { argb: 'FF000000' } },
-                bottom: { style: 'thin', color: { argb: 'FF000000' } },
-                right: { style: 'thin', color: { argb: 'FF000000' } }
-            };
-            pedidoSheet.getRow(currentRow).height = 25;
-            currentRow++;
+            pedidoSheet.columns = [
+                { key: 'producto', width: 35 },
+                { key: 'proveedor', width: 25 },
+                { key: 'stock_total', width: 15 },
+                { key: 'stock_minimo', width: 15 },
+                { key: 'pedido_sugerido', width: 20 }
+            ];
 
-            // Encabezados de columnas
-            const headerRow = pedidoSheet.getRow(currentRow);
-            headerRow.getCell(1).value = 'Producto';
-            headerRow.getCell(2).value = 'Proveedor';
-            headerRow.getCell(3).value = 'Stock Total';
-            headerRow.getCell(4).value = 'Stock Mínimo';
-            headerRow.getCell(5).value = 'Pedido Sugerido';
+            let currentRow = 1;
+            const categoryGroups = {};
             
-            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-            headerRow.height = 22;
-            
-            for (let col = 1; col <= 5; col++) {
-                const cell = headerRow.getCell(col);
-                cell.fill = {
+            // Agrupar por categoría y proveedor
+            inventory.forEach(item => {
+                if (!categoryGroups[item.category]) {
+                    categoryGroups[item.category] = {};
+                }
+                if (!categoryGroups[item.category][item.provider]) {
+                    categoryGroups[item.category][item.provider] = [];
+                }
+                categoryGroups[item.category][item.provider].push(item);
+            });
+
+            // Ordenar categorías alfabéticamente
+            const sortedCategories = Object.keys(categoryGroups).sort();
+
+            sortedCategories.forEach((category, catIndex) => {
+                const providers = categoryGroups[category];
+                
+                // Encabezado de categoría
+                pedidoSheet.mergeCells(`A${currentRow}:E${currentRow}`);
+                const categoryHeader = pedidoSheet.getCell(`A${currentRow}`);
+                categoryHeader.value = category;
+                categoryHeader.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+                categoryHeader.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: 'FF5B9BD5' }
+                    fgColor: { argb: 'FF4472C4' }
                 };
-                cell.border = {
+                categoryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
+                categoryHeader.border = {
                     top: { style: 'thin', color: { argb: 'FF000000' } },
                     left: { style: 'thin', color: { argb: 'FF000000' } },
                     bottom: { style: 'thin', color: { argb: 'FF000000' } },
                     right: { style: 'thin', color: { argb: 'FF000000' } }
                 };
-            }
-            currentRow++;
+                pedidoSheet.getRow(currentRow).height = 25;
+                currentRow++;
 
-            // Ordenar proveedores alfabéticamente
-            const sortedProviders = Object.keys(providers).sort();
+                // Encabezados de columnas
+                const headerRow = pedidoSheet.getRow(currentRow);
+                headerRow.getCell(1).value = 'Producto';
+                headerRow.getCell(2).value = 'Proveedor';
+                headerRow.getCell(3).value = 'Stock Total';
+                headerRow.getCell(4).value = 'Stock Mínimo';
+                headerRow.getCell(5).value = 'Pedido Sugerido';
+                
+                headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+                headerRow.height = 22;
+                
+                for (let col = 1; col <= 5; col++) {
+                    const cell = headerRow.getCell(col);
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF5B9BD5' }
+                    };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF000000' } },
+                        left: { style: 'thin', color: { argb: 'FF000000' } },
+                        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                        right: { style: 'thin', color: { argb: 'FF000000' } }
+                    };
+                }
+                currentRow++;
 
-            sortedProviders.forEach(provider => {
-                const products = providers[provider];
-                // Ordenar productos alfabéticamente
-                products.sort((a, b) => a.name.localeCompare(b.name));
+                // Ordenar proveedores alfabéticamente
+                const sortedProviders = Object.keys(providers).sort();
 
-                products.forEach(item => {
-                    const row = pedidoSheet.getRow(currentRow);
-                    const stockBarra = item.stock_barra || 0;
-                    const stockBodega = item.stock_bodega || 0;
-                    const stockTotal = stockBarra + stockBodega;
-                    
-                    row.getCell(1).value = item.name;
-                    row.getCell(2).value = provider;
-                    row.getCell(3).value = `${stockTotal} ${item.unit}`;
-                    row.getCell(4).value = `${item.min_stock} ${item.unit}`;
-                    row.getCell(5).value = item.pedido || 0;
-                    
-                    row.alignment = { vertical: 'middle' };
-                    row.height = 20;
-                    
-                    const stockPercentage = (stockTotal / item.min_stock) * 100;
-                    
-                    for (let col = 1; col <= 5; col++) {
-                        const cell = row.getCell(col);
-                        cell.border = {
-                            top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                            left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                            bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
-                            right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
-                        };
+                sortedProviders.forEach(provider => {
+                    const products = providers[provider];
+                    // Ordenar productos alfabéticamente
+                    products.sort((a, b) => a.name.localeCompare(b.name));
+
+                    products.forEach(item => {
+                        const row = pedidoSheet.getRow(currentRow);
+                        const stockBarra = item.stock_barra || 0;
+                        const stockBodega = item.stock_bodega || 0;
+                        const stockTotal = stockBarra + stockBodega;
                         
-                        // Resaltar pedido según el stock
-                        if (col === 5) {
-                            if (stockPercentage < 50) {
+                        row.getCell(1).value = item.name;
+                        row.getCell(2).value = provider;
+                        row.getCell(3).value = `${stockTotal} ${item.unit}`;
+                        row.getCell(4).value = `${item.min_stock} ${item.unit}`;
+                        row.getCell(5).value = item.pedido || 0;
+                        
+                        row.alignment = { vertical: 'middle' };
+                        row.height = 20;
+                        
+                        const stockPercentage = (stockTotal / item.min_stock) * 100;
+                        
+                        for (let col = 1; col <= 5; col++) {
+                            const cell = row.getCell(col);
+                            cell.border = {
+                                top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                left: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                bottom: { style: 'thin', color: { argb: 'FFD0D0D0' } },
+                                right: { style: 'thin', color: { argb: 'FFD0D0D0' } }
+                            };
+                            
+                            // Resaltar pedido según el stock
+                            if (col === 5) {
+                                if (stockPercentage < 25) {
+                                    // Rojo suave - menos del 25%
+                                    cell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FFFFCCCC' }
+                                    };
+                                } else if (stockPercentage >= 25 && stockPercentage < 50) {
+                                    // Naranja suave - entre 25% y 50%
+                                    cell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FFFFE4CC' }
+                                    };
+                                } else if (stockPercentage >= 50 && stockPercentage <= 100) {
+                                    // Amarillo suave - entre 50% y 100%
+                                    cell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FFFFF4CC' }
+                                    };
+                                } else {
+                                    // Verde suave - más del 100%
+                                    cell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: 'FFD4EDDA' }
+                                    };
+                                }
+                            }
+                            
+                            // Resaltar columna de stock total si está bajo mínimo
+                            if (col === 3 && stockTotal <= item.min_stock) {
                                 cell.fill = {
                                     type: 'pattern',
                                     pattern: 'solid',
-                                    fgColor: { argb: 'FFFFE6E6' }
-                                };
-                            } else if (stockPercentage >= 50 && stockPercentage <= 100) {
-                                cell.fill = {
-                                    type: 'pattern',
-                                    pattern: 'solid',
-                                    fgColor: { argb: 'FFFFF4CC' }
+                                    fgColor: { argb: 'FFFFCCCC' }
                                 };
                             }
                         }
                         
-                        // Resaltar columna de stock total si está bajo mínimo
-                        if (col === 3 && stockTotal <= item.min_stock) {
-                            cell.fill = {
-                                type: 'pattern',
-                                pattern: 'solid',
-                                fgColor: { argb: 'FFFFCCCC' }
-                            };
-                        }
-                    }
-                    
-                    currentRow++;
+                        currentRow++;
+                    });
                 });
+
+                // Espacio entre categorías
+                if (catIndex < sortedCategories.length - 1) {
+                    currentRow++;
+                }
             });
 
-            // Espacio entre categorías
-            if (catIndex < sortedCategories.length - 1) {
-                currentRow++;
-            }
-        });
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.click();
+            window.URL.revokeObjectURL(url);
 
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-
-        showAlert('Excel exportado exitosamente');
-    } catch (error) {
-        showError('Error al exportar Excel: ' + error.message);
+            showAlert('Excel exportado exitosamente');
+        } catch (error) {
+            showError('Error al exportar Excel: ' + error.message);
+        }
     }
-}
     </script>
 </body>
 </html>
