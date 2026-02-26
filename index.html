@@ -448,7 +448,7 @@ tbody tr:hover td{background:var(--s2)}
       <button class="lt" data-cat="Licor">Licores</button>
       <button class="lt" data-cat="Fruta">Frutas</button>
       <button class="lt" data-cat="Insumo">Insumos</button>
-      <button class="lt" data-cat="Base">Bases</button>
+      <button class="lt" data-cat="bebida">bebidas</button>
     </div>
   </div>
 
@@ -464,7 +464,7 @@ tbody tr:hover td{background:var(--s2)}
             <option value="Licor">Licor</option>
             <option value="Fruta">Fruta</option>
             <option value="Insumo">Insumo</option>
-            <option value="Base">Base</option>
+            <option value="bebida">bebida</option>
           </select>
         </div>
         <div class="fgroup"><label class="fl">Proveedor</label><input id="pProv" placeholder="Ej: Distribuidora Norte"/></div>
@@ -628,7 +628,7 @@ tbody tr:hover td{background:var(--s2)}
           <select id="cCat" onchange="onCcat()">
             <option value="">Categoría…</option>
             <option value="Licor">Licores</option><option value="Fruta">Frutas</option>
-            <option value="Insumo">Insumos</option><option value="Base">Bases</option>
+            <option value="Insumo">Insumos</option><option value="bebida">bebidas</option>
           </select>
         </div>
         <div class="fgroup"><label class="fl">Producto</label><select id="cProd"><option value="">Producto…</option></select></div>
@@ -774,7 +774,7 @@ function sp(name){
 /* HELPERS */
 function ok(id,m){const e=document.getElementById(id);e.textContent='✓ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',3000)}
 function er(id,m){const e=document.getElementById(id);e.textContent='⚠ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',5000)}
-function cp(c){const mp={Licor:'pa',Fruta:'po',Insumo:'pw',Base:'pm'};return`<span class="pill ${mp[c]||'pm'}">${c}</span>`}
+function cp(c){const mp={Licor:'pa',Fruta:'po',Insumo:'pw',bebida:'pm'};return`<span class="pill ${mp[c]||'pm'}">${c}</span>`}
 
 /* ══════════ PRODUCTOS ══════════ */
 let pEId=null, pCatFilt='all';
@@ -1188,12 +1188,12 @@ const ACD={
     {t:'Bar Spoon',d:'Cuchara larga para mezclar. ~5ml.'},
     {t:'Muddler',d:'Instrumento para machacar frutas y hierbas.'},
     {t:'Strainer',d:'Colador. Hawthorne (espiral) o Julep (metal sólido).'},
-    {t:'Vermouth',d:'Vino aromatizado, seco o dulce. Base de clásicos.'},
+    {t:'Vermouth',d:'Vino aromatizado, seco o dulce. base de clásicos.'},
     {t:'Bitters',d:'Concentrado amargo aromático. Angostura, Peychaud\'s.'},
     {t:'Twist',d:'Tira de cáscara de cítrico para aromatizar el borde.'},
     {t:'On the Rocks',d:'Servido sobre hielo.'},
     {t:'Neat',d:'Solo, sin hielo ni dilución.'},
-    {t:'Digestivo',d:'Bebida después de comer para facilitar la digestión.'},
+    {t:'Digestivo',d:'base después de comer para facilitar la digestión.'},
   ],
   conv:[
     {h:'📏 Medidas Comunes',r:[['1 oz (onza)','30 ml'],['1 shot','45 ml'],['1 dash','~1 ml'],['1 barspoon','5 ml'],['1 jigger','45 ml']]},
@@ -1253,7 +1253,7 @@ async function importXLS(input){
 
   if(!data.length){alert('No se encontraron filas con datos. Asegurate de usar la plantilla descargada.');return;}
 
-  const catMap={'licor':'Licor','fruta':'Fruta','insumo':'Insumo','base':'Base'};
+  const catMap={'licor':'Licor','fruta':'Fruta','insumo':'Insumo','bebida':'Bebida'};
   const unitMap={'ml':'ml','lt':'lt','gr':'gr','kg':'kg','un':'un','g':'gr','l':'lt'};
 
   const productos=data.map(r=>{
