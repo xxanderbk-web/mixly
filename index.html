@@ -562,8 +562,7 @@ tbody tr:hover td{background:var(--s2)}
         <th>Producto</th><th>Categoría</th><th>Proveedor</th>
         <th class="c">Stock <span id="iLB" style="color:var(--accent);font-size:.58rem">BARRA</span></th>
         <th class="c">Unidad</th><th class="c">Stock mín.</th>
-        <th class="c">Pedido sug.</th><th class="c">Precio/u</th>
-        <th class="c">Estado</th><th class="c">⋯</th>
+        <th class="c">A pedir</th>
       </tr></thead>
       <tbody id="iTb"></tbody>
     </table></div>
@@ -803,7 +802,25 @@ function sp(name){
 /* HELPERS */
 function ok(id,m){const e=document.getElementById(id);e.textContent='✓ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',3000)}
 function er(id,m){const e=document.getElementById(id);e.textContent='⚠ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',5000)}
-function cp(c){const mp={'Bebida':'pb','Cerveza':'pb2','Pisco':'pa','Ron':'pa','Tequila':'pa','Vodka':'pa','Whiskey':'pa','Vino':'pa','Gin':'pa','Licor':'pa','Fruta':'po','Insumo':'pw','Base':'pm'};return`<span class="pill ${mp[c]||'pm'}">${c}</span>`}
+function cp(c){
+  const styles={
+    'Bebida':   'background:#E3F2FD;color:#1565C0;border-color:#90CAF9',
+    'Cerveza':  'background:#FFF3E0;color:#E65100;border-color:#FFCC80',
+    'Pisco':    'background:#FCE4EC;color:#880E4F;border-color:#F48FB1',
+    'Ron':      'background:#F3E5F5;color:#6A1B9A;border-color:#CE93D8',
+    'Tequila':  'background:#FFF8E1;color:#F57F17;border-color:#FFE082',
+    'Vodka':    'background:#E8EAF6;color:#283593;border-color:#9FA8DA',
+    'Whiskey':  'background:#EFEBE9;color:#4E342E;border-color:#BCAAA4',
+    'Vino':     'background:#F3E5F5;color:#7B1FA2;border-color:#BA68C8',
+    'Gin':      'background:#E0F7FA;color:#00696F;border-color:#80DEEA',
+    'Licor':    'background:#EDE7F6;color:#4527A0;border-color:#B39DDB',
+    'Fruta':    'background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7',
+    'Insumo':   'background:#F1F8E9;color:#558B2F;border-color:#C5E1A5',
+    'Base':     'background:#ECEFF1;color:#37474F;border-color:#B0BEC5',
+  };
+  const s=styles[c]||'background:#F5F5F5;color:#616161;border-color:#E0E0E0';
+  return`<span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.5px;border:1px solid;${s}">${c}</span>`;
+}
 
 /* ══════════ PRODUCTOS ══════════ */
 let pEId=null, pCatFilt='all';
@@ -949,7 +966,7 @@ async function lInv(){
   if(!cat.length) await lCat();
 
   const{data,error}=await db.from('inventory')
-    .select('id,product_id,stock_barra,stock_bodega')
+    .select('id,product_id,stock_barra,stock_bodega,pedido_real')
     .eq('user_id',uid);
 
   if(error){console.error('lInv error:',error);inv=[];return;}
@@ -963,14 +980,15 @@ async function lInv(){
   const merge=r=>{
     const p=cat.find(x=>x.id===r.product_id);
     return{...r,
-      name:      p?.name||'Sin nombre',
-      category:  p?.category||'—',
-      unit:      p?.unit_type||'—',
-      provider:  p?.provider||'—',
-      min_stock: Number(p?.min_stock)||0,
-      price_per_ml: Number(p?.price_per_ml)||0,
-      stock_barra:  Number(r.stock_barra)||0,
-      stock_bodega: Number(r.stock_bodega)||0,
+      name:        p?.name||'Sin nombre',
+      category:    p?.category||'—',
+      unit:        p?.unit_type||'—',
+      provider:    p?.provider||'—',
+      min_stock:   Number(p?.min_stock)||0,
+      price_per_ml:Number(p?.price_per_ml)||0,
+      stock_barra: Number(r.stock_barra)||0,
+      stock_bodega:Number(r.stock_bodega)||0,
+      pedido_real: Number(r.pedido_real)||0,
     };
   };
 
@@ -984,7 +1002,7 @@ async function lInv(){
     try{
       const{data:ins,error:insErr}=await db.from('inventory')
         .insert(missing.map(p=>({user_id:uid,product_id:p.id,stock_barra:0,stock_bodega:0})))
-        .select('id,product_id,stock_barra,stock_bodega');
+        .select('id,product_id,stock_barra,stock_bodega,pedido_real');
       if(insErr){console.error('Error insertando filas inventario:',insErr);}
       else if(ins?.length){
         inv=[...inv,...ins.map(merge)]
@@ -995,33 +1013,48 @@ async function lInv(){
   }
 }
 
+function pedBg(total,min){
+  // Retorna objeto {bg, color} según nivel de stock
+  if(!min||min===0) return null;
+  if(total===0)           return {bg:'#FFEBEE',col:'#C62828'};
+  if(total < min/2)       return {bg:'#FFF3E0',col:'#E65100'};
+  if(total < min)         return {bg:'#FFFDE7',col:'#F9A825'};
+  return                         {bg:'#E8F5E9',col:'#2E7D32'};
+}
+
 function renderI(){
   iStats();
   const tb=document.getElementById('iTb');
   if(!inv.length){
-    tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">📦</div><p>No hay productos en el catálogo.<br><a href="javascript:sp(\'productos\')" style="color:var(--a2)">Agrega productos primero →</a></p></div></td></tr>';
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>No hay productos en el catálogo.<br><a href="javascript:sp(\'productos\')" style="color:var(--a2)">Agrega productos primero →</a></p></div></td></tr>';
     return;
   }
   tb.innerHTML=inv.map(item=>{
     const s=iLoc==='barra'?item.stock_barra:item.stock_bodega;
     const total=item.stock_barra+item.stock_bodega;
     const min=item.min_stock||0;
-    const low=total<=min&&min>0;
     const zero=total===0;
+    const bajo=min>0&&total<min;
+    const pb=pedBg(total,min);
+    const pedVal=item.pedido_real||0;
+    const inputBg=pb?pb.bg:'transparent';
+    const inputCol=pb?pb.col:'var(--t2)';
     return`<tr>
       <td><strong>${item.name}</strong></td>
       <td>${cp(item.category)}</td>
-      <td style="color:var(--t3);font-size:.78rem">${item.provider}</td>
+      <td style="color:var(--t3);font-size:.78rem">${item.provider||'—'}</td>
       <td class="c">
-        <input type="number" class="ni2${low?' nlow':''}" value="${s}" min="0" step="0.01"
-          onchange="uIS('${item.id}',this.value)">
+        <input type="number" class="ni2${zero?' nlow':bajo?' nlow':''}" value="${s}" min="0" step="0.01" onchange="uIS('${item.id}',this.value)">
         <div class="sub" style="${zero?'color:var(--danger);font-weight:600':''}">Total: ${total.toFixed(2)}</div>
       </td>
-      <td class="c"><span class="pill pm">${item.unit}</span></td>
-      <td class="c">${min>0?min:'—'}</td>
-      <td class="c" style="color:var(--t3);font-size:.78rem">${min>0&&total<min?`<span style="color:var(--warn);font-weight:700">+${(min-total).toFixed(2)}</span>`:'—'}</td>
-      <td class="c" style="color:var(--a2);font-size:.78rem;font-weight:600">$${Number(item.price_per_ml).toFixed(2)}/${item.unit}</td>
-      <td class="c"><span class="pill ${zero?'pill pw':low?'pw':'po'}">${zero?'⛔ Sin stock':low?'⚠ Bajo':'✓ OK'}</span></td>
+      <td class="c"><span style="font-size:.72rem;color:var(--t3)">${item.unit}</span></td>
+      <td class="c" style="color:var(--t3);font-size:.8rem">${min>0?min:'—'}</td>
+      <td class="c">
+        <input type="number" class="ni2" value="${pedVal||''}" min="0" step="1" placeholder="0"
+          style="background:${inputBg};color:${inputCol};font-weight:${pb?'700':'400'};width:70px;text-align:center"
+          onchange="uIPed('${item.id}',this.value)">
+        ${min>0&&total<min?`<div class="sub" style="color:${inputCol}">sug: ${Math.ceil(min-total)}</div>`:''}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1035,6 +1068,15 @@ window.uIS=async(id,val)=>{
   iHist.push({id,loc:iLoc,old});
   document.getElementById('iUndo').disabled=false;
   iStats();ok('i-ok','Stock actualizado');
+};
+
+window.uIPed=async(id,val)=>{
+  const v=parseInt(val)||0;
+  await db.from('inventory').update({pedido_real:v}).eq('id',id);
+  const item=inv.find(i=>i.id==id);
+  if(item)item.pedido_real=v;
+  // Refresh just that cell's color without full re-render
+  renderI();
 };
 
 async function undoI(){
@@ -1080,110 +1122,139 @@ document.querySelectorAll('.lt').forEach(t=>{
 async function expInv(){
   if(!inv.length)return;
   const wb=new ExcelJS.Workbook();
-  const ws=wb.addWorksheet('Inventario');
+  wb.creator='Mixly';
+  const ws=wb.addWorksheet('Inventario',{pageSetup:{fitToPage:true,fitToWidth:1}});
 
-  // Orden de categorías igual a la planilla de la imagen
   const catOrder=['Bebida','Cerveza','Pisco','Ron','Tequila','Vodka','Whiskey','Vino','Gin','Licor','Fruta','Insumo','Base'];
-  // Colores de header por categoría (azul oscuro como la imagen)
-  const catColor={
-    Bebida:'FF1565C0',Cerveza:'FF1565C0',Pisco:'FF1A237E',Ron:'FF1A237E',
-    Tequila:'FF1A237E',Vodka:'FF1A237E',Whiskey:'FF1A237E',Vino:'FF4A148C',
-    Gin:'FF1A237E',Licor:'FF1A237E',Fruta:'FF1B5E20',Insumo:'FFE65100',Base:'FF37474F'
+
+  // Colores representativos por categoría
+  const catBg={
+    Bebida:'FF1565C0',  // azul agua
+    Cerveza:'FFE65100', // naranja ambar
+    Pisco:'FF6A1B9A',   // morado
+    Ron:'FF4E342E',     // café oscuro
+    Tequila:'FFF57F17', // amarillo dorado
+    Vodka:'FF283593',   // azul índigo
+    Whiskey:'FF5D4037', // café cálido
+    Vino:'FF7B1FA2',    // vino/borgoña
+    Gin:'FF00696F',     // verde teal
+    Licor:'FF4527A0',   // violeta
+    Fruta:'FF2E7D32',   // verde natural
+    Insumo:'FF37474F',  // gris azulado
+    Base:'FF455A64',    // gris pizarra
   };
 
-  // Columnas
   ws.columns=[
-    {key:'n',width:30},{key:'p',width:20},{key:'t',width:14},
-    {key:'m',width:14},{key:'ped',width:16}
+    {key:'prod', width:32},
+    {key:'prov', width:22},
+    {key:'stk',  width:14},
+    {key:'min',  width:14},
+    {key:'ped',  width:18},
   ];
 
-  // Agrupar inventario por categoría
+  // Título principal
+  const titleRow=ws.addRow(['INVENTARIO MIXLY','','','','']);
+  ws.mergeCells('A1:E1');
+  titleRow.height=28;
+  const tc=titleRow.getCell('A');
+  tc.value='INVENTARIO MIXLY  ·  '+new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+  tc.font={bold:true,size:13,color:{argb:'FF0A1628'},name:'Calibri'};
+  tc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEDF3FA'}};
+  tc.alignment={horizontal:'left',vertical:'middle'};
+  tc.border={bottom:{style:'medium',color:{argb:'FF00C2FF'}}};
+  ws.addRow([]); // spacer
+
+  // Agrupar
   const grupos={};
   catOrder.forEach(c=>{grupos[c]=[];});
-  inv.forEach(item=>{
-    const c=item.category||'Insumo';
-    if(!grupos[c])grupos[c]=[];
-    grupos[c].push(item);
-  });
+  inv.forEach(item=>{const c=item.category||'Insumo';if(!grupos[c])grupos[c]=[];grupos[c].push(item);});
 
-  const styleHeader=(row,color)=>{
-    row.height=22;
-    ['A','B','C','D','E'].forEach(col=>{
-      const cell=row.getCell(col);
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:color||'FF1565C0'}};
-      cell.font={bold:true,color:{argb:'FFFFFFFF'},size:11};
-      cell.alignment={horizontal:'center',vertical:'middle'};
-    });
-  };
+  const thin={style:'thin',color:{argb:'FFE8E8E8'}};
+  const none={style:'thin',color:{argb:'FFFFFFFF'}};
 
-  const styleSubHeader=(row)=>{
-    row.height=18;
-    ['A','B','C','D','E'].forEach((col,i)=>{
-      const cell=row.getCell(col);
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1976D2'}};
-      cell.font={bold:true,color:{argb:'FFFFFFFF'},size:10};
-      cell.alignment={horizontal:i===0?'left':'center',vertical:'middle'};
-    });
-  };
-
-  const styleData=(row,rowNum,estado)=>{
-    const isAlt=rowNum%2===0;
-    ['A','B','C','D','E'].forEach((col,i)=>{
-      const cell=row.getCell(col);
-      if(estado==='SIN STOCK')cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFCE4EC'}};
-      else if(estado==='BAJO')cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF8E1'}};
-      else cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isAlt?'FFF4F8FD':'FFFFFFFF'}};
-      cell.alignment={horizontal:i===0?'left':'center',vertical:'middle'};
-      cell.font={size:10,bold:false,
-        color:{argb:estado==='SIN STOCK'?'FFB71C1C':estado==='BAJO'?'FFE65100':'FF0A1628'}};
-    });
-    // Pedido sugerido — naranja si hay que pedir
-    const pedCell=row.getCell('E');
-    const pedVal=parseFloat(pedCell.value)||0;
-    if(pedVal>0)pedCell.font={bold:true,color:{argb:'FFE65100'},size:10};
-  };
-
-  let dataRowIdx=0;
   catOrder.forEach(cat=>{
     const items=grupos[cat];
     if(!items||!items.length)return;
+    const bg=catBg[cat]||'FF37474F';
 
-    // Fila de categoría (header grande)
-    ws.addRow([]);// spacer
-    const catRow=ws.addRow([cat.toUpperCase(),'','','','']);
-    ws.mergeCells(`A${catRow.number}:E${catRow.number}`);
-    styleHeader(catRow,catColor[cat]||'FF1565C0');
+    // Header de sección
+    const hRow=ws.addRow([cat.toUpperCase(),'','','','']);
+    ws.mergeCells('A'+hRow.number+':E'+hRow.number);
+    hRow.height=20;
+    const hc=hRow.getCell('A');
+    hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+    hc.font={bold:true,size:10,color:{argb:'FFFFFFFF'},name:'Calibri'};
+    hc.alignment={horizontal:'left',vertical:'middle',indent:1};
 
-    // Fila de sub-headers
-    const subRow=ws.addRow(['Producto','Proveedor','Stock Total','Stock Mínimo','Pedido Sugerido']);
-    styleSubHeader(subRow);
+    // Sub-header columnas
+    const shRow=ws.addRow(['Producto','Proveedor','Stock','Mínimo','Pedido Sugerido']);
+    shRow.height=16;
+    ['A','B','C','D','E'].forEach((col,i)=>{
+      const c=shRow.getCell(col);
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F8FD'}};
+      c.font={bold:true,size:9,color:{argb:'FF3A5A80'},name:'Calibri'};
+      c.alignment={horizontal:i===0?'left':'center',vertical:'middle'};
+      c.border={bottom:{style:'thin',color:{argb:bg}}};
+    });
 
     // Filas de datos
     items.forEach((item,i)=>{
       const total=item.stock_barra+item.stock_bodega;
       const min=item.min_stock||0;
-      const estado=total===0?'SIN STOCK':total<=min&&min>0?'BAJO':'OK';
-      const pedSug=min>0&&total<min?Math.ceil(min-total):0;
       const unit=item.unit||'';
+      const zero=total===0;
+      const low=min>0&&total<min/2;
+      const mid=min>0&&total>=min/2&&total<min;
+      // pedido_real: lo que el usuario ingresó en la app
+      const ped=item.pedido_real||0;
+
+      const fmtNum=v=>v%1===0?v+' '+unit:v.toFixed(2)+' '+unit;
       const row=ws.addRow([
         item.name,
         item.provider||'',
-        total>0?(total%1===0?total+' '+unit:total.toFixed(2)+' '+unit):'0 '+unit,
-        min>0?(min%1===0?min+' '+unit:min.toFixed(2)+' '+unit):'—',
-        pedSug
+        total>0?fmtNum(total):'0 '+unit,
+        min>0?fmtNum(min):'—',
+        '' // pedido — se setea abajo
       ]);
-      styleData(row,i,estado);
-      dataRowIdx++;
-    });
-  });
+      row.height=17;
 
-  // Bordes sutiles
-  ws.eachRow(row=>{
-    row.eachCell(cell=>{
-      if(cell.value!==null&&cell.value!==undefined){
-        cell.border={bottom:{style:'thin',color:{argb:'FFE0E0E0'}}};
+      const rowBg=i%2===0?'FFFFFFFF':'FFFAFBFD';
+      ['A','B','C','D','E'].forEach((col,ci)=>{
+        const c=row.getCell(col);
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};
+        c.font={size:10,name:'Calibri',color:{argb:'FF0A1628'}};
+        c.alignment={horizontal:ci===0?'left':'center',vertical:'middle'};
+        c.border={bottom:{style:'thin',color:{argb:'FFF0F0F0'}}};
+      });
+
+      // Columna "A pedir" — color según stock, valor = lo que ingresó el usuario
+      const pedCell=row.getCell('E');
+      if(ped===0){
+        // Sin pedido → OK verde
+        pedCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8F5E9'}};
+        pedCell.font={size:10,color:{argb:'FF2E7D32'},name:'Calibri'};
+        pedCell.value='OK';
+      } else {
+        // Tiene pedido → color según nivel de stock actual
+        pedCell.value=ped+' '+unit;
+        if(zero){
+          pedCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFEBEE'}};
+          pedCell.font={bold:true,size:10,color:{argb:'FFC62828'},name:'Calibri'};
+        } else if(low){
+          pedCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3E0'}};
+          pedCell.font={bold:true,size:10,color:{argb:'FFE65100'},name:'Calibri'};
+        } else if(mid){
+          pedCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFDE7'}};
+          pedCell.font={bold:true,size:10,color:{argb:'FFF9A825'},name:'Calibri'};
+        } else {
+          // Tiene pedido pero stock está OK — amarillo suave
+          pedCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFDE7'}};
+          pedCell.font={bold:true,size:10,color:{argb:'FFF9A825'},name:'Calibri'};
+        }
       }
     });
+
+    ws.addRow([]); // espacio entre secciones
   });
 
   const buf=await wb.xlsx.writeBuffer();
