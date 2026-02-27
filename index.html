@@ -450,6 +450,9 @@ tbody tr:hover td{background:var(--s2)}
     <span class="badge-dot" id="bdot"></span>
   </button>
   <button class="ni" data-p="academy"          title="Academia"><span class="ic">🎓</span><span class="lb">Acad.</span></button>
+  <button class="ni" data-p="buscador"         title="Buscador"><span class="ic">🔍</span><span class="lb">Buscar</span></button>
+  <button class="ni" data-p="timers"           title="Timers"><span class="ic">⏱</span><span class="lb">Timers</span></button>
+  <button class="ni" data-p="fichas"           title="Fichas técnicas"><span class="ic">📋</span><span class="lb">Fichas</span></button>
   <button class="dm-btn" id="dmToggle" title="Modo oscuro" onclick="toggleDM()">
     <span class="ic" id="dmIc">🌙</span>
     <span class="lb" id="dmLb">Dark</span>
@@ -773,6 +776,92 @@ tbody tr:hover td{background:var(--s2)}
   <div class="acs" id="ac-tips"><div class="tipgrid" id="ag-tips"></div></div>
 </div>
 
+
+<!-- ═══════════ BUSCADOR ═══════════ -->
+<div class="panel" id="panel-buscador">
+  <div class="ph"><h1>Bus<em>cador</em></h1><p>Encuentra cualquier receta al instante · busca por ingrediente, nombre o perfil</p></div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="cb" style="padding:18px 22px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="flex:1;position:relative">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none">🔍</span>
+          <input id="bqInput" placeholder="Escribe un trago, ingrediente o perfil…"
+            style="padding-left:38px;font-size:.95rem;height:44px"
+            oninput="doSearch()"/>
+        </div>
+        <button class="btn bs" onclick="document.getElementById('bqInput').value='';doSearch()">✕ Limpiar</button>
+      </div>
+      <div id="bqFilters" class="fps" style="margin-top:12px;margin-bottom:0">
+        <button class="fp active" data-bf="all"   onclick="setBF('all',this)">Todas</button>
+        <button class="fp" data-bf="dulce"        onclick="setBF('dulce',this)">🍬 Dulce</button>
+        <button class="fp" data-bf="suave"        onclick="setBF('suave',this)">🌸 Suave</button>
+        <button class="fp" data-bf="seco"         onclick="setBF('seco',this)">🍋 Seco</button>
+        <button class="fp" data-bf="fuerte"       onclick="setBF('fuerte',this)">🔥 Fuerte</button>
+        <button class="fp" data-bf="extra-fuerte" onclick="setBF('extra-fuerte',this)">💥 Extra</button>
+      </div>
+    </div>
+  </div>
+  <div id="bqStats" style="font-size:.72rem;color:var(--t3);margin-bottom:12px;padding:0 4px"></div>
+  <div id="bqResults"></div>
+</div>
+
+<!-- ═══════════ TIMERS ═══════════ -->
+<div class="panel" id="panel-timers">
+  <div class="ph"><h1>Ti<em>mers</em></h1><p>Temporizadores para macerados, jarabes, infusiones y técnicas</p></div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="ch"><div class="ci">＋</div><div class="ct">Nuevo timer</div></div>
+    <div class="cb">
+      <div class="fg c3" style="margin-bottom:0">
+        <div class="fgroup"><label class="fl">Nombre</label>
+          <input id="tmName" placeholder="Ej: Jarabe de jengibre"/>
+        </div>
+        <div class="fgroup"><label class="fl">Duración</label>
+          <div style="display:flex;gap:6px">
+            <input type="number" id="tmMin" placeholder="min" min="0" style="width:70px"/>
+            <input type="number" id="tmSec" placeholder="seg" min="0" max="59" style="width:70px"/>
+          </div>
+        </div>
+        <div class="fgroup"><label class="fl">Emoji / ícono</label>
+          <input id="tmEmoji" placeholder="🍯" style="font-size:1.2rem;text-align:center" maxlength="4"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <span style="font-size:.68rem;font-weight:700;color:var(--t3);letter-spacing:1px;text-transform:uppercase;align-self:center">Presets:</span>
+        <button class="btn bs sm" onclick="tmPreset('Jarabe 1:1',10,0,'🍯')">🍯 Jarabe 1:1 · 10min</button>
+        <button class="btn bs sm" onclick="tmPreset('Macerado express',20,0,'🌿')">🌿 Macerado · 20min</button>
+        <button class="btn bs sm" onclick="tmPreset('Reducción',15,0,'🫙')">🫙 Reducción · 15min</button>
+        <button class="btn bs sm" onclick="tmPreset('Shake',0,15,'🍸')">🍸 Shake · 15seg</button>
+        <button class="btn bs sm" onclick="tmPreset('Stir',0,30,'🥃')">🥃 Stir · 30seg</button>
+        <button class="btn bs sm" onclick="tmPreset('Infusión',30,0,'🫖')">🫖 Infusión · 30min</button>
+      </div>
+      <div class="row">
+        <button class="btn bp" onclick="addTimer()">＋ Iniciar timer</button>
+      </div>
+    </div>
+  </div>
+  <div id="tmList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px"></div>
+  <div id="tmEmpty" style="display:none" class="empty"><div class="ei">⏱</div><p>No hay timers activos · crea uno arriba</p></div>
+</div>
+
+<!-- ═══════════ FICHAS TÉCNICAS ═══════════ -->
+<div class="panel" id="panel-fichas">
+  <div class="ph"><h1>Fichas <em>Técnicas</em></h1><p>Recetas en formato profesional · listas para imprimir o mostrar en barra</p></div>
+  <div class="tb">
+    <div class="sw" style="flex:1;max-width:300px;margin-bottom:0">
+      <input id="fqInput" placeholder="Buscar receta…" oninput="renderFichas()"/>
+    </div>
+    <div class="fps" style="margin-bottom:0" id="fqPerfil">
+      <button class="fp active" data-fp2="all"   onclick="setFP2('all',this)">Todas</button>
+      <button class="fp" data-fp2="dulce"        onclick="setFP2('dulce',this)">🍬</button>
+      <button class="fp" data-fp2="suave"        onclick="setFP2('suave',this)">🌸</button>
+      <button class="fp" data-fp2="seco"         onclick="setFP2('seco',this)">🍋</button>
+      <button class="fp" data-fp2="fuerte"       onclick="setFP2('fuerte',this)">🔥</button>
+      <button class="fp" data-fp2="extra-fuerte" onclick="setFP2('extra-fuerte',this)">💥</button>
+    </div>
+  </div>
+  <div id="fqGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px"></div>
+</div>
+
 </div><!-- /main -->
 
 <!-- AGENDA MODAL -->
@@ -848,6 +937,9 @@ function sp(name){
   if(name==='inventory')renderI();
   if(name==='recipes'){renderR();if(!rIC)addRI();}
   if(name==='agenda')renderAg();
+  if(name==='buscador')initBuscador();
+  if(name==='timers')renderTimers();
+  if(name==='fichas')renderFichas();
 }
 
 /* HELPERS */
@@ -1559,6 +1651,259 @@ function toggleDM(){
     });
   }
 })();
+
+/* ══════════ BUSCADOR ══════════ */
+let bFilt='all';
+function initBuscador(){doSearch();}
+function setBF(f,el){
+  bFilt=f;
+  document.querySelectorAll('[data-bf]').forEach(b=>b.classList.toggle('active',b.dataset.bf===f));
+  doSearch();
+}
+function doSearch(){
+  const q=(document.getElementById('bqInput')?.value||'').toLowerCase().trim();
+  let list=recs;
+  if(bFilt!=='all') list=list.filter(r=>r.profile===bFilt);
+  if(q) list=list.filter(r=>{
+    if(r.name.toLowerCase().includes(q)) return true;
+    if((r.description||'').toLowerCase().includes(q)) return true;
+    if((r.profile||'').toLowerCase().includes(q)) return true;
+    if(Array.isArray(r.ingredients)&&r.ingredients.some(i=>(i.name||'').toLowerCase().includes(q))) return true;
+    return false;
+  });
+  const stats=document.getElementById('bqStats');
+  const res=document.getElementById('bqResults');
+  if(!recs.length){
+    stats.textContent='';
+    res.innerHTML='<div class="empty"><div class="ei">📖</div><p>No hay recetas guardadas aún.<br><a href="javascript:sp(\'recipes\')" style="color:var(--a2)">Crea tu primera receta →</a></p></div>';
+    return;
+  }
+  stats.textContent=list.length+' receta'+(list.length!==1?'s':'')+(q?' para "'+q+'"':'')+' encontrada'+(list.length!==1?'s':'');
+  if(!list.length){
+    res.innerHTML='<div class="empty"><div class="ei">🔍</div><p>Sin resultados para "'+q+'"</p></div>';
+    return;
+  }
+  const profEmoji={dulce:'🍬',suave:'🌸',seco:'🍋',fuerte:'🔥','extra-fuerte':'💥'};
+  // Highlight matching text
+  const hl=txt=>q?txt.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark style="background:rgba(0,194,255,.25);border-radius:3px;padding:0 2px">$1</mark>'):txt;
+  res.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">'+
+    list.map(r=>{
+      const ings=Array.isArray(r.ingredients)?r.ingredients:[];
+      const ingList=ings.map(i=>`<span style="display:inline-block;background:var(--s2);border:1px solid var(--b2);border-radius:20px;padding:2px 8px;font-size:.68rem;color:var(--t2);margin:2px">${hl(i.name||'')} <span style="color:var(--t3)">${i.quantity||''}${i.unit||''}</span></span>`).join('');
+      return`<div class="card" style="cursor:pointer" onclick="openFichaModal(${r.id})">
+        <div class="ch" style="gap:8px">
+          <div style="flex:1">
+            <div style="font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;letter-spacing:1px">${hl(r.name)}</div>
+            ${r.description?`<div style="font-size:.72rem;color:var(--t3);margin-top:2px">${hl(r.description)}</div>`:''}
+          </div>
+          ${r.profile?`<span style="font-size:1.1rem">${profEmoji[r.profile]||'🍹'}</span>`:''}
+        </div>
+        <div class="cb" style="padding:14px 22px">
+          <div style="margin-bottom:10px;line-height:1.8">${ingList||'<span style="font-size:.72rem;color:var(--t3)">Sin ingredientes</span>'}</div>
+          ${r.total_cost?`<div style="font-size:.72rem;color:var(--a2);font-weight:700">Costo: $${Number(r.total_cost).toFixed(0)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+}
+
+/* ══════════ TIMERS ══════════ */
+let timers=[];
+function tmPreset(name,min,sec,emoji){
+  document.getElementById('tmName').value=name;
+  document.getElementById('tmMin').value=min;
+  document.getElementById('tmSec').value=sec;
+  document.getElementById('tmEmoji').value=emoji;
+}
+function addTimer(){
+  const name=document.getElementById('tmName').value.trim()||'Timer';
+  const min=parseInt(document.getElementById('tmMin').value)||0;
+  const sec=parseInt(document.getElementById('tmSec').value)||0;
+  const emoji=document.getElementById('tmEmoji').value.trim()||'⏱';
+  const total=min*60+sec;
+  if(total<=0){alert('Ingresa una duración válida');return;}
+  const id=Date.now();
+  timers.push({id,name,emoji,total,remaining:total,running:true,interval:null,done:false});
+  document.getElementById('tmName').value='';
+  document.getElementById('tmMin').value='';
+  document.getElementById('tmSec').value='';
+  document.getElementById('tmEmoji').value='';
+  const t=timers[timers.length-1];
+  t.interval=setInterval(()=>tickTimer(t.id),1000);
+  renderTimers();
+}
+function tickTimer(id){
+  const t=timers.find(x=>x.id===id);
+  if(!t||!t.running)return;
+  t.remaining--;
+  if(t.remaining<=0){
+    t.remaining=0;t.running=false;t.done=true;
+    clearInterval(t.interval);
+    // Sound notification
+    try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      const osc=ctx.createOscillator(),g=ctx.createGain();
+      osc.connect(g);g.connect(ctx.destination);
+      osc.frequency.value=880;g.gain.setValueAtTime(0.3,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.8);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.8);
+    }catch(e){}
+    // Browser notification
+    if(Notification.permission==='granted'){
+      new Notification('⏱ '+t.emoji+' '+t.name+' listo!',{body:'Tu timer terminó',icon:'logo.png'});
+    }
+  }
+  renderTimers();
+}
+function toggleTimer(id){
+  const t=timers.find(x=>x.id===id);if(!t||t.done)return;
+  t.running=!t.running;
+  if(t.running){t.interval=setInterval(()=>tickTimer(t.id),1000);}
+  else{clearInterval(t.interval);}
+  renderTimers();
+}
+function resetTimer(id){
+  const t=timers.find(x=>x.id===id);if(!t)return;
+  clearInterval(t.interval);
+  t.remaining=t.total;t.running=false;t.done=false;
+  renderTimers();
+}
+function removeTimer(id){
+  const t=timers.find(x=>x.id===id);
+  if(t)clearInterval(t.interval);
+  timers=timers.filter(x=>x.id!==id);
+  renderTimers();
+}
+function fmtTime(s){const m=Math.floor(s/60),sc=s%60;return String(m).padStart(2,'0')+':'+String(sc).padStart(2,'0');}
+function renderTimers(){
+  const el=document.getElementById('tmList');
+  const empty=document.getElementById('tmEmpty');
+  if(!timers.length){el.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  el.innerHTML=timers.map(t=>{
+    const pct=t.total>0?(1-t.remaining/t.total)*100:100;
+    const color=t.done?'var(--ok)':t.remaining<30?'var(--danger)':t.remaining<t.total*0.25?'var(--warn)':'var(--accent)';
+    const bgCard=t.done?'background:var(--obg);border-color:rgba(16,185,129,.3)':'';
+    return`<div class="card" style="${bgCard};transition:.3s">
+      <div class="cb" style="text-align:center;padding:22px 18px">
+        <div style="font-size:2rem;margin-bottom:6px">${t.emoji}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t2);margin-bottom:10px">${t.name}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;color:${color};line-height:1;margin-bottom:14px;letter-spacing:2px">
+          ${t.done?'✓ LISTO':fmtTime(t.remaining)}
+        </div>
+        <!-- Progress bar -->
+        <div style="height:4px;background:var(--b2);border-radius:4px;margin-bottom:16px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .9s linear"></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          ${!t.done?`<button class="btn ${t.running?'bw':'bp'} sm" onclick="toggleTimer(${t.id})">${t.running?'⏸ Pausar':'▶ Reanudar'}</button>`:''}
+          <button class="btn bs sm" onclick="resetTimer(${t.id})">↺ Reset</button>
+          <button class="btn bd sm" onclick="removeTimer(${t.id})">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+// Request notification permission
+if('Notification' in window&&Notification.permission==='default'){
+  Notification.requestPermission();
+}
+
+/* ══════════ FICHAS TÉCNICAS ══════════ */
+let fFilt2='all';
+function setFP2(f,el){
+  fFilt2=f;
+  document.querySelectorAll('[data-fp2]').forEach(b=>b.classList.toggle('active',b.dataset.fp2===f));
+  renderFichas();
+}
+function renderFichas(){
+  const q=(document.getElementById('fqInput')?.value||'').toLowerCase();
+  let list=recs;
+  if(fFilt2!=='all') list=list.filter(r=>r.profile===fFilt2);
+  if(q) list=list.filter(r=>r.name.toLowerCase().includes(q)||(r.description||'').toLowerCase().includes(q));
+  const grid=document.getElementById('fqGrid');
+  if(!list.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">📋</div><p>No hay recetas</p></div>';
+    return;
+  }
+  const profEmoji={dulce:'🍬',suave:'🌸',seco:'🍋',fuerte:'🔥','extra-fuerte':'💥'};
+  const profLabel={dulce:'Dulce',suave:'Suave',seco:'Seco',fuerte:'Fuerte','extra-fuerte':'Extra fuerte'};
+  grid.innerHTML=list.map(r=>{
+    const ings=Array.isArray(r.ingredients)?r.ingredients:[];
+    return`<div class="card" style="break-inside:avoid">
+      <!-- Header ficha -->
+      <div style="background:linear-gradient(135deg,var(--accent),var(--a2));padding:20px 22px;position:relative">
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#fff">${r.name}</div>
+        ${r.description?`<div style="font-size:.75rem;color:rgba(255,255,255,.75);margin-top:4px">${r.description}</div>`:''}
+        <div style="position:absolute;top:16px;right:18px;font-size:1.5rem">${profEmoji[r.profile]||'🍹'}</div>
+      </div>
+      <div class="cb" style="padding:18px 22px">
+        <!-- Ingredientes -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Ingredientes</div>
+          ${ings.length?ings.map((ing,i)=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;${i<ings.length-1?'border-bottom:1px solid var(--b2)':''}">
+              <span style="font-size:.82rem;color:var(--text)">${ing.name||''}</span>
+              <span style="font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--a2)">${ing.quantity||''}${ing.unit||''}</span>
+            </div>`).join(''):'<span style="font-size:.75rem;color:var(--t3)">Sin ingredientes</span>'}
+        </div>
+        <!-- Preparación -->
+        ${r.preparation?`
+        <div style="margin-bottom:14px">
+          <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Preparación</div>
+          <div style="font-size:.78rem;color:var(--t2);line-height:1.65;white-space:pre-line">${r.preparation}</div>
+        </div>`:''}
+        <!-- Footer ficha -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--b2);flex-wrap:wrap;gap:8px">
+          ${r.profile?`<span style="font-size:.65rem;background:var(--abg);border:1px solid rgba(0,194,255,.2);border-radius:20px;padding:3px 10px;color:var(--a2);font-weight:700">${profEmoji[r.profile]} ${profLabel[r.profile]||r.profile}</span>`:'<span></span>'}
+          ${r.total_cost?`<span style="font-size:.72rem;color:var(--t3);font-weight:600">Costo: <strong style="color:var(--a2)">$${Number(r.total_cost).toFixed(0)}</strong></span>`:''}
+          <button class="btn bs sm" onclick="printFicha(${r.id})" style="margin-left:auto">🖨 Imprimir</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function printFicha(id){
+  const r=recs.find(x=>x.id===id);if(!r)return;
+  const ings=Array.isArray(r.ingredients)?r.ingredients:[];
+  const profEmoji={dulce:'🍬',suave:'🌸',seco:'🍋',fuerte:'🔥','extra-fuerte':'💥'};
+  const w=window.open('','_blank','width=600,height=800');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Ficha · ${r.name}</title>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:'Helvetica Neue',Arial,sans-serif;padding:32px;color:#0A1628;max-width:500px;margin:0 auto}
+      h1{font-size:1.6rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+      .sub{font-size:.8rem;color:#7A9EC0;margin-bottom:20px}
+      .sec{font-size:.55rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#7A9EC0;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:4px}
+      .ing{display:flex;justify-content:space-between;padding:5px 0;font-size:.85rem;border-bottom:1px solid #f0f0f0}
+      .ing:last-child{border-bottom:none}
+      .ing .qty{font-weight:700;color:#0090CC}
+      .prep{font-size:.82rem;line-height:1.7;color:#3A5A80;white-space:pre-line;margin-bottom:20px}
+      .footer{display:flex;justify-content:space-between;font-size:.72rem;color:#aaa;margin-top:20px;padding-top:12px;border-top:1px solid #eee}
+      .accent{color:#00C2FF}
+      @media print{body{padding:20px}button{display:none}}
+    </style>
+  </head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h1>${r.name}</h1>
+        ${r.description?`<div class="sub">${r.description}</div>`:'<div style="margin-bottom:20px"></div>'}
+      </div>
+      <div style="font-size:2rem">${profEmoji[r.profile]||'🍹'}</div>
+    </div>
+    <div class="sec">Ingredientes</div>
+    <div style="margin-bottom:20px">
+      ${ings.map(i=>`<div class="ing"><span>${i.name||''}</span><span class="qty">${i.quantity||''}${i.unit||''}</span></div>`).join('')||'<p style="font-size:.8rem;color:#aaa">Sin ingredientes</p>'}
+    </div>
+    ${r.preparation?`<div class="sec">Preparación</div><div class="prep">${r.preparation}</div>`:''}
+    <div class="footer">
+      <span>MIXLY Bar Management</span>
+      ${r.total_cost?`<span>Costo estimado: <strong class="accent">$${Number(r.total_cost).toFixed(0)}</strong></span>`:''}
+    </div>
+    <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  w.document.close();
+}
+function openFichaModal(id){sp('fichas');setTimeout(()=>{const r=recs.find(x=>x.id===id);if(r)printFicha(id);},200);}
 
 </script>
 </body>
