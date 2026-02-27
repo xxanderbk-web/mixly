@@ -53,6 +53,50 @@
 .dark .hcard:hover{border-color:rgba(0,194,255,.25)}
 .dark .cf.show{box-shadow:0 4px 28px rgba(0,0,0,.4)}
 
+/* ══ ONBOARDING ══ */
+#obOverlay{position:fixed;inset:0;z-index:8000;pointer-events:none;display:none}
+#obOverlay.active{pointer-events:all;display:block}
+.ob-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(2px);
+  opacity:0;transition:opacity .35s ease;z-index:8001}
+#obOverlay.active .ob-backdrop{opacity:1}
+.ob-card{position:fixed;z-index:8002;width:320px;background:var(--surface);
+  border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.35),0 0 0 1px var(--border);
+  opacity:0;transform:translateY(12px) scale(.97);
+  transition:opacity .3s ease,transform .3s ease;pointer-events:none}
+#obOverlay.active .ob-card{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.ob-spotlight{position:fixed;z-index:8001;border-radius:12px;
+  box-shadow:0 0 0 4px var(--accent),0 0 0 9999px rgba(0,0,0,.65);
+  transition:all .45s cubic-bezier(.4,0,.2,1);pointer-events:none;opacity:0}
+.ob-header{background:linear-gradient(135deg,var(--accent),var(--a2));
+  border-radius:16px 16px 0 0;padding:20px 22px 16px}
+.ob-emoji{font-size:2rem;margin-bottom:8px}
+.ob-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:4px}
+.ob-sub{font-size:.75rem;color:rgba(255,255,255,.8);line-height:1.5}
+.ob-body{padding:18px 22px 14px}
+.ob-desc{font-size:.82rem;color:var(--t2);line-height:1.6;margin-bottom:16px}
+.ob-tip{background:var(--abg);border:1px solid rgba(0,194,255,.2);border-radius:8px;
+  padding:9px 12px;font-size:.75rem;color:var(--a2);margin-bottom:16px;line-height:1.5}
+.ob-tip strong{font-weight:700}
+.ob-progress{display:flex;gap:5px;margin-bottom:16px}
+.ob-dot{height:4px;border-radius:4px;flex:1;background:var(--b2);transition:.3s}
+.ob-dot.done{background:var(--accent)}
+.ob-dot.active{background:var(--accent);box-shadow:0 0 6px rgba(0,194,255,.5)}
+.ob-footer{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 22px 18px}
+.ob-skip{font-size:.68rem;color:var(--t3);cursor:pointer;background:none;border:none;
+  font-family:'DM Sans',sans-serif;transition:.2s;text-decoration:underline}
+.ob-skip:hover{color:var(--t2)}
+.ob-nav{display:flex;gap:8px}
+
+/* Help button */
+#obHelpBtn{position:fixed;bottom:24px;right:24px;z-index:5000;width:44px;height:44px;
+  border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:1.2rem;
+  cursor:pointer;box-shadow:0 4px 18px rgba(0,194,255,.45);transition:.2s;
+  display:none;align-items:center;justify-content:center;font-weight:700;
+  font-family:'Syne',sans-serif}
+#obHelpBtn:hover{background:var(--a2);transform:scale(1.08)}
+
 /* Smooth transition on theme switch */
 *{transition:var(--dm-transition)}
 .panel,.sb,.card,.sc,.hcard,.wbar,.btn,.ni,.ni2,.loctabs,.lt{transition:background .3s,border-color .3s,color .3s,box-shadow .3s}
@@ -459,6 +503,32 @@ tbody tr:hover td{background:var(--s2)}
   </button>
   <button class="ni" data-p="logout" title="Cerrar sesión" style="margin-top:auto"><span class="ic">⎋</span><span class="lb">Salir</span></button>
 </nav>
+
+<!-- ONBOARDING OVERLAY -->
+<div id="obOverlay">
+  <div class="ob-backdrop" onclick="obSkip()"></div>
+  <div class="ob-spotlight" id="obSpot"></div>
+  <div class="ob-card" id="obCard">
+    <div class="ob-header">
+      <div class="ob-emoji" id="obEmoji">👋</div>
+      <div class="ob-title" id="obTitle">Bienvenido a Mixly</div>
+      <div class="ob-sub" id="obSub">Tu asistente de bar favorito</div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-progress" id="obProgress"></div>
+      <div class="ob-desc" id="obDesc"></div>
+      <div class="ob-tip" id="obTip"></div>
+    </div>
+    <div class="ob-footer">
+      <button class="ob-skip" onclick="obSkip()">Saltar tour</button>
+      <div class="ob-nav">
+        <button class="btn bs sm" id="obPrev" onclick="obStep(-1)">← Anterior</button>
+        <button class="btn bp sm" id="obNext" onclick="obStep(1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>
+<button id="obHelpBtn" onclick="startOB(true)" title="Ver tour de bienvenida">?</button>
 
 <!-- MAIN -->
 <div class="main" id="mainApp" style="display:none">
@@ -916,6 +986,7 @@ window.onload=async()=>{
   document.getElementById('ls').style.display='none';
   document.getElementById('sidebar').style.display='';
   document.getElementById('mainApp').style.display='';
+  maybeStartOB();
 };
 
 /* NAV */
@@ -1904,6 +1975,196 @@ function printFicha(id){
   w.document.close();
 }
 function openFichaModal(id){sp('fichas');setTimeout(()=>{const r=recs.find(x=>x.id===id);if(r)printFicha(id);},200);}
+
+/* ══════════ ONBOARDING ══════════ */
+const OB_STEPS = [
+  {
+    emoji: '👋',
+    title: '¡Hola, bienvenido a Mixly!',
+    sub: 'Tu barra va a agradecer esto',
+    desc: 'Este tour rápido te va a mostrar todo lo que necesitas para dominar la app en menos de 2 minutos. ¡Es pan comido!',
+    tip: '💡 <strong>Dato:</strong> Mixly recuerda tus datos automáticamente, así que no necesitas guardar nada manualmente.',
+    target: null,
+    panel: 'home'
+  },
+  {
+    emoji: '📦',
+    title: 'Productos',
+    sub: 'El corazón de tu inventario',
+    desc: 'Acá viven todos tus insumos: licores, frutas, bases y más. Cada producto tiene precio, unidad y stock mínimo. Si no está acá, no existe en el bar.',
+    tip: '💡 <strong>Pro tip:</strong> Agrega el stock mínimo de cada producto y Mixly te avisará cuando estés por quedarte sin.',
+    target: 'productos',
+    panel: 'productos'
+  },
+  {
+    emoji: '📊',
+    title: 'Inventario',
+    sub: 'Lo que hay hoy en el bar',
+    desc: 'Acá actualizas el stock real de lo que tienes en Barra y Bodega. Los números con fondo de color te dicen cuánto pedir — solo escribe la cantidad en el campo "A pedir".',
+    tip: '💡 <strong>Colores:</strong> 🔴 Sin stock · 🟠 Muy bajo · 🟡 Bajo · 🟢 OK',
+    target: 'inventory',
+    panel: 'inventory'
+  },
+  {
+    emoji: '🔍',
+    title: 'Buscador',
+    sub: 'Encuentra cualquier receta al tiro',
+    desc: 'Escribe un ingrediente, un nombre o un perfil de sabor y aparecen todas las recetas que lo usan. Perfecto para el rush del servicio cuando no recuerdas proporciones.',
+    tip: '💡 <strong>Tip:</strong> Busca "gin" y aparecen todos los tragos que lo llevan. ¡Súper útil con clientes esperando!',
+    target: 'buscador',
+    panel: 'buscador'
+  },
+  {
+    emoji: '⏱',
+    title: 'Timers',
+    sub: 'Nunca más se te pasa el jarabe',
+    desc: 'Crea timers con nombre propio para jarabes, macerados, infusiones y técnicas. Puedes correr varios al mismo tiempo y suena una alerta cuando terminan.',
+    tip: '💡 <strong>Presets listos:</strong> Jarabe, Macerado, Reducción, Shake, Stir e Infusión. Un clic y listo.',
+    target: 'timers',
+    panel: 'timers'
+  },
+  {
+    emoji: '📋',
+    title: 'Fichas Técnicas',
+    sub: 'Recetas profesionales para tu equipo',
+    desc: 'Todas tus recetas en formato ficha profesional con ingredientes, cantidades y preparación. Imprime la que necesites y pégala en la barra para que el equipo siempre tenga la referencia.',
+    tip: '💡 <strong>Imprime:</strong> Cada ficha tiene botón de impresión con diseño limpio, listo para plastificar.',
+    target: 'fichas',
+    panel: 'fichas'
+  },
+  {
+    emoji: '🚀',
+    title: '¡Ya eres un crack de Mixly!',
+    sub: 'Tu barra está lista para brillar',
+    desc: 'Tienes todo lo que necesitas. Si en algún momento quieres volver a ver este tour, presiona el botón <strong>?</strong> en la esquina inferior derecha.',
+    tip: '🎉 <strong>¡A trabajar!</strong> Empieza agregando tus productos y armando tus recetas. El resto viene solo.',
+    target: null,
+    panel: 'home'
+  }
+];
+
+let obCurrent = 0;
+let obActive = false;
+
+function startOB(force=false){
+  // Check localStorage — only show once per user unless forced
+  const uid2 = uid || 'guest';
+  const key = 'mixly-ob-done-' + uid2;
+  if(!force && localStorage.getItem(key)) return;
+
+  obActive = true;
+  obCurrent = 0;
+  const ov = document.getElementById('obOverlay');
+  ov.style.display = 'block';
+  requestAnimationFrame(()=> ov.classList.add('active'));
+  document.getElementById('obHelpBtn').style.display = 'none';
+  buildProgress();
+  showStep(0);
+}
+
+function obSkip(){
+  endOB();
+}
+
+function obStep(dir){
+  const next = obCurrent + dir;
+  if(next < 0) return;
+  if(next >= OB_STEPS.length){ endOB(); return; }
+  obCurrent = next;
+  showStep(obCurrent);
+}
+
+function showStep(i){
+  const s = OB_STEPS[i];
+  const isLast = i === OB_STEPS.length - 1;
+  const isFirst = i === 0;
+
+  // Navigate to panel
+  if(s.panel) sp(s.panel);
+
+  // Update card content
+  document.getElementById('obEmoji').textContent = s.emoji;
+  document.getElementById('obTitle').textContent = s.title;
+  document.getElementById('obSub').textContent = s.sub;
+  document.getElementById('obDesc').innerHTML = s.desc;
+  document.getElementById('obTip').innerHTML = s.tip;
+  document.getElementById('obPrev').style.display = isFirst ? 'none' : '';
+  document.getElementById('obNext').textContent = isLast ? '✓ ¡Empezar!' : 'Siguiente →';
+
+  // Update progress dots
+  document.querySelectorAll('.ob-dot').forEach((d,idx)=>{
+    d.classList.remove('active','done');
+    if(idx < i) d.classList.add('done');
+    else if(idx === i) d.classList.add('active');
+  });
+
+  // Spotlight target
+  const spot = document.getElementById('obSpot');
+  const card = document.getElementById('obCard');
+
+  // Always center the card horizontally on screen — avoid sidebar overlap
+  const cardW = 320;
+  const winW = window.innerWidth;
+  const winH = window.innerHeight;
+  const cardH = 420; // approximate
+
+  if(s.target){
+    const el = document.querySelector('.ni[data-p="'+s.target+'"]');
+    if(el){
+      const r = el.getBoundingClientRect();
+      const pad = 6;
+      spot.style.cssText = 'left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;opacity:1;transition:all .45s cubic-bezier(.4,0,.2,1)';
+    }
+  } else {
+    spot.style.opacity = '0';
+  }
+
+  // Center card in the content area (to the right of sidebar ~72px)
+  const sidebarW = 72;
+  const contentW = winW - sidebarW;
+  const cardLeft = sidebarW + (contentW - cardW) / 2;
+  const cardTop = Math.max(20, (winH - cardH) / 2);
+
+  card.style.left = cardLeft + 'px';
+  card.style.top = cardTop + 'px';
+  card.style.right = 'auto';
+  card.style.bottom = 'auto';
+  card.style.transform = '';
+}
+
+function buildProgress(){
+  const el = document.getElementById('obProgress');
+  el.innerHTML = OB_STEPS.map((_,i)=>`<div class="ob-dot${i===0?' active':''}"></div>`).join('');
+}
+
+function endOB(){
+  obActive = false;
+  const overlay = document.getElementById('obOverlay');
+  overlay.classList.remove('active');
+  setTimeout(()=>{ overlay.style.display='none'; }, 350);
+  document.getElementById('obSpot').style.opacity = '0';
+  // Reset card position
+  const card = document.getElementById('obCard');
+  card.style.transform = '';
+  // Go home
+  sp('home');
+  // Save to localStorage
+  const uid2 = uid || 'guest';
+  localStorage.setItem('mixly-ob-done-'+uid2, '1');
+  // Show help button
+  setTimeout(()=>{ document.getElementById('obHelpBtn').style.display = 'flex'; }, 600);
+}
+
+// Start onboarding after login — called from initApp
+function maybeStartOB(){
+  const uid2 = uid || 'guest';
+  const key = 'mixly-ob-done-' + uid2;
+  if(!localStorage.getItem(key)){
+    setTimeout(()=> startOB(false), 800);
+  } else {
+    document.getElementById('obHelpBtn').style.display = 'flex';
+  }
+}
 
 </script>
 </body>
