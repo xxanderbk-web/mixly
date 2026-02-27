@@ -18,7 +18,54 @@
   --shadow:0 4px 28px rgba(0,120,200,0.10);
   --shadowL:0 12px 48px rgba(0,120,200,0.16);
   --r:14px;--rs:8px;--sb:72px;
+  --dm-transition: background .3s ease, color .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
+
+/* ══ DARK MODE ══ */
+.dark{
+  --bg:#0D1117;--surface:#161B22;--s2:#1C2333;
+  --border:#2D3748;--b2:#243044;
+  --accent:#00C2FF;--a2:#38BDF8;--abg:rgba(0,194,255,0.10);
+  --text:#E6EDF3;--t2:#8B9DC3;--t3:#4A6080;
+  --danger:#FF4D6A;--dbg:rgba(255,77,106,0.10);
+  --warn:#FBBF24;--wbg:rgba(251,191,36,0.10);
+  --ok:#34D399;--obg:rgba(52,211,153,0.10);
+  --shadow:0 4px 28px rgba(0,0,0,0.35);
+  --shadowL:0 12px 48px rgba(0,0,0,0.50);
+}
+.dark body::before{
+  background:radial-gradient(ellipse 70% 50% at 92% 4%,rgba(0,194,255,.07) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 60% at 4% 92%,rgba(0,100,180,.05) 0%,transparent 60%);
+}
+.dark .sb{background:rgba(22,27,34,.95);border-right-color:var(--border)}
+.dark input,.dark select,.dark textarea{background:var(--s2);border-color:var(--border);color:var(--text)}
+.dark input:focus,.dark select:focus,.dark textarea:focus{background:#1C2333;box-shadow:0 0 0 3px rgba(0,194,255,.15)}
+.dark select option{background:#1C2333;color:var(--text)}
+.dark .bs{background:var(--s2);border-color:var(--border);color:var(--t2)}
+.dark .bok{color:#6ee7b7}
+.dark .bw{color:#fcd34d}
+.dark .aok{color:#6ee7b7}
+.dark .aer{color:#fca5a5}
+.dark tbody tr:hover td{background:rgba(255,255,255,.03)}
+.dark .ni2{background:var(--s2);border-color:var(--border);color:var(--text)}
+.dark .loctabs{background:var(--s2)}
+.dark .pm{background:rgba(255,255,255,.05);color:var(--t2);border-color:var(--border)}
+.dark .hcard:hover{border-color:rgba(0,194,255,.25)}
+.dark .cf.show{box-shadow:0 4px 28px rgba(0,0,0,.4)}
+
+/* Smooth transition on theme switch */
+*{transition:var(--dm-transition)}
+.panel,.sb,.card,.sc,.hcard,.wbar,.btn,.ni,.ni2,.loctabs,.lt{transition:background .3s,border-color .3s,color .3s,box-shadow .3s}
+
+/* Dark toggle button */
+.dm-btn{width:48px;height:48px;border:none;background:transparent;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  cursor:pointer;color:var(--t3);gap:2px;margin-bottom:4px;transition:.2s}
+.dm-btn:hover{background:var(--abg);color:var(--a2)}
+.dm-btn .ic{font-size:1.25rem;line-height:1}
+.dm-btn .lb{font-family:'Syne',sans-serif;font-size:.4rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--t3);transition:.2s}
+.dm-btn:hover .lb{color:var(--a2)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex}
@@ -403,7 +450,11 @@ tbody tr:hover td{background:var(--s2)}
     <span class="badge-dot" id="bdot"></span>
   </button>
   <button class="ni" data-p="academy"          title="Academia"><span class="ic">🎓</span><span class="lb">Acad.</span></button>
-  <button class="ni" data-p="logout"           title="Cerrar sesión" style="margin-top:auto"><span class="ic">⎋</span><span class="lb">Salir</span></button>
+  <button class="dm-btn" id="dmToggle" title="Modo oscuro" onclick="toggleDM()">
+    <span class="ic" id="dmIc">🌙</span>
+    <span class="lb" id="dmLb">Dark</span>
+  </button>
+  <button class="ni" data-p="logout" title="Cerrar sesión" style="margin-top:auto"><span class="ic">⎋</span><span class="lb">Salir</span></button>
 </nav>
 
 <!-- MAIN -->
@@ -1485,6 +1536,29 @@ async function importXLS(input){
   if(errors>0)er('p-er',errors+' productos no se pudieron importar');
   else ok('p-ok','Importados correctamente: '+count+' productos');
 }
+
+/* ══════════ DARK MODE ══════════ */
+function toggleDM(){
+  const isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('mixly-theme',isDark?'dark':'light');
+  document.getElementById('dmIc').textContent=isDark?'☀️':'🌙';
+  document.getElementById('dmLb').textContent=isDark?'Light':'Dark';
+  document.getElementById('dmToggle').title=isDark?'Modo claro':'Modo oscuro';
+}
+// Restore on load
+(function(){
+  const saved=localStorage.getItem('mixly-theme');
+  const prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(saved==='dark'||((!saved)&&prefersDark)){
+    document.documentElement.classList.add('dark');
+    // Icons set after DOM ready
+    window.addEventListener('DOMContentLoaded',()=>{
+      const ic=document.getElementById('dmIc'),lb=document.getElementById('dmLb');
+      if(ic)ic.textContent='☀️';
+      if(lb)lb.textContent='Light';
+    });
+  }
+})();
 
 </script>
 </body>
