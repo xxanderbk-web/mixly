@@ -445,10 +445,19 @@ tbody tr:hover td{background:var(--s2)}
     <div class="sw" style="margin-bottom:0;flex:1;max-width:280px"><input id="pSearch" placeholder="Buscar producto…" oninput="renderP()"/></div>
     <div class="loctabs" id="pCatFilter">
       <button class="lt active" data-cat="all">Todos</button>
+      <button class="lt" data-cat="Bebida">Bebidas</button>
+      <button class="lt" data-cat="Cerveza">Cervezas</button>
+      <button class="lt" data-cat="Pisco">Pisco</button>
+      <button class="lt" data-cat="Ron">Ron</button>
+      <button class="lt" data-cat="Tequila">Tequila</button>
+      <button class="lt" data-cat="Vodka">Vodka</button>
+      <button class="lt" data-cat="Whiskey">Whiskey</button>
+      <button class="lt" data-cat="Vino">Vino</button>
+      <button class="lt" data-cat="Gin">Gin</button>
       <button class="lt" data-cat="Licor">Licores</button>
       <button class="lt" data-cat="Fruta">Frutas</button>
       <button class="lt" data-cat="Insumo">Insumos</button>
-      <button class="lt" data-cat="bebida">bebidas</button>
+      <button class="lt" data-cat="Base">Bases</button>
     </div>
   </div>
 
@@ -461,10 +470,19 @@ tbody tr:hover td{background:var(--s2)}
         <div class="fgroup"><label class="fl">Categoría</label>
           <select id="pC">
             <option value="">Seleccionar…</option>
+            <option value="Bebida">Bebida</option>
+            <option value="Cerveza">Cerveza</option>
+            <option value="Pisco">Pisco</option>
+            <option value="Ron">Ron</option>
+            <option value="Tequila">Tequila</option>
+            <option value="Vodka">Vodka</option>
+            <option value="Whiskey">Whiskey</option>
+            <option value="Vino">Vino</option>
+            <option value="Gin">Gin</option>
             <option value="Licor">Licor</option>
             <option value="Fruta">Fruta</option>
             <option value="Insumo">Insumo</option>
-            <option value="bebida">bebida</option>
+            <option value="Base">Base</option>
           </select>
         </div>
         <div class="fgroup"><label class="fl">Proveedor</label><input id="pProv" placeholder="Ej: Distribuidora Norte"/></div>
@@ -627,8 +645,19 @@ tbody tr:hover td{background:var(--s2)}
         <div class="fgroup"><label class="fl">Categoría</label>
           <select id="cCat" onchange="onCcat()">
             <option value="">Categoría…</option>
-            <option value="Licor">Licores</option><option value="Fruta">Frutas</option>
-            <option value="Insumo">Insumos</option><option value="bebida">bebidas</option>
+            <option value="Bebida">Bebidas</option>
+            <option value="Cerveza">Cervezas</option>
+            <option value="Pisco">Pisco</option>
+            <option value="Ron">Ron</option>
+            <option value="Tequila">Tequila</option>
+            <option value="Vodka">Vodka</option>
+            <option value="Whiskey">Whiskey</option>
+            <option value="Vino">Vino</option>
+            <option value="Gin">Gin</option>
+            <option value="Licor">Licores</option>
+            <option value="Fruta">Frutas</option>
+            <option value="Insumo">Insumos</option>
+            <option value="Base">Bases</option>
           </select>
         </div>
         <div class="fgroup"><label class="fl">Producto</label><select id="cProd"><option value="">Producto…</option></select></div>
@@ -774,7 +803,7 @@ function sp(name){
 /* HELPERS */
 function ok(id,m){const e=document.getElementById(id);e.textContent='✓ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',3000)}
 function er(id,m){const e=document.getElementById(id);e.textContent='⚠ '+m;e.style.display='block';setTimeout(()=>e.style.display='none',5000)}
-function cp(c){const mp={Licor:'pa',Fruta:'po',Insumo:'pw',bebida:'pm'};return`<span class="pill ${mp[c]||'pm'}">${c}</span>`}
+function cp(c){const mp={'Bebida':'pb','Cerveza':'pb2','Pisco':'pa','Ron':'pa','Tequila':'pa','Vodka':'pa','Whiskey':'pa','Vino':'pa','Gin':'pa','Licor':'pa','Fruta':'po','Insumo':'pw','Base':'pm'};return`<span class="pill ${mp[c]||'pm'}">${c}</span>`}
 
 /* ══════════ PRODUCTOS ══════════ */
 let pEId=null, pCatFilt='all';
@@ -841,9 +870,10 @@ async function saveP(){
 function renderP(){
   const tb=document.getElementById('pTb');
   const srch=(document.getElementById('pSearch')?.value||'').toLowerCase();
-  let list=cat;
+  let list=[...cat];
   if(pCatFilt!=='all') list=list.filter(p=>p.category===pCatFilt);
   if(srch) list=list.filter(p=>p.name.toLowerCase().includes(srch)||(p.provider||'').toLowerCase().includes(srch));
+  list.sort((a,b)=>(a.category||'').localeCompare(b.category||'','es')||(a.provider||'').localeCompare(b.provider||'','es')||(a.name||'').localeCompare(b.name||'','es'));
 
   document.getElementById('pCount').textContent=`${list.length} producto${list.length!==1?'s':''}`;
 
@@ -944,10 +974,7 @@ async function lInv(){
     };
   };
 
-  inv=valid.map(merge).sort((a,b)=>
-    (a.category||'').localeCompare(b.category||'')||
-    (a.name||'').localeCompare(b.name||'')
-  );
+  inv=valid.map(merge).sort((a,b)=>(a.category||'').localeCompare(b.category||'','es')||(a.provider||'').localeCompare(b.provider||'','es')||(a.name||'').localeCompare(b.name||'','es'));
 
   // Auto-crear filas de inventario para productos que no las tienen aun
   const existIds=new Set(valid.map(i=>i.product_id));
@@ -961,7 +988,7 @@ async function lInv(){
       if(insErr){console.error('Error insertando filas inventario:',insErr);}
       else if(ins?.length){
         inv=[...inv,...ins.map(merge)]
-          .sort((a,b)=>(a.category||'').localeCompare(b.category||'')||(a.name||'').localeCompare(b.name||''));
+          .sort((a,b)=>(a.category||'').localeCompare(b.category||'','es')||(a.provider||'').localeCompare(b.provider||'','es')||(a.name||'').localeCompare(b.name||'','es'));
         console.log('Inventario actualizado, total filas:',inv.length);
       }
     }catch(e){console.error('Insert inventory error:',e);}
@@ -1052,31 +1079,117 @@ document.querySelectorAll('.lt').forEach(t=>{
 
 async function expInv(){
   if(!inv.length)return;
-  const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Inventario');
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Inventario');
+
+  // Orden de categorías igual a la planilla de la imagen
+  const catOrder=['Bebida','Cerveza','Pisco','Ron','Tequila','Vodka','Whiskey','Vino','Gin','Licor','Fruta','Insumo','Base'];
+  // Colores de header por categoría (azul oscuro como la imagen)
+  const catColor={
+    Bebida:'FF1565C0',Cerveza:'FF1565C0',Pisco:'FF1A237E',Ron:'FF1A237E',
+    Tequila:'FF1A237E',Vodka:'FF1A237E',Whiskey:'FF1A237E',Vino:'FF4A148C',
+    Gin:'FF1A237E',Licor:'FF1A237E',Fruta:'FF1B5E20',Insumo:'FFE65100',Base:'FF37474F'
+  };
+
+  // Columnas
   ws.columns=[
-    {header:'Producto',key:'n',width:28},{header:'Categoría',key:'c',width:12},
-    {header:'Proveedor',key:'p',width:20},{header:'Unidad',key:'u',width:8},
-    {header:'Barra',key:'sb',width:10},{header:'Bodega',key:'sbd',width:10},
-    {header:'Total',key:'t',width:10},{header:'Mínimo',key:'m',width:8},
-    {header:'Pedido sug.',key:'ped',width:12},{header:'Precio/u',key:'pp',width:12},
-    {header:'Estado',key:'e',width:10}
+    {key:'n',width:30},{key:'p',width:20},{key:'t',width:14},
+    {key:'m',width:14},{key:'ped',width:16}
   ];
-  const hr=ws.getRow(1);
-  hr.font={bold:true,color:{argb:'FFFFFFFF'}};
-  hr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0090CC'}};
-  inv.forEach((item,i)=>{
-    const total=item.stock_barra+item.stock_bodega;
-    const min=item.min_stock||0;
-    const estado=total===0?'SIN STOCK':total<=min&&min>0?'BAJO':'OK';
-    const pedSug=min>0&&total<min?(min-total).toFixed(2):'0';
-    const row=ws.addRow({n:item.name,c:item.category,p:item.provider,u:item.unit,sb:item.stock_barra,sbd:item.stock_bodega,t:total,m:min,ped:pedSug,pp:`$${Number(item.price_per_ml).toFixed(2)}/${item.unit}`,e:estado});
-    if(i%2===0)row.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF4F8FD'}};
-    if(estado==='BAJO'||estado==='SIN STOCK'){ws.getRow(i+2).getCell(11).font={bold:true,color:{argb:estado==='SIN STOCK'?'FFFF3B5C':'FFF59E0B'}};}
+
+  // Agrupar inventario por categoría
+  const grupos={};
+  catOrder.forEach(c=>{grupos[c]=[];});
+  inv.forEach(item=>{
+    const c=item.category||'Insumo';
+    if(!grupos[c])grupos[c]=[];
+    grupos[c].push(item);
   });
+
+  const styleHeader=(row,color)=>{
+    row.height=22;
+    ['A','B','C','D','E'].forEach(col=>{
+      const cell=row.getCell(col);
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:color||'FF1565C0'}};
+      cell.font={bold:true,color:{argb:'FFFFFFFF'},size:11};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+    });
+  };
+
+  const styleSubHeader=(row)=>{
+    row.height=18;
+    ['A','B','C','D','E'].forEach((col,i)=>{
+      const cell=row.getCell(col);
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1976D2'}};
+      cell.font={bold:true,color:{argb:'FFFFFFFF'},size:10};
+      cell.alignment={horizontal:i===0?'left':'center',vertical:'middle'};
+    });
+  };
+
+  const styleData=(row,rowNum,estado)=>{
+    const isAlt=rowNum%2===0;
+    ['A','B','C','D','E'].forEach((col,i)=>{
+      const cell=row.getCell(col);
+      if(estado==='SIN STOCK')cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFCE4EC'}};
+      else if(estado==='BAJO')cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF8E1'}};
+      else cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isAlt?'FFF4F8FD':'FFFFFFFF'}};
+      cell.alignment={horizontal:i===0?'left':'center',vertical:'middle'};
+      cell.font={size:10,bold:false,
+        color:{argb:estado==='SIN STOCK'?'FFB71C1C':estado==='BAJO'?'FFE65100':'FF0A1628'}};
+    });
+    // Pedido sugerido — naranja si hay que pedir
+    const pedCell=row.getCell('E');
+    const pedVal=parseFloat(pedCell.value)||0;
+    if(pedVal>0)pedCell.font={bold:true,color:{argb:'FFE65100'},size:10};
+  };
+
+  let dataRowIdx=0;
+  catOrder.forEach(cat=>{
+    const items=grupos[cat];
+    if(!items||!items.length)return;
+
+    // Fila de categoría (header grande)
+    ws.addRow([]);// spacer
+    const catRow=ws.addRow([cat.toUpperCase(),'','','','']);
+    ws.mergeCells(`A${catRow.number}:E${catRow.number}`);
+    styleHeader(catRow,catColor[cat]||'FF1565C0');
+
+    // Fila de sub-headers
+    const subRow=ws.addRow(['Producto','Proveedor','Stock Total','Stock Mínimo','Pedido Sugerido']);
+    styleSubHeader(subRow);
+
+    // Filas de datos
+    items.forEach((item,i)=>{
+      const total=item.stock_barra+item.stock_bodega;
+      const min=item.min_stock||0;
+      const estado=total===0?'SIN STOCK':total<=min&&min>0?'BAJO':'OK';
+      const pedSug=min>0&&total<min?Math.ceil(min-total):0;
+      const unit=item.unit||'';
+      const row=ws.addRow([
+        item.name,
+        item.provider||'',
+        total>0?(total%1===0?total+' '+unit:total.toFixed(2)+' '+unit):'0 '+unit,
+        min>0?(min%1===0?min+' '+unit:min.toFixed(2)+' '+unit):'—',
+        pedSug
+      ]);
+      styleData(row,i,estado);
+      dataRowIdx++;
+    });
+  });
+
+  // Bordes sutiles
+  ws.eachRow(row=>{
+    row.eachCell(cell=>{
+      if(cell.value!==null&&cell.value!==undefined){
+        cell.border={bottom:{style:'thin',color:{argb:'FFE0E0E0'}}};
+      }
+    });
+  });
+
   const buf=await wb.xlsx.writeBuffer();
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=`Inventario_Mixly_${new Date().toISOString().split('T')[0]}.xlsx`;
+  a.download='Inventario_Mixly_'+new Date().toISOString().split('T')[0]+'.xlsx';
   a.click();
 }
 
@@ -1188,12 +1301,12 @@ const ACD={
     {t:'Bar Spoon',d:'Cuchara larga para mezclar. ~5ml.'},
     {t:'Muddler',d:'Instrumento para machacar frutas y hierbas.'},
     {t:'Strainer',d:'Colador. Hawthorne (espiral) o Julep (metal sólido).'},
-    {t:'Vermouth',d:'Vino aromatizado, seco o dulce. base de clásicos.'},
+    {t:'Vermouth',d:'Vino aromatizado, seco o dulce. Base de clásicos.'},
     {t:'Bitters',d:'Concentrado amargo aromático. Angostura, Peychaud\'s.'},
     {t:'Twist',d:'Tira de cáscara de cítrico para aromatizar el borde.'},
     {t:'On the Rocks',d:'Servido sobre hielo.'},
     {t:'Neat',d:'Solo, sin hielo ni dilución.'},
-    {t:'Digestivo',d:'base después de comer para facilitar la digestión.'},
+    {t:'Digestivo',d:'Bebida después de comer para facilitar la digestión.'},
   ],
   conv:[
     {h:'📏 Medidas Comunes',r:[['1 oz (onza)','30 ml'],['1 shot','45 ml'],['1 dash','~1 ml'],['1 barspoon','5 ml'],['1 jigger','45 ml']]},
@@ -1232,51 +1345,63 @@ function hStats(){
 /* ══════════ IMPORTAR EXCEL → PRODUCTOS ══════════ */
 async function importXLS(input){
   const file=input.files[0];if(!file)return;
-  input.value=''; // reset so same file can be re-imported
+  input.value='';
   const XLSX=window.XLSX;
-  if(!XLSX){alert('Librería XLSX no disponible');return;}
+  if(!XLSX){alert('Libreria XLSX no disponible');return;}
 
   const ab=await file.arrayBuffer();
   const wb=XLSX.read(ab,{type:'arraybuffer'});
   const ws=wb.Sheets[wb.SheetNames[0]];
   const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
 
-  // Detectar si es la plantilla (fila 1 = título, datos desde fila 4)
-  // o un excel libre. Buscar fila con encabezado "Nombre *" o "Nombre"
-  let data=rows;
-  // Filtrar filas vacías y encabezados extra
-  data=data.filter(r=>{
-    const nombre=r['Nombre *']||r['Nombre']||r['nombre']||'';
-    return nombre && typeof nombre==='string' && nombre.trim() &&
-           nombre.trim()!=='Nombre *' && nombre.trim()!=='Nombre';
-  });
-
-  if(!data.length){alert('No se encontraron filas con datos. Asegurate de usar la plantilla descargada.');return;}
-
-  const catMap={'licor':'Licor','fruta':'Fruta','insumo':'Insumo','bebida':'Bebida'};
+  const catMap={'bebida':'Bebida','cerveza':'Cerveza','pisco':'Pisco','ron':'Ron','tequila':'Tequila','vodka':'Vodka','whiskey':'Whiskey','vino':'Vino','gin':'Gin','licor':'Licor','fruta':'Fruta','insumo':'Insumo','base':'Base'};
   const unitMap={'ml':'ml','lt':'lt','gr':'gr','kg':'kg','un':'un','g':'gr','l':'lt'};
 
+  // Leer cualquiera de estos nombres de columna (plantilla nueva o export de Mixly)
+  const get=(r,...keys)=>{for(const k of keys){const v=r[k];if(v!==undefined&&v!=='')return v;}return '';};
+
+  const data=rows.filter(r=>{
+    const n=get(r,'Producto','Nombre *','Nombre','nombre');
+    return n&&n.toString().trim()&&n.toString().trim()!=='Producto'&&n.toString().trim()!=='Nombre *';
+  });
+
+  if(!data.length){alert('No se encontraron productos en el archivo.');return;}
+
+  // Parsear precio/u del formato "$17.30/ml" → 17.30
+  const parsePPU=v=>{if(!v)return 0;const m=v.toString().replace(/[$,]/g,'').match(/[\d.]+/);return m?parseFloat(m[0]):0;};
+
   const productos=data.map(r=>{
-    const nombre=(r['Nombre *']||r['Nombre']||r['nombre']||'').toString().trim();
-    const catRaw=(r['Categoría *']||r['Categoría']||r['categoria']||'Insumo').toString().trim().toLowerCase();
-    const unitRaw=(r['Unidad *']||r['Unidad']||r['unidad']||'un').toString().trim().toLowerCase();
-    const qty=parseFloat(r['Cantidad total']||r['cantidad_total']||1)||1;
-    const precio=parseFloat(r['Precio total ($)']||r['Precio total']||r['precio_total']||0)||0;
-    const minSt=parseFloat(r['Stock mínimo']||r['Stock minimo']||r['min_stock']||0)||0;
-    const prov=(r['Proveedor']||r['proveedor']||'').toString().trim();
+    const nombre=get(r,'Producto','Nombre *','Nombre','nombre').toString().trim();
+    const catRaw=get(r,'Categoria','Categoría','categoria','Categoría *').toString().trim().toLowerCase();
+    const unitRaw=get(r,'Unidad','unidad').toString().trim().toLowerCase();
     const cat2=catMap[catRaw]||'Insumo';
     const unit=unitMap[unitRaw]||'un';
-    return{name:nombre,category:cat2,unit_type:unit,cantidad_total:qty,precio_total:precio,price_per_ml:precio/qty,min_stock:minSt,provider:prov||null};
+    const prov=get(r,'Proveedor','proveedor').toString().trim();
+    const minSt=parseFloat(get(r,'Minimo','Mínimo','min_stock','Stock mínimo'))||0;
+
+    // Intentar obtener precio total — si no existe, intentar calcular desde precio/u
+    let qty=parseFloat(get(r,'Cantidad total','cantidad_total'))||1;
+    let precio=parseFloat(get(r,'Precio total ($)','Precio total','precio_total'))||0;
+    const ppuRaw=get(r,'Precio/u','precio_u','Precio/unidad');
+    const ppu=parsePPU(ppuRaw);
+
+    // Si no hay precio total pero hay precio/u, reconstruir
+    if(!precio&&ppu){precio=ppu*qty;}
+    // Si no hay cantidad, asumir 1 (puede editarse después)
+    if(!qty)qty=1;
+
+    return{name:nombre,category:cat2,unit_type:unit,cantidad_total:qty,precio_total:precio,price_per_ml:qty>0?precio/qty:ppu,min_stock:minSt,provider:prov||null};
   }).filter(p=>p.name);
 
-  if(!productos.length){alert('No se encontraron productos válidos.');return;}
+  if(!productos.length){alert('No se encontraron productos validos.');return;}
 
-  const conf=confirm(`Se importarán ${productos.length} productos al catálogo.\n\nEsto NO elimina los productos existentes.\n\n¿Continuar?`);
+  // Mostrar preview
+  const preview=productos.slice(0,5).map(p=>p.name).join(', ')+(productos.length>5?' y '+(productos.length-5)+' mas...':'');
+  const conf=confirm('Se importaran '+productos.length+' productos: '+preview+'. Esto NO elimina los productos existentes. Continuar?');
   if(!conf)return;
 
-  ok('p-ok',`Importando ${productos.length} productos...`);
+  ok('p-ok','Importando '+productos.length+' productos...');
 
-  // Insert en batches de 20
   let count=0,errors=0;
   for(let i=0;i<productos.length;i+=20){
     const batch=productos.slice(i,i+20);
@@ -1286,8 +1411,8 @@ async function importXLS(input){
   }
 
   await lCat();await lInv();renderP();renderI();hStats();
-  if(errors>0)er('p-er',`${errors} productos no se pudieron importar`);
-  ok('p-ok',`✓ ${count} productos importados correctamente`);
+  if(errors>0)er('p-er',errors+' productos no se pudieron importar');
+  else ok('p-ok','Importados correctamente: '+count+' productos');
 }
 
 </script>
