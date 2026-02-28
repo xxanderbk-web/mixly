@@ -671,10 +671,12 @@ tbody tr:hover td{background:var(--s2)}
   <div id="p-ok" class="ab aok"></div><div id="p-er" class="ab aer"></div>
   <div class="tb">
     <button class="btn bp" onclick="tPF(true)">＋ Nuevo producto</button>
-    <label class="btn bok" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="Importar desde Excel (usa la plantilla)">
+    <label class="btn bok" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px" title="Importar catálogo desde Excel (formato Mixly)">
       ↑ Importar Excel
       <input type="file" id="pImport" accept=".xlsx,.xls" style="display:none" onchange="importXLS(this)"/>
     </label>
+    <button class="btn bs" onclick="expCatalogo()" title="Exportar catálogo completo con todos los datos">↓ Exportar catálogo</button>
+    <button class="btn bs" onclick="expCatalogoShare()" title="Exportar en formato para compartir con otro usuario de Mixly">📤 Compartir catálogo</button>
     <div class="sw" style="margin-bottom:0;flex:1;max-width:280px"><input id="pSearch" placeholder="Buscar producto…" oninput="renderP()"/></div>
     <div class="loctabs" id="pCatFilter">
       <button class="lt active" data-cat="all">Todos</button>
@@ -1866,7 +1868,8 @@ async function importXLS(input){
     for(const r of rows){
       const nombre=get(r,'Producto','Nombre *','Nombre','nombre').toString().trim();
       if(!nombre||nombre==='Producto'||nombre==='Nombre *')continue;
-      const catRaw=get(r,'Categoria','Categoría','categoria','Categoría *').toString().trim().toLowerCase();
+      if(nombre.includes('importarse')||nombre.includes('Mixly →')||nombre.startsWith('↓'))continue;
+      const catRaw=get(r,'Categoria','Categoría','categoria','Categoría *','category').toString().trim().toLowerCase();
       const unitRaw=get(r,'Unidad','unidad').toString().trim().toLowerCase();
       const prov=get(r,'Proveedor','proveedor').toString().trim();
       const minSt=parseFloat(get(r,'Minimo','Mínimo','min_stock','Stock mínimo'))||0;
@@ -2478,6 +2481,186 @@ document.addEventListener('keydown',e=>{
   else if(active==='lgsForgot')lgsForgot();
   else if(active==='lgsReset')lgsUpdatePass();
 });
+
+/* ══════════ EXPORTAR CATÁLOGO COMPLETO ══════════ */
+async function expCatalogo(){
+  if(!cat.length){alert('No hay productos para exportar');return;}
+  const ExcelJS=window.ExcelJS;
+  if(!ExcelJS){alert('Librería no disponible');return;}
+
+  const wb=new ExcelJS.Workbook();
+  wb.creator='Mixly';wb.created=new Date();
+  const ws=wb.addWorksheet('Catálogo');
+
+  // Column definitions
+  ws.columns=[
+    {header:'Nombre',key:'name',width:30},
+    {header:'Categoría',key:'category',width:14},
+    {header:'Proveedor',key:'provider',width:20},
+    {header:'Unidad',key:'unit_type',width:10},
+    {header:'Cantidad total',key:'cantidad_total',width:14},
+    {header:'Precio total ($)',key:'precio_total',width:16},
+    {header:'Precio/unidad',key:'price_per_ml',width:14},
+    {header:'Stock mínimo',key:'min_stock',width:13},
+  ];
+
+  // Header style
+  const hRow=ws.getRow(1);
+  hRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0A1628'}};
+    cell.font={bold:true,color:{argb:'FFFFFFFF'},size:10,name:'Calibri'};
+    cell.alignment={vertical:'middle',horizontal:'center'};
+    cell.border={bottom:{style:'medium',color:{argb:'FF00C2FF'}}};
+  });
+  hRow.height=22;
+
+  // Data rows sorted by category > provider > name
+  const sorted=[...cat].sort((a,b)=>
+    (a.category||'').localeCompare(b.category||'','es')||
+    (a.provider||'').localeCompare(b.provider||'','es')||
+    (a.name||'').localeCompare(b.name||'','es')
+  );
+
+  const catColors={
+    'Bebida':'FFBBDEFB','Cerveza':'FFFFE0B2','Pisco':'FFFCE4EC',
+    'Ron':'FFF3E5F5','Tequila':'FFFFF8E1','Vodka':'FFE8EAF6',
+    'Whiskey':'FFEFEBE9','Vino':'FFF3E5F5','Gin':'FFE0F7FA',
+    'Licor':'FFEDE7F6','Fruta':'FFE8F5E9','Insumo':'FFF1F8E9','Base':'FFECEFF1'
+  };
+
+  sorted.forEach((p,i)=>{
+    const row=ws.addRow({
+      name:p.name,
+      category:p.category||'',
+      provider:p.provider||'',
+      unit_type:p.unit_type||'un',
+      cantidad_total:p.cantidad_total||1,
+      precio_total:p.precio_total||0,
+      price_per_ml:p.price_per_ml||0,
+      min_stock:p.min_stock||0,
+    });
+    const bg=catColors[p.category]||'FFFFFFFF';
+    row.eachCell(cell=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFE0E0E0'}}};
+      cell.font={name:'Calibri',size:10};
+    });
+    row.height=18;
+  });
+
+  // Format price columns
+  [6,7].forEach(c=>{
+    ws.getColumn(c).numFmt='"$"#,##0.00';
+  });
+
+  // Title row at top
+  ws.spliceRows(1,0,[]);
+  const titleRow=ws.getRow(1);
+  ws.mergeCells('A1:H1');
+  const titleCell=ws.getCell('A1');
+  const now=new Date();
+  titleCell.value=`CATÁLOGO MIXLY · ${now.toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase()}`;
+  titleCell.font={bold:true,size:13,color:{argb:'FF00C2FF'},name:'Calibri'};
+  titleCell.alignment={horizontal:'center',vertical:'middle'};
+  titleCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0A1628'}};
+  titleRow.height=28;
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const fecha=new Date().toISOString().slice(0,10);
+  a.download=`Catalogo_Mixly_${fecha}.xlsx`;
+  a.click();URL.revokeObjectURL(url);
+}
+
+/* ══════════ EXPORTAR PARA COMPARTIR (importable por otro usuario) ══════════ */
+async function expCatalogoShare(){
+  if(!cat.length){alert('No hay productos para exportar');return;}
+  const ExcelJS=window.ExcelJS;
+  if(!ExcelJS){alert('Librería no disponible');return;}
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Productos');
+
+  ws.columns=[
+    {header:'Nombre *',key:'name',width:32},
+    {header:'Categoría *',key:'category',width:14},
+    {header:'Proveedor',key:'provider',width:20},
+    {header:'Unidad *',key:'unit_type',width:10},
+    {header:'Cantidad total',key:'cantidad_total',width:14},
+    {header:'Precio total ($)',key:'precio_total',width:16},
+    {header:'Stock mínimo',key:'min_stock',width:13},
+  ];
+
+  // Header style — accent color
+  const hRow=ws.getRow(1);
+  hRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF00C2FF'}};
+    cell.font={bold:true,color:{argb:'FF0A1628'},size:10,name:'Calibri'};
+    cell.alignment={vertical:'middle',horizontal:'center'};
+  });
+  hRow.height=22;
+
+  // Instructions row
+  ws.spliceRows(2,0,[]);
+  const instrRow=ws.getRow(2);
+  ws.mergeCells('A2:G2');
+  const instrCell=ws.getCell('A2');
+  instrCell.value='↓ Este archivo puede importarse directamente en Mixly → Productos → Importar Excel';
+  instrCell.font={italic:true,color:{argb:'FF3A5A80'},size:9,name:'Calibri'};
+  instrCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE3F2FD'}};
+  instrCell.alignment={horizontal:'center',vertical:'middle'};
+  instrRow.height=16;
+
+  // Data — sorted
+  const sorted=[...cat].sort((a,b)=>
+    (a.category||'').localeCompare(b.category||'','es')||
+    (a.provider||'').localeCompare(b.provider||'','es')||
+    (a.name||'').localeCompare(b.name||'','es')
+  );
+
+  sorted.forEach((p,i)=>{
+    const row=ws.addRow({
+      name:p.name,
+      category:p.category||'',
+      provider:p.provider||'',
+      unit_type:p.unit_type||'un',
+      cantidad_total:p.cantidad_total||1,
+      precio_total:p.precio_total||0,
+      min_stock:p.min_stock||0,
+    });
+    const bg=i%2===0?'FFFFFFFF':'FFF8FBFF';
+    row.eachCell(cell=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFE8EEF4'}}};
+      cell.font={name:'Calibri',size:10};
+    });
+    row.height=18;
+  });
+
+  // Valid categories note in last column
+  ws.getCell('H1').value='Categorías válidas:';
+  ws.getCell('H1').font={bold:true,size:9,name:'Calibri'};
+  const cats2=['Bebida','Cerveza','Pisco','Ron','Tequila','Vodka','Whiskey','Vino','Gin','Licor','Fruta','Insumo','Base'];
+  cats2.forEach((c,i)=>{
+    ws.getCell(`H${i+3}`).value=c;
+    ws.getCell(`H${i+3}`).font={size:9,name:'Calibri',color:{argb:'FF3A5A80'}};
+  });
+  ws.getColumn('H').width=14;
+
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const fecha=new Date().toISOString().slice(0,10);
+  a.download=`Mixly_Compartir_${fecha}.xlsx`;
+  a.click();URL.revokeObjectURL(url);
+}
 
 </script>
 </body>
