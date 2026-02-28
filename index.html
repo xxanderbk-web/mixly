@@ -450,6 +450,50 @@ tbody tr:hover td{background:var(--s2)}
 .ll span{color:var(--accent)}
 .ls2{font-size:.7rem;color:var(--t3);letter-spacing:3px;text-transform:uppercase}
 
+/* ── LOGIN SCREEN ── */
+#loginScreen{position:fixed;inset:0;z-index:9998;background:var(--bg);
+  display:none;align-items:center;justify-content:center;overflow-y:auto;padding:20px}
+#loginScreen.show{display:flex}
+.lgs-wrap{width:100%;max-width:440px}
+.lgs-logo{text-align:center;margin-bottom:32px}
+.lgs-logo .ll{animation:none;font-size:2.4rem}
+.lgs-logo p{font-size:.72rem;color:var(--t3);letter-spacing:3px;text-transform:uppercase;margin-top:6px}
+.lgs-card{background:var(--surface);border:1px solid var(--b2);border-radius:var(--r);
+  box-shadow:var(--shadowL);overflow:hidden}
+.lgs-tabs{display:flex;background:var(--s2);border-bottom:1px solid var(--b2)}
+.lgs-tab{flex:1;padding:13px;border:none;background:transparent;
+  font-family:'Syne',sans-serif;font-size:.62rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--t3);cursor:pointer;transition:.2s}
+.lgs-tab.active{background:var(--surface);color:var(--accent);
+  border-bottom:2px solid var(--accent)}
+.lgs-body{padding:28px}
+.lgs-title{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:800;
+  letter-spacing:3px;text-transform:uppercase;color:var(--t2);margin-bottom:20px;text-align:center}
+.lgs-form{display:none}
+.lgs-form.active{display:block}
+.lgs-alert{display:none;padding:10px 14px;border-radius:var(--rs);font-size:.78rem;
+  font-weight:500;margin-bottom:16px}
+.lgs-alert.show{display:block}
+.lgs-alert.err{background:var(--dbg);border:1px solid rgba(255,59,92,.3);
+  color:var(--danger);border-left:3px solid var(--danger)}
+.lgs-alert.ok{background:var(--obg);border:1px solid rgba(16,185,129,.3);
+  color:var(--ok);border-left:3px solid var(--ok)}
+.lgs-alert.info{background:var(--abg);border:1px solid rgba(0,194,255,.25);
+  color:var(--a2);border-left:3px solid var(--accent)}
+.lgs-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--rs);font-family:'Syne',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.2s;margin-top:4px;
+  box-shadow:0 4px 14px rgba(0,194,255,.3)}
+.lgs-btn:hover{background:var(--a2)}
+.lgs-btn:disabled{opacity:.5;cursor:not-allowed}
+.lgs-link{background:none;border:none;color:var(--a2);font-size:.72rem;cursor:pointer;
+  display:block;text-align:center;margin-top:12px;font-family:'DM Sans',sans-serif;
+  text-decoration:underline}
+.lgs-link:hover{color:var(--accent)}
+.lgs-back{background:var(--s2);color:var(--t2);border:1px solid var(--b2);margin-top:8px;
+  box-shadow:none}
+.lgs-back:hover{background:var(--abg);color:var(--a2)}
+
 /* ── FILTER PILLS ── */
 .fps{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
 .fp{padding:5px 11px;border:1px solid var(--border);border-radius:20px;
@@ -479,6 +523,71 @@ tbody tr:hover td{background:var(--s2)}
 <div id="ls">
   <div class="ll">MIX<span>LY</span></div>
   <div class="ls2">Iniciando sesión…</div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="lgs-wrap">
+    <div class="lgs-logo">
+      <div class="ll">MIX<span>LY</span></div>
+      <p>Sistema de Gestión de Bar</p>
+    </div>
+    <div class="lgs-card">
+      <div class="lgs-tabs" id="lgsTabs">
+        <button class="lgs-tab active" onclick="lgsTab('login')">Iniciar Sesión</button>
+        <button class="lgs-tab" onclick="lgsTab('register')">Registrarse</button>
+      </div>
+      <div class="lgs-body">
+        <div id="lgsAlert" class="lgs-alert"></div>
+
+        <!-- Login -->
+        <div id="lgsLogin" class="lgs-form active">
+          <div class="lgs-title">Bienvenido de vuelta</div>
+          <div class="fgroup"><label class="fl">Correo</label>
+            <input type="email" id="lgsEmail" placeholder="tu@correo.com"/></div>
+          <div class="fgroup"><label class="fl">Contraseña</label>
+            <input type="password" id="lgsPass" placeholder="Tu contraseña"/></div>
+          <button class="lgs-btn" onclick="lgsLogin()">Entrar →</button>
+          <button class="lgs-link" onclick="lgsTab('forgot')">¿Olvidaste tu contraseña?</button>
+        </div>
+
+        <!-- Register -->
+        <div id="lgsRegister" class="lgs-form">
+          <div class="lgs-title">Crear cuenta nueva</div>
+          <div class="fgroup"><label class="fl">Correo *</label>
+            <input type="email" id="lgsRegEmail" placeholder="tu@correo.com"/></div>
+          <div class="fgroup"><label class="fl">Nombre del Bar *</label>
+            <input type="text" id="lgsBarName" placeholder="Ej: Bar El Mojito"/></div>
+          <div class="fgroup"><label class="fl">Tu nombre *</label>
+            <input type="text" id="lgsUsername" placeholder="Tu nombre o apodo"/></div>
+          <div class="fgroup"><label class="fl">Contraseña *</label>
+            <input type="password" id="lgsRegPass" placeholder="Mínimo 6 caracteres"/></div>
+          <div class="fgroup"><label class="fl">Confirmar contraseña *</label>
+            <input type="password" id="lgsRegPass2" placeholder="Repite tu contraseña"/></div>
+          <button class="lgs-btn" onclick="lgsRegister()">Crear cuenta</button>
+        </div>
+
+        <!-- Forgot -->
+        <div id="lgsForgot" class="lgs-form">
+          <div class="lgs-title">Recuperar contraseña</div>
+          <div class="fgroup"><label class="fl">Correo</label>
+            <input type="email" id="lgsForgotEmail" placeholder="tu@correo.com"/></div>
+          <button class="lgs-btn" onclick="lgsForgot()">Enviar enlace</button>
+          <button class="lgs-btn lgs-back" onclick="lgsTab('login')">← Volver</button>
+        </div>
+
+        <!-- Reset -->
+        <div id="lgsReset" class="lgs-form">
+          <div class="lgs-title">🔐 Nueva contraseña</div>
+          <div class="fgroup"><label class="fl">Nueva contraseña</label>
+            <input type="password" id="lgsNewPass" placeholder="Mínimo 6 caracteres"/></div>
+          <div class="fgroup"><label class="fl">Confirmar</label>
+            <input type="password" id="lgsNewPass2" placeholder="Repite tu contraseña"/></div>
+          <button class="lgs-btn" onclick="lgsUpdatePass()">Actualizar contraseña</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- SIDEBAR -->
@@ -974,9 +1083,35 @@ let uid=null, cat=[], inv=[], recs=[], rems=[];
 
 /* BOOT */
 window.onload=async()=>{
+  // Check password recovery from URL hash
+  const hashP=new URLSearchParams(window.location.hash.substring(1));
+  if(hashP.get('type')==='recovery'){
+    document.getElementById('ls').style.display='none';
+    document.getElementById('loginScreen').classList.add('show');
+    lgsTab('reset');
+    lgsShowAlert('✓ Enlace válido. Ingresa tu nueva contraseña','info');
+    return;
+  }
   const{data}=await db.auth.getSession();
-  if(!data?.session){location.href="login.html";return;}
-  const u=data.session.user; uid=u.id;
+  if(!data?.session){
+    document.getElementById('ls').style.display='none';
+    document.getElementById('loginScreen').classList.add('show');
+    return;
+  }
+  await lgsInitApp(data.session.user);
+};
+
+db.auth.onAuthStateChange((event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    lgsTab('reset');
+    lgsShowAlert('✓ Enlace válido. Ingresa tu nueva contraseña','info');
+  } else if(event==='SIGNED_IN'&&session){
+    lgsInitApp(session.user);
+  }
+});
+
+async function lgsInitApp(u){
+  uid=u.id;
   const m=u.user_metadata||{};
   document.getElementById('wname').textContent=m.bar_name||m.barName||'Mi Bar';
   document.getElementById('wemail').textContent=m.username||u.email;
@@ -984,17 +1119,24 @@ window.onload=async()=>{
   await Promise.all([lInv(),lRecs(),lRems()]);
   initNav(); buildAc(); hStats();
   document.getElementById('ls').style.display='none';
+  document.getElementById('loginScreen').classList.remove('show');
   document.getElementById('sidebar').style.display='';
   document.getElementById('mainApp').style.display='';
   maybeStartOB();
-};
+}
 
 /* NAV */
 function initNav(){
   document.querySelectorAll('.ni').forEach(b=>{
     b.addEventListener('click',()=>{
       const p=b.dataset.p;
-      if(p==='logout'){db.auth.signOut().then(()=>location.href="login.html");return;}
+      if(p==='logout'){db.auth.signOut().then(()=>{
+    uid=null;cat=[];inv=[];recs=[];rems=[];
+    document.getElementById('sidebar').style.display='none';
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('loginScreen').classList.add('show');
+    lgsTab('login');
+  });return;}
       sp(p);
     });
   });
@@ -1672,68 +1814,96 @@ async function importXLS(input){
   const ab=await file.arrayBuffer();
   const wb=XLSX.read(ab,{type:'arraybuffer'});
   const ws=wb.Sheets[wb.SheetNames[0]];
-  const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
 
-  const catMap={'bebida':'Bebida','cerveza':'Cerveza','pisco':'Pisco','ron':'Ron','tequila':'Tequila','vodka':'Vodka','whiskey':'Whiskey','vino':'Vino','gin':'Gin','licor':'Licor','fruta':'Fruta','insumo':'Insumo','base':'Base'};
+  const catMap={'bebida':'Bebida','cerveza':'Cerveza','pisco':'Pisco','ron':'Ron',
+    'tequila':'Tequila','vodka':'Vodka','whiskey':'Whiskey','vino':'Vino',
+    'gin':'Gin','licor':'Licor','fruta':'Fruta','insumo':'Insumo','base':'Base'};
+  const catSet=new Set(Object.keys(catMap));
   const unitMap={'ml':'ml','lt':'lt','gr':'gr','kg':'kg','un':'un','g':'gr','l':'lt'};
 
-  // Leer cualquiera de estos nombres de columna (plantilla nueva o export de Mixly)
-  const get=(r,...keys)=>{for(const k of keys){const v=r[k];if(v!==undefined&&v!=='')return v;}return '';};
+  // Extract unit from strings like "24 un", "750 ml"
+  const extractUnit=s=>{if(!s)return'un';const m=s.toString().toLowerCase().match(/(ml|lt|gr|kg|un)/);return m?unitMap[m[1]]||'un':'un';};
+  const extractNum=s=>{if(!s)return 0;const m=s.toString().match(/[\d.]+/);return m?parseFloat(m[0]):0;};
 
-  const data=rows.filter(r=>{
-    const n=get(r,'Producto','Nombre *','Nombre','nombre');
-    return n&&n.toString().trim()&&n.toString().trim()!=='Producto'&&n.toString().trim()!=='Nombre *';
-  });
+  const productos=[];
 
-  if(!data.length){alert('No se encontraron productos en el archivo.');return;}
+  // ── FORMAT 1: Mixly grouped export (section headers like "BEBIDA", "CERVEZA"...)
+  // Detect by checking if any cell value matches a category name
+  const rawRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  let isMixlyExport=false;
+  let currentCat=null;
 
-  // Parsear precio/u del formato "$17.30/ml" → 17.30
-  const parsePPU=v=>{if(!v)return 0;const m=v.toString().replace(/[$,]/g,'').match(/[\d.]+/);return m?parseFloat(m[0]):0;};
+  for(const row of rawRows){
+    const a=String(row[0]||'').trim();
+    const aUp=a.toUpperCase();
+    if(catSet.has(aUp)){isMixlyExport=true;break;}
+  }
 
-  const productos=data.map(r=>{
-    const nombre=get(r,'Producto','Nombre *','Nombre','nombre').toString().trim();
-    const catRaw=get(r,'Categoria','Categoría','categoria','Categoría *').toString().trim().toLowerCase();
-    const unitRaw=get(r,'Unidad','unidad').toString().trim().toLowerCase();
-    const cat2=catMap[catRaw]||'Insumo';
-    const unit=unitMap[unitRaw]||'un';
-    const prov=get(r,'Proveedor','proveedor').toString().trim();
-    const minSt=parseFloat(get(r,'Minimo','Mínimo','min_stock','Stock mínimo'))||0;
+  if(isMixlyExport){
+    // Parse grouped format: category header rows + data rows
+    for(const row of rawRows){
+      const a=String(row[0]||'').trim();
+      const aUp=a.toUpperCase();
+      // Category header
+      if(catSet.has(aUp)){currentCat=catMap[aUp];continue;}
+      // Skip title, sub-headers and empty
+      if(!a||a==='Producto'||a.includes('INVENTARIO')||a.includes('MIXLY'))continue;
+      if(!currentCat)continue;
+      const prov=String(row[1]||'').trim();
+      const minRaw=String(row[3]||'').trim();
+      const unit=extractUnit(minRaw)||extractUnit(String(row[2]||''));
+      const minStock=extractNum(minRaw);
+      productos.push({
+        user_id:uid,name:a,category:currentCat,
+        unit_type:unit,cantidad_total:1,precio_total:0,price_per_ml:0,
+        min_stock:minStock,provider:prov||null
+      });
+    }
+  } else {
+    // ── FORMAT 2: Flat format (Producto, Categoría, Proveedor, Unidad, ...)
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    const get=(r,...keys)=>{for(const k of keys){const v=r[k];if(v!==undefined&&v!=='')return v;}return '';};
+    const parsePPU=v=>{if(!v)return 0;const m=v.toString().replace(/[$,]/g,'').match(/[\d.]+/);return m?parseFloat(m[0]):0;};
 
-    // Intentar obtener precio total — si no existe, intentar calcular desde precio/u
-    let qty=parseFloat(get(r,'Cantidad total','cantidad_total'))||1;
-    let precio=parseFloat(get(r,'Precio total ($)','Precio total','precio_total'))||0;
-    const ppuRaw=get(r,'Precio/u','precio_u','Precio/unidad');
-    const ppu=parsePPU(ppuRaw);
+    for(const r of rows){
+      const nombre=get(r,'Producto','Nombre *','Nombre','nombre').toString().trim();
+      if(!nombre||nombre==='Producto'||nombre==='Nombre *')continue;
+      const catRaw=get(r,'Categoria','Categoría','categoria','Categoría *').toString().trim().toLowerCase();
+      const unitRaw=get(r,'Unidad','unidad').toString().trim().toLowerCase();
+      const prov=get(r,'Proveedor','proveedor').toString().trim();
+      const minSt=parseFloat(get(r,'Minimo','Mínimo','min_stock','Stock mínimo'))||0;
+      let qty=parseFloat(get(r,'Cantidad total','cantidad_total'))||1;
+      let precio=parseFloat(get(r,'Precio total ($)','Precio total','precio_total'))||0;
+      const ppu=parsePPU(get(r,'Precio/u','precio_u','Precio/unidad'));
+      if(!precio&&ppu)precio=ppu*qty;
+      productos.push({
+        user_id:uid,name:nombre,
+        category:catMap[catRaw]||'Insumo',
+        unit_type:unitMap[unitRaw]||'un',
+        cantidad_total:qty||1,precio_total:precio,
+        price_per_ml:qty>0?precio/qty:ppu,
+        min_stock:minSt,provider:prov||null
+      });
+    }
+  }
 
-    // Si no hay precio total pero hay precio/u, reconstruir
-    if(!precio&&ppu){precio=ppu*qty;}
-    // Si no hay cantidad, asumir 1 (puede editarse después)
-    if(!qty)qty=1;
+  if(!productos.length){alert('No se encontraron productos en el archivo.');return;}
 
-    return{name:nombre,category:cat2,unit_type:unit,cantidad_total:qty,precio_total:precio,price_per_ml:qty>0?precio/qty:ppu,min_stock:minSt,provider:prov||null};
-  }).filter(p=>p.name);
-
-  if(!productos.length){alert('No se encontraron productos validos.');return;}
-
-  // Mostrar preview
-  const preview=productos.slice(0,5).map(p=>p.name).join(', ')+(productos.length>5?' y '+(productos.length-5)+' mas...':'');
-  const conf=confirm('Se importaran '+productos.length+' productos: '+preview+'. Esto NO elimina los productos existentes. Continuar?');
+  const preview=productos.slice(0,4).map(p=>p.name).join(', ')+(productos.length>4?' y '+(productos.length-4)+' más...':'');
+  const conf=confirm('Se importarán '+productos.length+' productos: '+preview+'. Esto NO elimina los existentes. Continuar?');
   if(!conf)return;
 
   ok('p-ok','Importando '+productos.length+' productos...');
-
   let count=0,errors=0;
   for(let i=0;i<productos.length;i+=20){
-    const batch=productos.slice(i,i+20);
-    const batchWithUser=batch.map(p=>({...p,user_id:uid}));
-    const{error}=await db.from('products').insert(batchWithUser);
-    if(error){console.error('Batch error:',error);errors+=batch.length;}
-    else count+=batch.length;
+    const{error}=await db.from('products').insert(productos.slice(i,i+20));
+    if(error){console.error('Batch error:',error);errors+=20;}
+    else count+=Math.min(20,productos.length-i);
   }
 
   await lCat();await lInv();renderP();renderI();hStats();
-  if(errors>0)er('p-er',errors+' productos no se pudieron importar');
-  else ok('p-ok','Importados correctamente: '+count+' productos');
+  if(errors>0)er('p-er',errors+' productos no pudieron importarse');
+  else ok('p-ok','✓ '+count+' productos importados correctamente');
 }
 
 /* ══════════ DARK MODE ══════════ */
@@ -2201,6 +2371,115 @@ function maybeStartOB(){
     document.getElementById('obHelpBtn').style.display = 'flex';
   }
 }
+
+/* ══════════ LOGIN SCREEN ══════════ */
+function lgsTab(tab){
+  const tabs=['login','register','forgot','reset'];
+  tabs.forEach(t=>{
+    document.getElementById('lgs'+t.charAt(0).toUpperCase()+t.slice(1))?.classList.toggle('active',t===tab);
+  });
+  document.querySelectorAll('.lgs-tab').forEach(b=>b.classList.remove('active'));
+  if(tab==='login'||tab==='register'){
+    document.getElementById('lgsTabs').style.display='';
+    document.querySelector('.lgs-tab[onclick*="'+tab+'"]')?.classList.add('active');
+  } else {
+    document.getElementById('lgsTabs').style.display='none';
+  }
+  lgsHideAlert();
+}
+
+function lgsShowAlert(msg,type='err'){
+  const el=document.getElementById('lgsAlert');
+  el.textContent=msg;
+  el.className='lgs-alert show '+type;
+}
+function lgsHideAlert(){
+  const el=document.getElementById('lgsAlert');
+  if(el) el.className='lgs-alert';
+}
+
+async function lgsLogin(){
+  const email=document.getElementById('lgsEmail').value.trim();
+  const pass=document.getElementById('lgsPass').value;
+  if(!email||!pass){lgsShowAlert('Completa todos los campos');return;}
+  const btn=document.querySelector('#lgsLogin .lgs-btn');
+  btn.disabled=true;btn.textContent='Ingresando...';
+  const{error}=await db.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;btn.textContent='Entrar →';
+  if(error){
+    if(error.message.includes('Email not confirmed'))
+      lgsShowAlert('Debes confirmar tu correo antes de entrar');
+    else if(error.message.includes('Invalid login'))
+      lgsShowAlert('Correo o contraseña incorrectos');
+    else lgsShowAlert(error.message);
+  }
+}
+
+async function lgsRegister(){
+  const email=document.getElementById('lgsRegEmail').value.trim();
+  const barName=document.getElementById('lgsBarName').value.trim();
+  const username=document.getElementById('lgsUsername').value.trim();
+  const pass=document.getElementById('lgsRegPass').value;
+  const pass2=document.getElementById('lgsRegPass2').value;
+  if(!email||!barName||!username||!pass){lgsShowAlert('Completa todos los campos');return;}
+  if(pass!==pass2){lgsShowAlert('Las contraseñas no coinciden');return;}
+  if(pass.length<6){lgsShowAlert('La contraseña debe tener al menos 6 caracteres');return;}
+  const btn=document.querySelector('#lgsRegister .lgs-btn');
+  btn.disabled=true;btn.textContent='Creando cuenta...';
+  const{error}=await db.auth.signUp({email,password:pass,
+    options:{data:{username,bar_name:barName}}});
+  btn.disabled=false;btn.textContent='Crear cuenta';
+  if(error){
+    if(error.message.includes('already registered'))
+      lgsShowAlert('Este correo ya está registrado');
+    else lgsShowAlert(error.message);
+    return;
+  }
+  lgsShowAlert('✓ Cuenta creada. Revisa tu correo para confirmar tu cuenta.','ok');
+  setTimeout(()=>{
+    lgsTab('login');
+    document.getElementById('lgsEmail').value=email;
+  },3000);
+}
+
+async function lgsForgot(){
+  const email=document.getElementById('lgsForgotEmail').value.trim();
+  if(!email){lgsShowAlert('Ingresa tu correo');return;}
+  const{error}=await db.auth.resetPasswordForEmail(email,{
+    redirectTo:window.location.origin+window.location.pathname});
+  if(error){lgsShowAlert(error.message);return;}
+  lgsShowAlert('✓ Correo enviado. Revisa tu bandeja de entrada.','ok');
+  setTimeout(()=>lgsTab('login'),3000);
+}
+
+async function lgsUpdatePass(){
+  const p1=document.getElementById('lgsNewPass').value;
+  const p2=document.getElementById('lgsNewPass2').value;
+  if(!p1||!p2){lgsShowAlert('Completa ambos campos');return;}
+  if(p1!==p2){lgsShowAlert('Las contraseñas no coinciden');return;}
+  if(p1.length<6){lgsShowAlert('Mínimo 6 caracteres');return;}
+  const{error}=await db.auth.updateUser({password:p1});
+  if(error){lgsShowAlert(error.message);return;}
+  lgsShowAlert('✓ Contraseña actualizada. Redirigiendo...','ok');
+  setTimeout(async()=>{
+    await db.auth.signOut();
+    window.location.hash='';
+    document.getElementById('loginScreen').classList.add('show');
+    lgsTab('login');
+  },2000);
+}
+
+// Enter key support
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const ls=document.getElementById('loginScreen');
+  if(!ls?.classList.contains('show'))return;
+  const active=document.querySelector('.lgs-form.active')?.id;
+  if(active==='lgsLogin')lgsLogin();
+  else if(active==='lgsRegister')lgsRegister();
+  else if(active==='lgsForgot')lgsForgot();
+  else if(active==='lgsReset')lgsUpdatePass();
+});
 
 </script>
 </body>
