@@ -342,7 +342,7 @@ tbody tr:hover td{background:var(--s2)}
 .po2 .pn{font-size:.58rem;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;color:var(--t2)}
 .po2.sel .pn{color:var(--a2)}
-.ingrow{display:grid;grid-template-columns:2fr 1fr auto auto;
+.ingrow{display:grid;grid-template-columns:2fr 80px 90px auto auto;
   gap:7px;align-items:center;margin-bottom:7px;
   background:var(--s2);border:1px solid var(--b2);
   border-radius:var(--rs);padding:9px 11px}
@@ -1040,7 +1040,7 @@ function cp(c){
 let pEId=null, pCatFilt='all';
 
 async function lCat(){
-  const{data}=await db.from('products').select('*').order('name');
+  const{data}=await db.from('products').select('*').eq('user_id',uid).order('name');
   cat=data||[];
 }
 
@@ -1165,7 +1165,7 @@ window.editP=(id)=>{
 
 window.delP=async(id)=>{
   if(!confirm('¿Eliminar producto del catálogo?\nEsto NO elimina el stock en inventario.'))return;
-  await db.from('products').delete().eq('id',id);
+  await db.from('products').delete().eq('id',id).eq('user_id',uid);
   await lCat();await lInv();renderP();renderI();hStats();
   ok('p-ok','Producto eliminado');
 };
@@ -1484,18 +1484,53 @@ async function lRecs(){const{data}=await db.from('recipes').select('*').eq('user
 window.addRI=function(){rIC++;const id=Date.now();
   const c=document.getElementById('rIC'),d=document.createElement('div');
   d.className='ingrow';d.id='ri-'+id;
-  const opts=cat.map(p=>`<option value="${p.id}" data-ppm="${p.price_per_ml}" data-u="${p.unit_type}">${p.name} (${p.unit_type})</option>`).join('');
-  d.innerHTML=`<select onchange="onRI(${id})"><option value="">Producto…</option>${opts}</select><input type="number" placeholder="Cant." min="0" step="0.1" id="rq-${id}" oninput="onRI(${id})"/><div class="icd" id="rc-${id}">—</div><button class="brm" onclick="rmRI(${id})">✕</button>`;
-  c.appendChild(d);rIngs.push({id,pid:null,name:'',q:0,unit:'',ppm:0});};
-window.onRI=function(id){const row=document.getElementById('ri-'+id),sel=row.querySelector('select'),q=parseFloat(document.getElementById('rq-'+id)?.value)||0,opt=sel.options[sel.selectedIndex],ing=rIngs.find(i=>i.id===id);if(!ing)return;
-  if(opt.value){const p=cat.find(x=>x.id==opt.value);ing.pid=p.id;ing.name=p.name;ing.unit=p.unit_type;ing.ppm=parseFloat(p.price_per_ml)||0;ing.q=q;document.getElementById('rc-'+id).textContent=`$${(ing.ppm*q).toFixed(2)}`;}
-  else{ing.pid=null;ing.ppm=0;ing.q=q;document.getElementById('rc-'+id).textContent='—';}
+  const opts=cat.map(p=>`<option value="${p.id}" data-ppm="${p.price_per_ml}" data-u="${p.unit_type}">${p.name}</option>`).join('');
+  d.innerHTML=`
+    <select onchange="onRI(${id})" style="font-size:.78rem"><option value="">Producto…</option>${opts}</select>
+    <input type="number" placeholder="Cant." min="0" step="0.01" id="rq-${id}" oninput="onRI(${id})" style="text-align:center"/>
+    <select id="ru-${id}" onchange="onRI(${id})" style="font-size:.75rem;padding:8px 6px">
+      <option value="ml">ml</option>
+      <option value="oz">oz</option>
+      <option value="cl">cl</option>
+      <option value="lt">lt</option>
+      <option value="gr">gr</option>
+      <option value="kg">kg</option>
+      <option value="un">un</option>
+      <option value="cdta">cdta</option>
+      <option value="cda">cda</option>
+      <option value="taza">taza</option>
+      <option value="pzca">pzca</option>
+    </select>
+    <div class="icd" id="rc-${id}">—</div>
+    <button class="brm" onclick="rmRI(${id})">✕</button>`;
+  c.appendChild(d);rIngs.push({id,pid:null,name:'',q:0,unit:'ml',ppm:0});};
+window.onRI=function(id){
+  const row=document.getElementById('ri-'+id);
+  const sel=row.querySelector('select');
+  const q=parseFloat(document.getElementById('rq-'+id)?.value)||0;
+  const unit=document.getElementById('ru-'+id)?.value||'ml';
+  const opt=sel.options[sel.selectedIndex];
+  const ing=rIngs.find(i=>i.id===id);
+  if(!ing)return;
+  // Conversion factors to ml (for cost calculation)
+  const toMl={ml:1,oz:29.5735,cl:10,lt:1000,gr:1,kg:1000,un:1,cdta:5,cda:15,taza:240,pzca:0.5};
+  const factor=toMl[unit]||1;
+  if(opt.value){
+    const p=cat.find(x=>x.id==opt.value);
+    ing.pid=p.id;ing.name=p.name;ing.unit=unit;
+    ing.ppm=parseFloat(p.price_per_ml)||0;ing.q=q;
+    const cost=ing.ppm*(q*factor);
+    document.getElementById('rc-'+id).textContent=cost>0?`$${cost.toFixed(0)}`:'—';
+  }else{
+    ing.pid=null;ing.ppm=0;ing.q=q;ing.unit=unit;
+    document.getElementById('rc-'+id).textContent='—';
+  }
   updRC();};
 window.rmRI=function(id){document.getElementById('ri-'+id)?.remove();rIngs=rIngs.filter(i=>i.id!==id);rIC--;updRC();};
 function updRC(){const t=rIngs.reduce((s,i)=>s+(i.ppm*i.q),0),h=rIngs.some(i=>i.pid&&i.q>0);document.getElementById('rCP').style.display=h?'flex':'none';document.getElementById('rCT').textContent=`$${t.toFixed(2)}`;}
 window.selP=function(p){document.querySelectorAll('.po2').forEach(e=>e.classList.remove('sel'));document.querySelector(`.po2[data-p="${p}"]`).classList.add('sel');rProf=p;};
 window.saveR=async function(){const name=document.getElementById('rN').value.trim();if(!name){alert('Escribe un nombre');return;}if(!rProf){alert('Selecciona un perfil');return;}const v=rIngs.filter(i=>i.pid&&i.q>0);if(!v.length){alert('Agrega al menos un ingrediente');return;}const t=v.reduce((s,i)=>s+(i.ppm*i.q),0);
-  await db.from('recipes').insert([{user_id:uid,name,description:document.getElementById('rD').value,preparation:document.getElementById('rPr').value,profile:rProf,ingredients:v.map(i=>({product_id:i.pid,name:i.name,quantity:i.q,unit:i.unit,price_per_ml:i.ppm,line_cost:+(i.ppm*i.q).toFixed(2)})),total_cost:+t.toFixed(2)}]);
+  await db.from('recipes').insert([{user_id:uid,name,description:document.getElementById('rD').value,preparation:document.getElementById('rPr').value,profile:rProf,ingredients:v.map(i=>{const toMl2={ml:1,oz:29.5735,cl:10,lt:1000,gr:1,kg:1000,un:1,cdta:5,cda:15,taza:240,pzca:0.5};const f=toMl2[i.unit]||1;return{product_id:i.pid,name:i.name,quantity:i.q,unit:i.unit,price_per_ml:i.ppm,line_cost:+(i.ppm*i.q*f).toFixed(2)}}),total_cost:+t.toFixed(2)}]);
   document.getElementById('rN').value=document.getElementById('rD').value=document.getElementById('rPr').value='';document.getElementById('rIC').innerHTML='';rIngs=[];rProf=null;rIC=0;document.querySelectorAll('.po2').forEach(e=>e.classList.remove('sel'));document.getElementById('rCP').style.display='none';addRI();await lRecs();renderR();hStats();};
 function renderR(){const c=document.getElementById('rList'),s=(document.getElementById('rSrch')?.value||'').toLowerCase();let l=recs;if(rFilt!=='all')l=l.filter(r=>r.profile===rFilt);if(s)l=l.filter(r=>r.name.toLowerCase().includes(s)||r.description?.toLowerCase().includes(s));
   if(!l.length){c.innerHTML='<div class="empty"><div class="ei">🍹</div><p>No se encontraron recetas</p></div>';return;}
@@ -1690,7 +1725,8 @@ async function importXLS(input){
   let count=0,errors=0;
   for(let i=0;i<productos.length;i+=20){
     const batch=productos.slice(i,i+20);
-    const{error}=await db.from('products').insert(batch);
+    const batchWithUser=batch.map(p=>({...p,user_id:uid}));
+    const{error}=await db.from('products').insert(batchWithUser);
     if(error){console.error('Batch error:',error);errors+=batch.length;}
     else count+=batch.length;
   }
