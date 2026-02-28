@@ -1827,31 +1827,29 @@ async function importXLS(input){
 
   const productos=[];
 
-  // ── FORMAT 1: Mixly grouped export (section headers like "BEBIDA", "CERVEZA"...)
-  // Detect by checking if any cell value matches a category name
+  // Always use raw rows to handle grouped Mixly export format
   const rawRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
   let isMixlyExport=false;
   let currentCat=null;
 
   for(const row of rawRows){
     const a=String(row[0]||'').trim();
-    const aUp=a.toUpperCase();
-    if(catSet.has(aUp)){isMixlyExport=true;break;}
+    if(catSet.has(a.toUpperCase())){isMixlyExport=true;break;}
   }
 
   if(isMixlyExport){
-    // Parse grouped format: category header rows + data rows
+    const seen=new Set(); // deduplicate
     for(const row of rawRows){
       const a=String(row[0]||'').trim();
       const aUp=a.toUpperCase();
-      // Category header
       if(catSet.has(aUp)){currentCat=catMap[aUp];continue;}
-      // Skip title, sub-headers and empty
       if(!a||a==='Producto'||a.includes('INVENTARIO')||a.includes('MIXLY'))continue;
       if(!currentCat)continue;
+      if(seen.has(currentCat+'|'+a))continue; // skip duplicates
+      seen.add(currentCat+'|'+a);
       const prov=String(row[1]||'').trim();
       const minRaw=String(row[3]||'').trim();
-      const unit=extractUnit(minRaw)||extractUnit(String(row[2]||''));
+      const unit=extractUnit(minRaw)||extractUnit(String(row[2]||''))||'un';
       const minStock=extractNum(minRaw);
       productos.push({
         user_id:uid,name:a,category:currentCat,
