@@ -1109,37 +1109,31 @@ tbody tr:hover td{background:var(--s2)}
 </div>
 
 <script>
-/* ══════════ ANTI-ZOOM MÓVIL ══════════ */
+/* ══════════ ANTI-ZOOM MÓVIL (Xiaomi HyperOS) ══════════ */
 (function(){
-  // Prevent pinch zoom and double-tap zoom globally
-  document.addEventListener('touchstart', function(e){
-    if(e.touches.length>1) e.preventDefault();
-  },{passive:false});
+  const vp=document.querySelector('meta[name=viewport]');
+  const orig=vp?vp.content:'';
 
-  let lastTouch=0;
-  document.addEventListener('touchend', function(e){
-    const now=Date.now();
-    if(now-lastTouch<300) e.preventDefault();
-    lastTouch=now;
-  },{passive:false});
+  function disableZoom(){
+    if(vp) vp.setAttribute('content',
+      'width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no');
+  }
+  function enableZoom(){
+    if(vp) vp.setAttribute('content', orig);
+  }
 
-  // Force font-size 16px on focus to prevent iOS/Android auto-zoom
-  // Then restore original size after focus so layout stays intact
-  document.addEventListener('focusin', function(e){
-    const el=e.target;
-    if(el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA'){
-      el.dataset.origFs=el.style.fontSize||'';
-      el.style.fontSize='16px';
+  // On every input focus: lock viewport BEFORE browser zooms
+  document.addEventListener('focusin',function(e){
+    const t=e.target;
+    if(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'){
+      disableZoom();
     }
   },true);
 
-  document.addEventListener('focusout', function(e){
-    const el=e.target;
-    if(el.tagName==='INPUT'||el.tagName==='SELECT'||el.tagName==='TEXTAREA'){
-      // Small delay before restoring so zoom doesn't re-trigger
-      setTimeout(()=>{
-        el.style.fontSize=el.dataset.origFs||'';
-      },100);
+  document.addEventListener('focusout',function(e){
+    const t=e.target;
+    if(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'){
+      setTimeout(enableZoom, 300);
     }
   },true);
 })();
@@ -1494,7 +1488,8 @@ function renderI(){
           onfocus="invFocus(this)"
           onkeydown="invKey(event,this)"
           onkeyup="invKey(event,this)"
-          onchange="uIS('${item.id}',this.value)">
+          onchange="uIS('${item.id}',this.value)"
+          ontouchend="invTouchEnd(event,this)">
         <div class="sub" style="${zero?'color:var(--danger);font-weight:600':''}">Total: ${total.toFixed(2)}</div>
       </td>
       <td class="c"><span style="font-size:.72rem;color:var(--t3)">${item.unit}</span></td>
@@ -1506,7 +1501,8 @@ function renderI(){
           onfocus="invFocus(this)"
           onkeydown="invKey(event,this)"
           onkeyup="invKey(event,this)"
-          onchange="uIPed('${item.id}',this.value)">
+          onchange="uIPed('${item.id}',this.value)"
+          ontouchend="invTouchEnd(event,this)">
         ${min>0&&total<min?`<div class="sub" style="color:${inputCol}">sug: ${Math.ceil(min-total)}</div>`:''}
       </td>
     </tr>`;
@@ -2868,13 +2864,29 @@ window.invFocus=function(el){
 };
 
 window.invKey=function(e,el){
-  // Handle Enter on both keydown and keyup for mobile compatibility
   const isEnter=e.key==='Enter'||e.keyCode===13;
-  if(!isEnter) return;
+  const isTab=e.key==='Tab'||e.keyCode===9;
+  if(!isEnter&&!isTab) return;
   e.preventDefault();
   e.stopPropagation();
-  if(e.type==='keydown') return; // wait for keyup to avoid double fire
+  if(e.type==='keydown'&&!isTab) return;
   invJumpNext(el);
+};
+
+// Xiaomi →| button sends Tab via touchend on some versions
+window.invTouchEnd=function(e,el){
+  // After touch, wait briefly — if focus moved sideways, correct it
+  setTimeout(()=>{
+    const focused=document.activeElement;
+    if(!focused||focused===el||!focused.classList.contains('ni2')) return;
+    // Check if focus went to same row (sideways) instead of next row
+    const curRow=el.closest('tr');
+    const newRow=focused.closest('tr');
+    if(curRow&&newRow&&curRow===newRow){
+      // Wrong! jumped sideways — correct to next row
+      invJumpNext(el);
+    }
+  },50);
 };
 
 window.invJumpNext=function(el){
