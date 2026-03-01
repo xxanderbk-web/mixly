@@ -1455,8 +1455,9 @@ function renderI(){
       <td class="c">
         <input type="number" class="ni2${zero?' nlow':bajo?' nlow':''}" value="${s}" min="0" step="0.01"
           inputmode="decimal" enterkeyhint="next"
-          onfocus="this.select()"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();invJumpNext(this);}"
+          onfocus="invFocus(this)"
+          onkeydown="invKey(event,this)"
+          onkeyup="invKey(event,this)"
           onchange="uIS('${item.id}',this.value)">
         <div class="sub" style="${zero?'color:var(--danger);font-weight:600':''}">Total: ${total.toFixed(2)}</div>
       </td>
@@ -1466,8 +1467,9 @@ function renderI(){
         <input type="number" class="ni2" value="${pedVal||''}" min="0" step="1" placeholder="0"
           style="background:${inputBg};color:${inputCol};font-weight:${pb?'700':'400'};width:70px;text-align:center"
           inputmode="numeric" enterkeyhint="next"
-          onfocus="this.select()"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();invJumpNext(this);}"
+          onfocus="invFocus(this)"
+          onkeydown="invKey(event,this)"
+          onkeyup="invKey(event,this)"
           onchange="uIPed('${item.id}',this.value)">
         ${min>0&&total<min?`<div class="sub" style="color:${inputCol}">sug: ${Math.ceil(min-total)}</div>`:''}
       </td>
@@ -2824,28 +2826,42 @@ window.selCol=function(col,el){
 };
 
 /* ══════════ INVENTORY ENTER → NEXT ROW ══════════ */
+window.invFocus=function(el){
+  // Select all on focus so typing replaces value
+  setTimeout(()=>{el.select();},10);
+};
+
+window.invKey=function(e,el){
+  // Handle Enter on both keydown and keyup for mobile compatibility
+  const isEnter=e.key==='Enter'||e.keyCode===13;
+  if(!isEnter) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(e.type==='keydown') return; // wait for keyup to avoid double fire
+  invJumpNext(el);
+};
+
 window.invJumpNext=function(el){
-  // Get all inventory inputs in order
-  const all=[...document.querySelectorAll('#invTb input.ni2')];
-  const idx=all.indexOf(el);
-  if(idx>=0&&idx<all.length-1){
-    // Jump to same column in next row
-    // Find next input of same type (stock vs pedido)
-    // Step by 2 if both stock and pedido columns exist, else 1
-    const colClass=el.closest('td')?.cellIndex||0;
-    // Find next input in same column position
-    let next=null;
-    for(let i=idx+1;i<all.length;i++){
-      if(all[i].closest('td')?.cellIndex===colClass){next=all[i];break;}
-    }
-    if(!next) next=all[idx+1]; // fallback: just next input
-    if(next){
-      next.focus();
-      next.select();
-      // Scroll into view on mobile
-      next.scrollIntoView({behavior:'smooth',block:'center'});
+  const colIdx=el.closest('td')?.cellIndex??-1;
+  const allRows=[...document.querySelectorAll('#invTb tr')];
+  const curRow=el.closest('tr');
+  const curRowIdx=allRows.indexOf(curRow);
+
+  // Find same-column input in next rows
+  for(let i=curRowIdx+1;i<allRows.length;i++){
+    const cells=allRows[i].cells;
+    if(colIdx>=0&&colIdx<cells.length){
+      const inp=cells[colIdx].querySelector('input.ni2');
+      if(inp){
+        inp.focus();
+        setTimeout(()=>{inp.select();},10);
+        inp.scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
     }
   }
+  // fallback: blur keyboard
+  el.blur();
 };
 
 </script>
