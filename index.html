@@ -1486,10 +1486,7 @@ function renderI(){
         <input type="number" class="ni2${zero?' nlow':bajo?' nlow':''}" value="${s}" min="0" step="0.01"
           inputmode="decimal" enterkeyhint="next"
           onfocus="invFocus(this)"
-          onkeydown="invKey(event,this)"
-          onkeyup="invKey(event,this)"
-          onchange="uIS('${item.id}',this.value)"
-          ontouchend="invTouchEnd(event,this)">
+          onchange="uIS('${item.id}',this.value)">
         <div class="sub" style="${zero?'color:var(--danger);font-weight:600':''}">Total: ${total.toFixed(2)}</div>
       </td>
       <td class="c"><span style="font-size:.72rem;color:var(--t3)">${item.unit}</span></td>
@@ -1499,10 +1496,7 @@ function renderI(){
           style="background:${inputBg};color:${inputCol};font-weight:${pb?'700':'400'};width:70px;text-align:center"
           inputmode="numeric" enterkeyhint="next"
           onfocus="invFocus(this)"
-          onkeydown="invKey(event,this)"
-          onkeyup="invKey(event,this)"
-          onchange="uIPed('${item.id}',this.value)"
-          ontouchend="invTouchEnd(event,this)">
+          onchange="uIPed('${item.id}',this.value)">
         ${min>0&&total<min?`<div class="sub" style="color:${inputCol}">sug: ${Math.ceil(min-total)}</div>`:''}
       </td>
     </tr>`;
@@ -2863,31 +2857,27 @@ window.invFocus=function(el){
   setTimeout(()=>{el.select();},10);
 };
 
-window.invKey=function(e,el){
-  const isEnter=e.key==='Enter'||e.keyCode===13;
-  const isTab=e.key==='Tab'||e.keyCode===9;
-  if(!isEnter&&!isTab) return;
-  e.preventDefault();
-  e.stopPropagation();
-  if(e.type==='keydown'&&!isTab) return;
-  invJumpNext(el);
-};
+// Xiaomi: Tab button moves focus natively — we intercept via focusin
+// Track last focused inv input to detect sideways jumps
+let _invLast=null;
+document.addEventListener('focusin',function(e){
+  const el=e.target;
+  if(!el.classList||!el.classList.contains('ni2')) return;
+  if(!el.closest('#invTb')) return;
 
-// Xiaomi →| button sends Tab via touchend on some versions
-window.invTouchEnd=function(e,el){
-  // After touch, wait briefly — if focus moved sideways, correct it
-  setTimeout(()=>{
-    const focused=document.activeElement;
-    if(!focused||focused===el||!focused.classList.contains('ni2')) return;
-    // Check if focus went to same row (sideways) instead of next row
-    const curRow=el.closest('tr');
-    const newRow=focused.closest('tr');
-    if(curRow&&newRow&&curRow===newRow){
-      // Wrong! jumped sideways — correct to next row
-      invJumpNext(el);
+  if(_invLast&&_invLast!==el){
+    const lastRow=_invLast.closest('tr');
+    const newRow=el.closest('tr');
+    // If focus stayed in same row → Tab went sideways → redirect to next row
+    if(lastRow&&newRow&&lastRow===newRow){
+      e.preventDefault();
+      invJumpNext(_invLast);
+      return;
     }
-  },50);
-};
+  }
+  _invLast=el;
+  invFocus(el);
+},true);
 
 window.invJumpNext=function(el){
   const colIdx=el.closest('td')?.cellIndex??-1;
