@@ -619,6 +619,7 @@ tbody tr:hover td{background:var(--s2)}
   <button class="ni" data-p="buscador"         title="Buscador"><span class="ic">🔍</span><span class="lb">Buscar</span></button>
   <button class="ni" data-p="timers"           title="Timers"><span class="ic">⏱</span><span class="lb">Timers</span></button>
   <button class="ni" data-p="fichas"           title="Fichas técnicas"><span class="ic">📋</span><span class="lb">Fichas</span></button>
+  <button class="ni" data-p="mermas"           title="Registro de mermas"><span class="ic">📉</span><span class="lb">Mermas</span></button>
   <button class="dm-btn" id="dmToggle" title="Modo oscuro" onclick="toggleDM()">
     <span class="ic" id="dmIc">🌙</span>
     <span class="lb" id="dmLb">Dark</span>
@@ -870,7 +871,7 @@ tbody tr:hover td{background:var(--s2)}
             <div class="po2" data-p="extra-fuerte" onclick="selP('extra-fuerte')"><span class="pi">💥</span><span class="pn">Extra</span></div>
           </div>
         </div>
-        <button class="btn bp" style="width:100%;padding:11px;margin-top:6px" onclick="saveR()">Guardar receta</button>
+        <button class="btn bp" id="rSaveBtn" style="width:100%;padding:11px;margin-top:6px" onclick="saveR()">Guardar receta</button>
       </div>
     </div>
     <div class="card">
@@ -1059,6 +1060,101 @@ tbody tr:hover td{background:var(--s2)}
 </div>
 
 <!-- ═══════════ FICHAS TÉCNICAS ═══════════ -->
+<div class="panel" id="panel-mermas">
+  <div class="ph"><h1>Reg<em>istro</em></h1><p>Mermas · pérdidas · control de producto</p></div>
+  <div id="m-ok" class="ab aok"></div><div id="m-er" class="ab aer"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <!-- Form -->
+    <div class="card">
+      <div class="ch"><div class="ci">📉</div><div class="ct" id="mFormTitle">Nueva Merma</div></div>
+      <div class="cb">
+        <div class="fgroup"><label class="fl">Producto *</label>
+          <div class="ing-ac">
+            <input id="mProd" placeholder="Buscar producto…" autocomplete="off"
+              oninput="acMerma()" onblur="acMermaHide()"/>
+            <div class="ing-ac-list" id="acMerma"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fgroup"><label class="fl">Cantidad *</label>
+            <input type="number" id="mQty" placeholder="0" min="0" step="0.01" inputmode="decimal"/></div>
+          <div class="fgroup"><label class="fl">Unidad</label>
+            <select id="mUnit">
+              <option value="un">un</option><option value="ml">ml</option>
+              <option value="oz">oz</option><option value="lt">lt</option>
+              <option value="gr">gr</option><option value="kg">kg</option>
+            </select>
+          </div>
+        </div>
+        <div class="fgroup"><label class="fl">Motivo *</label>
+          <select id="mMotivo">
+            <option value="">Selecciona…</option>
+            <option value="Rotura">🔴 Rotura / accidente</option>
+            <option value="Vencimiento">🟡 Vencimiento</option>
+            <option value="Derrame">🟠 Derrame</option>
+            <option value="Error de preparación">🟣 Error de preparación</option>
+            <option value="Robo / pérdida">⚫ Robo / pérdida</option>
+            <option value="Consumo interno">🔵 Consumo interno</option>
+            <option value="Otro">⚪ Otro</option>
+          </select>
+        </div>
+        <div class="fgroup"><label class="fl">Nota (opcional)</label>
+          <input id="mNota" placeholder="Detalle adicional…"/></div>
+        <div class="fgroup"><label class="fl">Fecha</label>
+          <input type="date" id="mFecha"/></div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn bp" id="mSaveBtn" style="flex:1;padding:11px" onclick="saveMerma()">Registrar merma</button>
+          <button class="btn bs" id="mCancelBtn" style="display:none" onclick="cancelMerma()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="card">
+      <div class="ch"><div class="ci">📊</div><div class="ct">Resumen del mes</div></div>
+      <div class="cb" id="mStats" style="font-size:.82rem;color:var(--t2)">
+        <div style="text-align:center;padding:20px;color:var(--t3)">Sin mermas este mes</div>
+      </div>
+    </div>
+  </div>
+  <!-- Table -->
+  <div class="card">
+    <div class="ch">
+      <div class="ci">📋</div><div class="ct">Historial</div>
+      <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+        <select id="mFiltMes" onchange="renderMermas()" style="font-size:.72rem;padding:5px 8px;width:auto">
+          <option value="all">Todo el tiempo</option>
+          <option value="0">Este mes</option>
+          <option value="1">Mes anterior</option>
+          <option value="3">Últimos 3 meses</option>
+        </select>
+        <select id="mFiltMot" onchange="renderMermas()" style="font-size:.72rem;padding:5px 8px;width:auto">
+          <option value="all">Todos los motivos</option>
+          <option value="Rotura">Rotura</option>
+          <option value="Vencimiento">Vencimiento</option>
+          <option value="Derrame">Derrame</option>
+          <option value="Error de preparación">Error preparación</option>
+          <option value="Robo / pérdida">Robo / pérdida</option>
+          <option value="Consumo interno">Consumo interno</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="cb" style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead><tr style="border-bottom:2px solid var(--b2)">
+          <th style="text-align:left;padding:8px 10px;color:var(--t3);font-size:.6rem;letter-spacing:1px;text-transform:uppercase">Fecha</th>
+          <th style="text-align:left;padding:8px 10px;color:var(--t3);font-size:.6rem;letter-spacing:1px;text-transform:uppercase">Producto</th>
+          <th style="text-align:center;padding:8px 10px;color:var(--t3);font-size:.6rem;letter-spacing:1px;text-transform:uppercase">Cantidad</th>
+          <th style="text-align:left;padding:8px 10px;color:var(--t3);font-size:.6rem;letter-spacing:1px;text-transform:uppercase">Motivo</th>
+          <th style="text-align:left;padding:8px 10px;color:var(--t3);font-size:.6rem;letter-spacing:1px;text-transform:uppercase">Nota</th>
+          <th style="padding:8px 10px"></th>
+        </tr></thead>
+        <tbody id="mTb"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--t3)">Sin registros</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div class="panel" id="panel-fichas">
   <div class="ph"><h1>Fichas <em>Técnicas</em></h1><p>Recetas en formato profesional · listas para imprimir o mostrar en barra</p></div>
   <div class="tb">
@@ -1192,7 +1288,7 @@ async function lgsInitApp(u){
   document.getElementById('wname').textContent=m.bar_name||m.barName||'Mi Bar';
   document.getElementById('wemail').textContent=m.username||u.email;
   await lCat();
-  await Promise.all([lInv(),lRecs(),lRems()]);
+  await Promise.all([lInv(),lRecs(),lRems(),lMermas()]);
   initNav(); buildAc(); hStats();
   document.getElementById('ls').style.display='none';
   document.getElementById('loginScreen').classList.remove('show');
@@ -1229,6 +1325,7 @@ function sp(name){
   if(name==='buscador')initBuscador();
   if(name==='timers')renderTimers();
   if(name==='fichas')renderFichas();
+  if(name==='mermas'){renderMermas();mStats();}
 }
 
 /* HELPERS */
@@ -1709,7 +1806,7 @@ async function expInv(){
 }
 
 /* ══════════ RECETARIO ══════════ */
-let rIngs=[],rProf=null,rFilt='all',rIC=0,rColor='#00C2FF';
+let rIngs=[],rProf=null,rFilt='all',rIC=0,rColor='#00C2FF',rEditId=null;
 async function lRecs(){const{data}=await db.from('recipes').select('*').eq('user_id',uid).order('created_at',{ascending:false});recs=data||[];}
 window.addRI=function(){rIC++;const id=Date.now();
   const c=document.getElementById('rIC'),d=document.createElement('div');
@@ -1759,8 +1856,10 @@ window.rmRI=function(id){document.getElementById('ri-'+id)?.remove();rIngs=rIngs
 function updRC(){const t=rIngs.reduce((s,i)=>s+(i.ppm*i.q),0),h=rIngs.some(i=>i.pid&&i.q>0);document.getElementById('rCP').style.display=h?'flex':'none';document.getElementById('rCT').textContent=`$${t.toFixed(2)}`;}
 window.selP=function(p){document.querySelectorAll('.po2').forEach(e=>e.classList.remove('sel'));document.querySelector(`.po2[data-p="${p}"]`).classList.add('sel');rProf=p;};
 window.saveR=async function(){const name=document.getElementById('rN').value.trim();if(!name){alert('Escribe un nombre');return;}if(!rProf){alert('Selecciona un perfil');return;}const v=rIngs.filter(i=>i.name&&i.q>0);if(!v.length){alert('Agrega al menos un ingrediente con cantidad');return;}const t=v.reduce((s,i)=>s+(i.ppm*i.q),0);
-  await db.from('recipes').insert([{user_id:uid,name,description:document.getElementById('rD').value,preparation:document.getElementById('rPr').value,profile:rProf,color:rColor||'#00C2FF',ingredients:v.map(i=>{const toMl2={ml:1,oz:29.5735,cl:10,lt:1000,gr:1,kg:1000,un:1,cdta:5,cda:15,taza:240,pzca:0.5};const f=toMl2[i.unit]||1;return{product_id:i.pid,name:i.name,quantity:i.q,unit:i.unit,price_per_ml:i.ppm,line_cost:+(i.ppm*i.q*f).toFixed(2)}}),total_cost:+t.toFixed(2)}]);
-  document.getElementById('rN').value=document.getElementById('rD').value=document.getElementById('rPr').value='';document.getElementById('rIC').innerHTML='';rIngs=[];rProf=null;rColor='#00C2FF';rIC=0;document.querySelectorAll('.po2').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('.rcol-btn').forEach((b,i)=>{b.style.border=i===0?'3px solid var(--accent)':'2px solid transparent';});document.getElementById('rCP').style.display='none';addRI();await lRecs();renderR();hStats();};
+  const payload={name,description:document.getElementById('rD').value,preparation:document.getElementById('rPr').value,profile:rProf,color:rColor||'#00C2FF',ingredients:v.map(i=>{const toMl2={ml:1,oz:29.5735,cl:10,lt:1000,gr:1,kg:1000,un:1,cdta:5,cda:15,taza:240,pzca:0.5};const f=toMl2[i.unit]||1;return{product_id:i.pid,name:i.name,quantity:i.q,unit:i.unit,price_per_ml:i.ppm,line_cost:+(i.ppm*i.q*f).toFixed(2)}}),total_cost:+t.toFixed(2)};
+  if(rEditId){await db.from('recipes').update(payload).eq('id',rEditId).eq('user_id',uid);}
+  else{await db.from('recipes').insert([{user_id:uid,...payload}]);}
+  document.getElementById('rN').value=document.getElementById('rD').value=document.getElementById('rPr').value='';document.getElementById('rIC').innerHTML='';rIngs=[];rProf=null;rColor='#00C2FF';rEditId=null;rIC=0;document.querySelectorAll('.po2').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('.rcol-btn').forEach((b,i)=>{b.style.border=i===0?'3px solid var(--accent)':'2px solid transparent';});document.getElementById('rCP').style.display='none';document.getElementById('rFormTitle').textContent='Nueva Receta';document.getElementById('rSaveBtn').textContent='Guardar receta';addRI();await lRecs();renderR();hStats();};
 function renderR(){const c=document.getElementById('rList'),s=(document.getElementById('rSrch')?.value||'').toLowerCase();let l=recs;if(rFilt!=='all')l=l.filter(r=>r.profile===rFilt);if(s)l=l.filter(r=>r.name.toLowerCase().includes(s)||r.description?.toLowerCase().includes(s));
   if(!l.length){c.innerHTML='<div class="empty"><div class="ei">🍹</div><p>No se encontraron recetas</p></div>';return;}
   const pi={dulce:'🍬',suave:'🌸',seco:'🍋',fuerte:'🔥','extra-fuerte':'💥'};
@@ -1772,7 +1871,10 @@ function renderR(){const c=document.getElementById('rList'),s=(document.getEleme
           ${r.total_cost?`<span class="pill po">$${Number(r.total_cost).toFixed(2)}</span>`:''}
         </div>
       </div>
-      <button class="btn bd sm" onclick="delR(${r.id})">Eliminar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn bs sm" onclick="editR(${r.id})">✏ Editar</button>
+        <button class="btn bd sm" onclick="delR(${r.id})">Eliminar</button>
+      </div>
     </div>
     ${r.description?`<div style="font-size:.75rem;color:var(--t3);margin-bottom:8px">${r.description}</div>`:''}
     <div style="font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:5px">Ingredientes</div>
@@ -2900,6 +3002,230 @@ window.invJumpNext=function(el){
   }
   // fallback: blur keyboard
   el.blur();
+};
+
+/* ══════════ MERMAS ══════════ */
+let mermas=[],mEditId=null,mProdSel=null;
+
+async function lMermas(){
+  const{data}=await db.from('mermas').select('*').eq('user_id',uid).order('fecha',{ascending:false});
+  mermas=data||[];
+}
+
+// Set today's date on load
+function initMFecha(){
+  const f=document.getElementById('mFecha');
+  if(f&&!f.value) f.value=new Date().toISOString().slice(0,10);
+}
+
+// Autocomplete for merma product
+window.acMerma=function(){
+  const inp=document.getElementById('mProd');
+  const list=document.getElementById('acMerma');
+  const q=(inp?.value||'').trim().toLowerCase();
+  mProdSel=null;
+  if(!q){list.classList.remove('show');return;}
+  const matches=cat.filter(p=>p.name.toLowerCase().includes(q)).slice(0,6);
+  const escQ=q.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');
+  if(!matches.length){list.classList.remove('show');return;}
+  list.innerHTML=matches.map(p=>{
+    const hl=p.name.replace(new RegExp('('+escQ+')','gi'),'<strong style="color:var(--accent)">$1</strong>');
+    return `<div class="ing-ac-item" onmousedown="acMermasel('${p.name.replace(/'/g,"\'")}','${p.unit_type||'un'}')">
+      ${hl}<span class="ac-badge">${p.category||''}</span></div>`;
+  }).join('');
+  list.classList.add('show');
+};
+window.acMermaHide=function(){setTimeout(()=>document.getElementById('acMerma')?.classList.remove('show'),150);};
+window.acMermasel=function(name,unit){
+  document.getElementById('mProd').value=name;
+  document.getElementById('acMerma').classList.remove('show');
+  const ru=document.getElementById('mUnit');
+  if(ru){for(let o of ru.options){if(o.value===unit){ru.value=unit;break;}}}
+  mProdSel=name;
+};
+
+window.saveMerma=async function(){
+  const prod=document.getElementById('mProd').value.trim();
+  const qty=parseFloat(document.getElementById('mQty').value)||0;
+  const unit=document.getElementById('mUnit').value;
+  const motivo=document.getElementById('mMotivo').value;
+  const nota=document.getElementById('mNota').value.trim();
+  const fecha=document.getElementById('mFecha').value;
+  if(!prod){er('m-er','Indica el producto');return;}
+  if(!qty){er('m-er','Indica la cantidad');return;}
+  if(!motivo){er('m-er','Selecciona un motivo');return;}
+  if(!fecha){er('m-er','Indica la fecha');return;}
+
+  const payload={user_id:uid,producto:prod,cantidad:qty,unidad:unit,motivo,nota:nota||null,fecha};
+  let error;
+  if(mEditId){
+    ({error}=await db.from('mermas').update(payload).eq('id',mEditId).eq('user_id',uid));
+  } else {
+    ({error}=await db.from('mermas').insert([payload]));
+  }
+  if(error){er('m-er',error.message);return;}
+  ok('m-ok',mEditId?'Merma actualizada':'Merma registrada ✓');
+  cancelMerma();
+  await lMermas();renderMermas();mStats();
+};
+
+window.cancelMerma=function(){
+  mEditId=null;mProdSel=null;
+  ['mProd','mQty','mNota'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('mMotivo').value='';
+  document.getElementById('mFecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mFormTitle').textContent='Nueva Merma';
+  document.getElementById('mSaveBtn').textContent='Registrar merma';
+  document.getElementById('mCancelBtn').style.display='none';
+};
+
+window.editMerma=function(id){
+  const m=mermas.find(x=>x.id===id);if(!m)return;
+  mEditId=id;
+  document.getElementById('mProd').value=m.producto||'';
+  document.getElementById('mQty').value=m.cantidad||'';
+  document.getElementById('mUnit').value=m.unidad||'un';
+  document.getElementById('mMotivo').value=m.motivo||'';
+  document.getElementById('mNota').value=m.nota||'';
+  document.getElementById('mFecha').value=m.fecha||'';
+  document.getElementById('mFormTitle').textContent='Editar Merma';
+  document.getElementById('mSaveBtn').textContent='Guardar cambios';
+  document.getElementById('mCancelBtn').style.display='';
+  sp('mermas');
+  document.getElementById('mProd').scrollIntoView({behavior:'smooth',block:'center'});
+};
+
+window.delMerma=async function(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  await db.from('mermas').delete().eq('id',id).eq('user_id',uid);
+  await lMermas();renderMermas();mStats();
+};
+
+const mMotivoEmoji={'Rotura':'🔴','Vencimiento':'🟡','Derrame':'🟠','Error de preparación':'🟣','Robo / pérdida':'⚫','Consumo interno':'🔵','Otro':'⚪'};
+
+function renderMermas(){
+  initMFecha();
+  const tb=document.getElementById('mTb');
+  if(!tb)return;
+  const mesFilt=document.getElementById('mFiltMes')?.value||'all';
+  const motFilt=document.getElementById('mFiltMot')?.value||'all';
+  const now=new Date();
+
+  let list=[...mermas];
+  if(mesFilt!=='all'){
+    const months=parseInt(mesFilt);
+    list=list.filter(m=>{
+      const d=new Date(m.fecha);
+      if(months===0) return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+      if(months===1){const prev=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===prev.getMonth()&&d.getFullYear()===prev.getFullYear();}
+      const cutoff=new Date(now);cutoff.setMonth(cutoff.getMonth()-months);
+      return d>=cutoff;
+    });
+  }
+  if(motFilt!=='all') list=list.filter(m=>m.motivo===motFilt);
+
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--t3)">Sin registros para este filtro</td></tr>';
+    return;
+  }
+  tb.innerHTML=list.map(m=>`<tr style="border-bottom:1px solid var(--b2)">
+    <td style="padding:8px 10px;color:var(--t3);white-space:nowrap">${m.fecha||'—'}</td>
+    <td style="padding:8px 10px;font-weight:600">${m.producto||'—'}</td>
+    <td style="padding:8px 10px;text-align:center">${m.cantidad} ${m.unidad||''}</td>
+    <td style="padding:8px 10px">${mMotivoEmoji[m.motivo]||'⚪'} ${m.motivo||'—'}</td>
+    <td style="padding:8px 10px;color:var(--t3);font-size:.75rem">${m.nota||'—'}</td>
+    <td style="padding:8px 10px;white-space:nowrap">
+      <button class="btn bs sm" onclick="editMerma(${m.id})" style="margin-right:4px">✏</button>
+      <button class="btn bd sm" onclick="delMerma(${m.id})">✕</button>
+    </td>
+  </tr>`).join('');
+}
+
+function mStats(){
+  const el=document.getElementById('mStats');if(!el)return;
+  const now=new Date();
+  const thisMes=mermas.filter(m=>{
+    const d=new Date(m.fecha);
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  });
+  if(!thisMes.length){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3)">Sin mermas este mes 🎉</div>';
+    return;
+  }
+  // Group by motivo
+  const byMot={};
+  thisMes.forEach(m=>{byMot[m.motivo]=(byMot[m.motivo]||0)+1;});
+  // Top products
+  const byProd={};
+  thisMes.forEach(m=>{byProd[m.producto]=(byProd[m.producto]||0)+m.cantidad;});
+  const topProd=Object.entries(byProd).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--dbg);border:1px solid rgba(255,59,92,.2);border-radius:var(--rs);padding:12px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:var(--danger)">${thisMes.length}</div>
+        <div style="font-size:.65rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px">Registros este mes</div>
+      </div>
+      <div style="background:var(--abg);border:1px solid rgba(0,194,255,.15);border-radius:var(--rs);padding:12px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:var(--accent)">${Object.keys(byMot).length}</div>
+        <div style="font-size:.65rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px">Tipos distintos</div>
+      </div>
+    </div>
+    <div style="font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Más afectados</div>
+    ${topProd.map(([p,q])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--b2);font-size:.78rem">
+      <span>${p}</span><span style="color:var(--danger);font-weight:700">${q}</span>
+    </div>`).join('')}
+    <div style="font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin:10px 0 6px">Por motivo</div>
+    ${Object.entries(byMot).map(([mot,n])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.78rem">
+      <span>${mMotivoEmoji[mot]||'⚪'} ${mot}</span><span style="color:var(--t2);font-weight:600">${n}</span>
+    </div>`).join('')}
+  `;
+}
+
+/* ══════════ EDITAR RECETA ══════════ */
+window.editR=function(id){
+  const r=recs.find(x=>x.id===id);if(!r)return;
+  rEditId=id;
+  document.getElementById('rN').value=r.name||'';
+  document.getElementById('rD').value=r.description||'';
+  document.getElementById('rPr').value=r.preparation||'';
+  // Color
+  rColor=r.color||'#00C2FF';
+  document.querySelectorAll('.rcol-btn').forEach(b=>{
+    b.style.border=b.dataset.col===rColor?'3px solid var(--text)':'2px solid transparent';
+  });
+  // Profile
+  rProf=r.profile||null;
+  document.querySelectorAll('.po2').forEach(e=>{
+    e.classList.toggle('sel',e.dataset.p===rProf);
+  });
+  // Ingredients
+  document.getElementById('rIC').innerHTML='';
+  rIngs=[];rIC=0;
+  (r.ingredients||[]).forEach(ing=>{
+    rIC++;const id2=Date.now()+rIC;
+    const c=document.getElementById('rIC'),d=document.createElement('div');
+    d.className='ingrow';d.id='ri-'+id2;
+    d.innerHTML=`
+      <div class="ing-ac">
+        <input id="rn-${id2}" value="${ing.name||''}" autocomplete="off"
+          style="font-size:.78rem" oninput="acRI(${id2})" onblur="acHide(${id2})" onkeydown="acKey(event,${id2})"/>
+        <div class="ing-ac-list" id="ac-${id2}"></div>
+      </div>
+      <input type="number" value="${ing.quantity||''}" placeholder="Cant." min="0" step="0.01" id="rq-${id2}" oninput="onRI(${id2})" style="text-align:center"/>
+      <select id="ru-${id2}" onchange="onRI(${id2})" style="font-size:.75rem;padding:8px 6px">
+        ${['ml','oz','cl','lt','gr','kg','un','cdta','cda','taza','pzca'].map(u=>`<option value="${u}"${u===ing.unit?' selected':''}>${u}</option>`).join('')}
+      </select>
+      <div class="icd" id="rc-${id2}">${ing.line_cost?'$'+Number(ing.line_cost).toFixed(0):'—'}</div>
+      <button class="brm" onclick="rmRI(${id2})">✕</button>`;
+    c.appendChild(d);
+    rIngs.push({id:id2,pid:ing.product_id||null,name:ing.name||'',q:ing.quantity||0,unit:ing.unit||'ml',ppm:ing.price_per_ml||0});
+  });
+  document.getElementById('rFormTitle').textContent='Editar Receta';
+  document.getElementById('rSaveBtn').textContent='Guardar cambios';
+  updRC();
+  sp('recipes');
+  setTimeout(()=>document.getElementById('rN').scrollIntoView({behavior:'smooth',block:'center'}),200);
 };
 
 </script>
