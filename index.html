@@ -1120,7 +1120,8 @@ tbody tr:hover td{background:var(--s2)}
   <div class="card">
     <div class="ch">
       <div class="ci">📋</div><div class="ct">Historial</div>
-      <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+      <div style="display:flex;gap:8px;margin-left:auto;align-items:center;flex-wrap:wrap">
+        <button class="btn bs sm" onclick="expMermasXLS()" title="Descargar planilla mensual Excel">↓ Excel</button>
         <select id="mFiltMes" onchange="renderMermas()" style="font-size:.72rem;padding:5px 8px;width:auto">
           <option value="all">Todo el tiempo</option>
           <option value="0">Este mes</option>
@@ -3028,11 +3029,18 @@ window.acMerma=function(){
   const matches=cat.filter(p=>p.name.toLowerCase().includes(q)).slice(0,6);
   const escQ=q.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&');
   if(!matches.length){list.classList.remove('show');return;}
-  list.innerHTML=matches.map(p=>{
+  const items=matches.map(p=>{
     const hl=p.name.replace(new RegExp('('+escQ+')','gi'),'<strong style="color:var(--accent)">$1</strong>');
     return `<div class="ing-ac-item" onmousedown="acMermasel('${p.name.replace(/'/g,"\'")}','${p.unit_type||'un'}')">
       ${hl}<span class="ac-badge">${p.category||''}</span></div>`;
-  }).join('');
+  });
+  // Always offer "usar tal cual" if no exact match
+  const exactMatch=cat.some(p=>p.name.toLowerCase()===q);
+  if(!exactMatch){
+    items.push(`<div class="ing-ac-item" onmousedown="acMermasel('${inp.value.replace(/'/g,"\'")}','un')">
+      <span class="ac-custom">✏ Usar "${inp.value}" como producto libre</span></div>`);
+  }
+  list.innerHTML=items.join('');
   list.classList.add('show');
 };
 window.acMermaHide=function(){setTimeout(()=>document.getElementById('acMerma')?.classList.remove('show'),150);};
@@ -3227,6 +3235,209 @@ window.editR=function(id){
   sp('recipes');
   setTimeout(()=>document.getElementById('rN').scrollIntoView({behavior:'smooth',block:'center'}),200);
 };
+
+/* ══════════ EXPORTAR MERMAS EXCEL ══════════ */
+async function expMermasXLS(){
+  if(!mermas.length){alert('No hay mermas registradas para exportar');return;}
+  const ExcelJS=window.ExcelJS;
+  if(!ExcelJS){alert('Librería no disponible');return;}
+
+  const wb=new ExcelJS.Workbook();
+  wb.creator='Mixly';wb.created=new Date();
+
+  // ── Determinar rango de datos según filtro activo ──
+  const mesFilt=document.getElementById('mFiltMes')?.value||'all';
+  const motFilt=document.getElementById('mFiltMot')?.value||'all';
+  const now=new Date();
+  let lista=[...mermas];
+  let periodoLabel='Historial completo';
+
+  if(mesFilt==='0'){
+    lista=lista.filter(m=>{const d=new Date(m.fecha);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+    periodoLabel=now.toLocaleDateString('es-CL',{month:'long',year:'numeric'}).toUpperCase();
+  } else if(mesFilt==='1'){
+    const prev=new Date(now.getFullYear(),now.getMonth()-1,1);
+    lista=lista.filter(m=>{const d=new Date(m.fecha);return d.getMonth()===prev.getMonth()&&d.getFullYear()===prev.getFullYear();});
+    periodoLabel=prev.toLocaleDateString('es-CL',{month:'long',year:'numeric'}).toUpperCase();
+  } else if(mesFilt==='3'){
+    const cutoff=new Date(now);cutoff.setMonth(cutoff.getMonth()-3);
+    lista=lista.filter(m=>new Date(m.fecha)>=cutoff);
+    periodoLabel='ÚLTIMOS 3 MESES';
+  }
+  if(motFilt!=='all') lista=lista.filter(m=>m.motivo===motFilt);
+
+  if(!lista.length){alert('No hay registros con los filtros actuales');return;}
+
+  // ── HOJA 1: Detalle ──
+  const ws1=wb.addWorksheet('Detalle de Mermas');
+  const DARK='FF0A1628', ACCENT='FF00C2FF', WHITE='FFFFFFFF';
+  const DANGER='FFFF4D6A', WARN='FFFBBF24', OK='FF34D399';
+
+  // Title row
+  ws1.mergeCells('A1:G1');
+  const t1=ws1.getCell('A1');
+  t1.value=`REGISTRO DE MERMAS · ${periodoLabel}`;
+  t1.font={bold:true,size:14,color:{argb:ACCENT},name:'Calibri'};
+  t1.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
+  t1.alignment={horizontal:'center',vertical:'middle'};
+  ws1.getRow(1).height=30;
+
+  // Subtitle
+  ws1.mergeCells('A2:G2');
+  const t2=ws1.getCell('A2');
+  t2.value=`Generado el ${now.toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'})} · ${lista.length} registros`;
+  t2.font={italic:true,size:9,color:{argb:'FF8B9DC3'},name:'Calibri'};
+  t2.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
+  t2.alignment={horizontal:'center',vertical:'middle'};
+  ws1.getRow(2).height=16;
+
+  // Empty row
+  ws1.addRow([]);
+
+  // Headers
+  ws1.columns=[
+    {key:'fecha',width:14},{key:'producto',width:28},{key:'cantidad',width:12},
+    {key:'unidad',width:10},{key:'motivo',width:22},{key:'nota',width:30},{key:'dia',width:12}
+  ];
+  const headers=['Fecha','Producto','Cantidad','Unidad','Motivo','Nota','Día'];
+  const hRow=ws1.addRow(headers);
+  hRow.height=20;
+  hRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0D2137'}};
+    cell.font={bold:true,color:{argb:ACCENT},size:9,name:'Calibri'};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.border={bottom:{style:'medium',color:{argb:ACCENT}}};
+  });
+
+  // Motivo colors
+  const mColors={
+    'Rotura':'FFFFE0E0','Vencimiento':'FFFFF8E0','Derrame':'FFFFF3E0',
+    'Error de preparación':'FFF3E0FF','Robo / pérdida':'FFE0E0E0',
+    'Consumo interno':'FFE0F0FF','Otro':'FFF5F5F5'
+  };
+  const mEmoji={'Rotura':'🔴','Vencimiento':'🟡','Derrame':'🟠','Error de preparación':'🟣','Robo / pérdida':'⚫','Consumo interno':'🔵','Otro':'⚪'};
+
+  lista.sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).forEach((m,i)=>{
+    const d=new Date(m.fecha);
+    const diaSem=d.toLocaleDateString('es-CL',{weekday:'long'});
+    const row=ws1.addRow([
+      m.fecha||'',m.producto||'',m.cantidad||0,m.unidad||'un',
+      `${mEmoji[m.motivo]||''} ${m.motivo||''}`,m.nota||'',diaSem
+    ]);
+    row.height=17;
+    const bg=mColors[m.motivo]||'FFFFFFFF';
+    row.eachCell((cell,col)=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:i%2===0?bg:'FF'+bg.slice(2).replace(/(.{2})(.{2})(.{2})/,(m,r,g,b)=>r+g+b)}};
+      cell.font={name:'Calibri',size:9};
+      cell.alignment={vertical:'middle',horizontal:col===3||col===4?'center':'left'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFE8EEF4'}}};
+    });
+    // Bold product name
+    row.getCell(2).font={bold:true,name:'Calibri',size:9};
+    // Color cantidad
+    row.getCell(3).font={bold:true,color:{argb:DANGER},name:'Calibri',size:9};
+  });
+
+  // Freeze header rows
+  ws1.views=[{state:'frozen',ySplit:4}];
+
+  // ── HOJA 2: Resumen por motivo ──
+  const ws2=wb.addWorksheet('Resumen por Motivo');
+  ws2.mergeCells('A1:D1');
+  const rs1=ws2.getCell('A1');
+  rs1.value=`RESUMEN POR MOTIVO · ${periodoLabel}`;
+  rs1.font={bold:true,size:13,color:{argb:ACCENT},name:'Calibri'};
+  rs1.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
+  rs1.alignment={horizontal:'center',vertical:'middle'};
+  ws2.getRow(1).height=28;
+  ws2.addRow([]);
+
+  const rH2=ws2.addRow(['Motivo','Registros','% del total','Productos afectados']);
+  rH2.height=18;
+  rH2.eachCell(c=>{
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0D2137'}};
+    c.font={bold:true,color:{argb:ACCENT},size:9,name:'Calibri'};
+    c.alignment={horizontal:'center',vertical:'middle'};
+    c.border={bottom:{style:'medium',color:{argb:ACCENT}}};
+  });
+  ws2.columns=[{key:'a',width:26},{key:'b',width:12},{key:'c',width:14},{key:'d',width:28}];
+
+  const byMot2={};
+  lista.forEach(m=>{
+    if(!byMot2[m.motivo])byMot2[m.motivo]={count:0,prods:new Set()};
+    byMot2[m.motivo].count++;
+    byMot2[m.motivo].prods.add(m.producto);
+  });
+  const total2=lista.length;
+  Object.entries(byMot2).sort((a,b)=>b[1].count-a[1].count).forEach(([mot,v],i)=>{
+    const row=ws2.addRow([
+      `${mEmoji[mot]||'⚪'} ${mot}`,v.count,
+      `${((v.count/total2)*100).toFixed(1)}%`,
+      [...v.prods].slice(0,3).join(', ')+(v.prods.size>3?` +${v.prods.size-3}`:'')
+    ]);
+    row.height=17;
+    const bg=mColors[mot]||'FFFFFFFF';
+    row.eachCell((cell,col)=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:i%2===0?bg:'FFFFFFFF'}};
+      cell.font={name:'Calibri',size:9,bold:col<=2};
+      cell.alignment={vertical:'middle',horizontal:col===1?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFE8EEF4'}}};
+    });
+    row.getCell(2).font={bold:true,color:{argb:DANGER},name:'Calibri',size:10};
+  });
+
+  // ── HOJA 3: Resumen por producto ──
+  const ws3=wb.addWorksheet('Productos más afectados');
+  ws3.mergeCells('A1:C1');
+  const rp1=ws3.getCell('A1');
+  rp1.value=`PRODUCTOS MÁS AFECTADOS · ${periodoLabel}`;
+  rp1.font={bold:true,size:13,color:{argb:ACCENT},name:'Calibri'};
+  rp1.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
+  rp1.alignment={horizontal:'center',vertical:'middle'};
+  ws3.getRow(1).height=28;
+  ws3.addRow([]);
+
+  const rH3=ws3.addRow(['Producto','Registros','Motivos']);
+  rH3.height=18;
+  rH3.eachCell(c=>{
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0D2137'}};
+    c.font={bold:true,color:{argb:ACCENT},size:9,name:'Calibri'};
+    c.alignment={horizontal:'center',vertical:'middle'};
+    c.border={bottom:{style:'medium',color:{argb:ACCENT}}};
+  });
+  ws3.columns=[{key:'a',width:30},{key:'b',width:12},{key:'c',width:35}];
+
+  const byProd2={};
+  lista.forEach(m=>{
+    if(!byProd2[m.producto])byProd2[m.producto]={count:0,motivos:new Set()};
+    byProd2[m.producto].count++;
+    byProd2[m.producto].motivos.add(m.motivo);
+  });
+  Object.entries(byProd2).sort((a,b)=>b[1].count-a[1].count).forEach(([prod,v],i)=>{
+    const row=ws3.addRow([prod,v.count,[...v.motivos].join(', ')]);
+    row.height=17;
+    row.eachCell((cell,col)=>{
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:i%2===0?'FFF0F7FF':'FFFFFFFF'}};
+      cell.font={name:'Calibri',size:9,bold:col===1};
+      cell.alignment={vertical:'middle',horizontal:col===2?'center':'left'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFE8EEF4'}}};
+    });
+    row.getCell(2).font={bold:true,color:{argb:v.count>2?DANGER:WARN},name:'Calibri',size:10};
+  });
+
+  // ── Download ──
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const mes=mesFilt==='0'?now.toLocaleDateString('es-CL',{month:'long',year:'numeric'}).replace(/ /g,'_'):
+            mesFilt==='1'?new Date(now.getFullYear(),now.getMonth()-1,1).toLocaleDateString('es-CL',{month:'long',year:'numeric'}).replace(/ /g,'_'):
+            'historial';
+  a.download=`Mermas_Mixly_${mes}.xlsx`;
+  a.click();URL.revokeObjectURL(url);
+  ok('m-ok',`✓ Excel descargado · ${lista.length} registros`);
+}
 
 </script>
 </body>
