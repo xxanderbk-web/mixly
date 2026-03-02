@@ -529,6 +529,14 @@ tbody tr:hover td{background:var(--s2)}
 @keyframes fI{from{opacity:0}to{opacity:1}}
 @keyframes sU{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 </style>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00C2FF">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mixly">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -1256,6 +1264,10 @@ let uid=null, cat=[], inv=[], recs=[], rems=[];
 
 /* BOOT */
 window.onload=async()=>{
+  // Handle PWA shortcuts (?panel=xxx)
+  const urlPanel=new URLSearchParams(window.location.search).get('panel');
+  if(urlPanel) setTimeout(()=>sp(urlPanel),800);
+
   // Check password recovery from URL hash
   const hashP=new URLSearchParams(window.location.hash.substring(1));
   if(hashP.get('type')==='recovery'){
@@ -2348,7 +2360,15 @@ function printFicha(id){
       .accent{color:#00C2FF}
       @media print{body{padding:20px}button{display:none}}
     </style>
-  </head><body>
+    <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00C2FF">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mixly">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head><body>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
       <div>
         <h1>${r.name}</h1>
@@ -2366,7 +2386,16 @@ function printFicha(id){
       ${r.total_cost?`<span>Costo estimado: <strong class="accent">$${Number(r.total_cost).toFixed(0)}</strong></span>`:''}
     </div>
     <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
+    <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('sw.js')
+          .then(r=>console.log('SW registered:',r.scope))
+          .catch(e=>console.log('SW error:',e));
+      });
+    }
+  </script>
+</body></html>`);
   w.document.close();
 }
 function openFichaModal(id){sp('fichas');setTimeout(()=>{const r=recs.find(x=>x.id===id);if(r)printFicha(id);},200);}
@@ -3440,5 +3469,14 @@ async function expMermasXLS(){
 }
 
 </script>
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('sw.js')
+          .then(r=>console.log('SW registered:',r.scope))
+          .catch(e=>console.log('SW error:',e));
+      });
+    }
+  </script>
 </body>
 </html>
