@@ -2386,15 +2386,6 @@ function printFicha(id){
       ${r.total_cost?`<span>Costo estimado: <strong class="accent">$${Number(r.total_cost).toFixed(0)}</strong></span>`:''}
     </div>
     <script>window.onload=()=>window.print()<\/script>
-    <script>
-    if('serviceWorker' in navigator){
-      window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('sw.js')
-          .then(r=>console.log('SW registered:',r.scope))
-          .catch(e=>console.log('SW error:',e));
-      });
-    }
-  </script>
 </body></html>`);
   w.document.close();
 }
