@@ -112,7 +112,7 @@
 .dm-btn:hover .lb{color:var(--a2)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 body::before{content:'';position:fixed;inset:0;
   background:radial-gradient(ellipse 70% 50% at 92% 4%,rgba(0,194,255,.13) 0%,transparent 60%),
              radial-gradient(ellipse 50% 60% at 4% 92%,rgba(0,144,204,.08) 0%,transparent 60%);
@@ -149,16 +149,226 @@ body::before{content:'';position:fixed;inset:0;
   background:var(--danger);border-radius:50%;display:none;
   border:2px solid rgba(255,255,255,.9)}
 
+/* ── OLD SIDEBAR: hidden ── */
+.sb{display:none!important}
+
+/* ── TOP BAR ── */
+.ig-topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  box-shadow:0 2px 12px rgba(0,120,200,.06)}
+.dark .ig-topbar{background:rgba(13,17,23,.94)}
+.ig-logo{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;
+  letter-spacing:3px;color:var(--text);text-transform:uppercase}
+.ig-logo span{color:var(--accent)}
+.ig-topbar-right{display:flex;gap:2px;align-items:center}
+.ig-icon-btn{width:40px;height:40px;border:none;background:transparent;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.15rem;cursor:pointer;color:var(--t2);transition:.18s}
+.ig-icon-btn:hover{background:var(--abg);color:var(--a2)}
+
+/* ── BOTTOM NAV ── */
+.ig-bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:200;height:58px;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(20px);
+  border-top:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:space-around;
+  box-shadow:0 -2px 12px rgba(0,120,200,.05)}
+.dark .ig-bottomnav{background:rgba(13,17,23,.96)}
+.ig-nav-btn{flex:1;height:100%;border:none;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;cursor:pointer;color:var(--t3);transition:.18s;position:relative}
+.ig-nav-btn .ic{font-size:1.25rem;line-height:1;transition:transform .18s}
+.ig-nav-btn .lb{font-family:'Syne',sans-serif;font-size:.36rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--t3);transition:.18s}
+.ig-nav-btn.active .ic{transform:scale(1.12)}
+.ig-nav-btn.active,.ig-nav-btn.active .lb{color:var(--accent)}
+.ig-nav-btn:hover{color:var(--a2)}
+.ig-nav-center .ic{font-size:1rem;background:var(--accent);color:#fff;
+  border-radius:10px;width:34px;height:34px;display:flex;align-items:center;
+  justify-content:center;box-shadow:0 3px 12px rgba(0,194,255,.35)}
+
+/* ── TOOLS DRAWER ── */
+.drawer-backdrop{position:fixed;inset:0;z-index:300;
+  background:rgba(10,22,40,.45);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-backdrop.open{opacity:1;pointer-events:all}
+.tools-drawer{position:fixed;right:0;top:0;bottom:0;z-index:301;
+  width:min(290px,86vw);background:var(--surface);
+  border-left:1px solid var(--b2);box-shadow:-12px 0 48px rgba(0,0,0,.2);
+  transform:translateX(110%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;overflow:hidden}
+.tools-drawer.open{transform:translateX(0)}
+.drawer-head{padding:16px;background:var(--s2);border-bottom:1px solid var(--b2);
+  display:flex;align-items:center;justify-content:space-between}
+.drawer-logo{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;
+  letter-spacing:3px;text-transform:uppercase;color:var(--t2)}
+.drawer-logo span{color:var(--accent)}
+.drawer-close{width:30px;height:30px;border:none;background:var(--b2);
+  border-radius:7px;font-size:.9rem;cursor:pointer;color:var(--t2);
+  display:flex;align-items:center;justify-content:center;transition:.18s}
+.drawer-close:hover{background:var(--dbg);color:var(--danger)}
+.drawer-user{padding:12px 16px;border-bottom:1px solid var(--b2)}
+.drawer-user-name{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase}
+.drawer-user-email{font-size:.7rem;color:var(--t3);margin-top:1px}
+.drawer-list{flex:1;overflow-y:auto;padding:8px 0}
+.drawer-section-label{padding:8px 16px 3px;font-family:'Syne',sans-serif;
+  font-size:.48rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--t3)}
+.drawer-item{width:100%;padding:11px 16px;border:none;background:transparent;
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--t2);
+  transition:.15s;text-align:left}
+.drawer-item:hover{background:var(--abg);color:var(--a2)}
+.drawer-item .di{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
+.drawer-divider{height:1px;background:var(--b2);margin:4px 0}
+.drawer-footer{padding:12px 16px;border-top:1px solid var(--b2);display:flex;gap:8px}
+
 /* ── MAIN ── */
-.main{flex:1;display:flex;overflow:hidden;position:relative;z-index:1}
+.main{display:block;position:relative;z-index:1;
+  padding-top:52px;padding-bottom:58px;height:100vh;overflow:hidden}
 
 /* ── PANELS ── */
-.panel{position:absolute;inset:0;overflow-y:auto;padding:36px 40px;
-  opacity:0;transform:translateX(20px);pointer-events:none;
-  transition:opacity .28s ease,transform .28s ease}
-.panel.active{opacity:1;transform:translateX(0);pointer-events:all}
+.panel{position:absolute;top:52px;bottom:58px;left:0;right:0;
+  overflow-y:auto;padding:20px 16px;
+  opacity:0;transform:translateY(8px);pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease}
+.panel.active{opacity:1;transform:translateY(0);pointer-events:all}
 .panel::-webkit-scrollbar{width:5px}
 .panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Social panel: Instagram-style centered */
+#panel-social{padding:0}
+.social-wrap{max-width:560px;margin:0 auto;padding:12px 12px 0}
+
+/* Tool panels wider padding on desktop */
+@media(min-width:700px){
+  .panel:not(#panel-social){padding:28px 32px}
+}
+
+/* ── SOCIAL STYLES ── */
+.spost{background:var(--surface);border:1px solid var(--b2);
+  border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
+.spost-head{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.savatar{flex-shrink:0;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.72rem;font-weight:800;color:#fff;
+  cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.5px;
+  width:38px;height:38px}
+.spost-visual{height:300px;display:flex;align-items:center;justify-content:center;
+  font-size:5rem;position:relative;overflow:hidden}
+.spost-visual .semoji{position:relative;z-index:1;
+  filter:drop-shadow(0 4px 24px rgba(0,0,0,.35))}
+.spost-body{padding:11px 14px 2px}
+.spost-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.spost-desc{font-size:.8rem;color:var(--t2);line-height:1.55;margin-bottom:9px}
+.spost-ings{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.sing{padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:600;
+  background:var(--abg);border:1px solid rgba(0,194,255,.2);color:var(--a2)}
+.sreacts-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.sreact-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;
+  border-radius:20px;font-size:.68rem;background:var(--s2);border:1px solid var(--b2);color:var(--t2)}
+.sreact-chip.mine{background:var(--abg);border-color:rgba(0,194,255,.3);color:var(--a2)}
+.spost-actions{border-top:1px solid var(--b2);padding:8px 14px;
+  display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sact{padding:5px 10px;border:1px solid var(--b2);border-radius:20px;
+  background:transparent;font-family:'DM Sans',sans-serif;font-size:.7rem;
+  font-weight:600;cursor:pointer;color:var(--t2);transition:.15s;
+  display:inline-flex;align-items:center;gap:4px}
+.sact:hover{border-color:var(--accent);color:var(--a2);background:var(--abg)}
+.sact.reacted{border-color:var(--accent);color:var(--a2);background:var(--abg)}
+.sact.saved{border-color:var(--ok);color:var(--ok);background:var(--obg)}
+.sreact-wrap{position:relative}
+.sreact-picker{position:absolute;bottom:calc(100%+8px);left:0;z-index:50;
+  background:var(--surface);border:1px solid var(--b2);border-radius:14px;
+  padding:9px 12px;display:flex;gap:8px;box-shadow:var(--shadowL);
+  opacity:0;transform:translateY(6px) scale(.96);pointer-events:none;
+  transition:.15s;transform-origin:bottom left}
+.sreact-picker.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.sreact-btn{font-size:1.4rem;cursor:pointer;background:none;border:none;
+  padding:3px 4px;border-radius:8px;transition:.15s}
+.sreact-btn:hover{background:var(--abg);transform:scale(1.25)}
+/* Comments section */
+.scomments{padding:0 14px 12px;display:none}
+.scomments.open{display:block}
+.scomment{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+.scomment-body{flex:1;background:var(--s2);border-radius:10px;padding:8px 10px;font-size:.78rem}
+.scomment-user{font-weight:700;font-size:.7rem;color:var(--a2);margin-bottom:2px}
+.scomment-input-row{display:flex;gap:7px;margin-top:6px}
+.scomment-input{flex:1;padding:7px 11px;background:var(--s2);border:1.5px solid var(--border);
+  border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--text);outline:none}
+.scomment-input:focus{border-color:var(--accent)}
+/* Follow button */
+.sfollowbtn{padding:5px 12px;border-radius:20px;font-family:'Syne',sans-serif;
+  font-size:.56rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
+.sfollowbtn.flw{background:var(--accent);color:#fff;border:none;
+  box-shadow:0 3px 10px rgba(0,194,255,.25)}
+.sfollowbtn.flw:hover{background:var(--a2)}
+.sfollowbtn.fing{background:transparent;color:var(--t3);border:1px solid var(--border)}
+.sfollowbtn.fing:hover{border-color:var(--danger);color:var(--danger);background:var(--dbg)}
+/* Empty states */
+.soc-empty{text-align:center;padding:50px 20px}
+.soc-empty .ei{font-size:2.8rem;margin-bottom:10px;display:block}
+.soc-empty p{font-size:.82rem;color:var(--t3);line-height:1.6;margin-bottom:14px}
+/* People */
+.people-list{display:flex;flex-direction:column;gap:10px}
+.pcard{background:var(--surface);border:1px solid var(--b2);border-radius:14px;
+  padding:13px;display:flex;align-items:center;gap:11px;
+  box-shadow:var(--shadow);cursor:pointer;transition:.2s}
+.pcard:hover{border-color:rgba(0,194,255,.3);transform:translateY(-1px)}
+.pcard-name{font-weight:700;font-size:.84rem}
+.pcard-handle{font-size:.67rem;color:var(--t3);margin-bottom:2px}
+.pcard-bio{font-size:.72rem;color:var(--t2);display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Profile modal */
+.sprofile-banner{height:72px}
+.sprofile-stats{display:flex;gap:22px;margin:12px 0 16px}
+.sprofile-stat-v{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent)}
+.sprofile-stat-l{font-size:.58rem;color:var(--t3);letter-spacing:1px;text-transform:uppercase}
+/* New post emoji picker */
+.emoji-pick{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:10px}
+.ep{font-size:1.4rem;cursor:pointer;text-align:center;padding:5px;border-radius:7px;
+  border:2px solid transparent;transition:.13s}
+.ep:hover{background:var(--abg)}.ep.sel{border-color:var(--accent);background:var(--abg)}
+/* Social tabs */
+.soc-tabs{display:flex;border-bottom:1px solid var(--b2);margin-bottom:12px;overflow-x:auto}
+.soc-tab{flex-shrink:0;padding:9px 12px;border:none;background:transparent;
+  font-family:'Syne',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--t3);cursor:pointer;transition:.15s;
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.soc-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.soc-section{display:none}
+.soc-section.active{display:block}
+/* Feed filters */
+.feed-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.feed-filter{padding:5px 12px;border:1px solid var(--border);border-radius:20px;
+  background:var(--s2);font-size:.6rem;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;color:var(--t2);transition:.15s}
+.feed-filter:hover{border-color:var(--accent);color:var(--a2)}
+.feed-filter.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* Loading spinner for social */
+.soc-loading{text-align:center;padding:30px;color:var(--t3);font-size:.8rem}
+
+/* ── NOTIFICATIONS ── */
+.notif-item{display:flex;align-items:flex-start;gap:11px;padding:13px 16px;
+  border-bottom:1px solid var(--b2);transition:.15s;cursor:pointer}
+.notif-item:hover{background:var(--abg)}
+.notif-item.unread{background:rgba(0,194,255,.05)}
+.notif-item.unread::before{content:'';width:6px;height:6px;background:#FF3B5C;
+  border-radius:50%;flex-shrink:0;margin-top:5px}
+.notif-item:not(.unread)::before{content:'';width:6px;height:6px;flex-shrink:0}
+.notif-avatar{flex-shrink:0;width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:800;color:#fff}
+.notif-body{flex:1;min-width:0}
+.notif-text{font-size:.8rem;line-height:1.45;color:var(--text)}
+.notif-text b{font-weight:700;color:var(--a2)}
+.notif-time{font-size:.63rem;color:var(--t3);margin-top:2px}
+.notif-emoji{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.notif-empty{text-align:center;padding:40px 20px;color:var(--t3);font-size:.8rem}
+.notif-empty .ei{font-size:2.2rem;display:block;margin-bottom:8px}
 
 /* ── PANEL HEADER ── */
 .ph{margin-bottom:28px}
@@ -531,14 +741,12 @@ tbody tr:hover td{background:var(--s2)}
 </style>
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
-  <link rel="shortcut icon" href="favicon.ico">
   <meta name="theme-color" content="#00C2FF">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Mixly">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -613,29 +821,120 @@ tbody tr:hover td{background:var(--s2)}
   </div>
 </div>
 
-<!-- SIDEBAR -->
-<nav class="sb" id="sidebar" style="display:none">
-  <div class="sb-logo">MIX<span>LY</span></div>
-  <button class="ni active" data-p="home"      title="Inicio"><span class="ic">🏠</span><span class="lb">Inicio</span></button>
-  <button class="ni" data-p="productos"        title="Productos"><span class="ic">📦</span><span class="lb">Prod.</span></button>
-  <button class="ni" data-p="inventory"        title="Inventario"><span class="ic">📊</span><span class="lb">Stock</span></button>
-  <button class="ni" data-p="recipes"          title="Recetario"><span class="ic">📖</span><span class="lb">Recetas</span></button>
-  <button class="ni" data-p="costeo"           title="Costeo"><span class="ic">💰</span><span class="lb">Costeo</span></button>
-  <button class="ni" data-p="agenda"           title="Agenda">
-    <span class="ic">📅</span><span class="lb">Agenda</span>
-    <span class="badge-dot" id="bdot"></span>
-  </button>
-  <button class="ni" data-p="academy"          title="Academia"><span class="ic">🎓</span><span class="lb">Acad.</span></button>
-  <button class="ni" data-p="buscador"         title="Buscador"><span class="ic">🔍</span><span class="lb">Buscar</span></button>
-  <button class="ni" data-p="timers"           title="Timers"><span class="ic">⏱</span><span class="lb">Timers</span></button>
-  <button class="ni" data-p="fichas"           title="Fichas técnicas"><span class="ic">📋</span><span class="lb">Fichas</span></button>
-  <button class="ni" data-p="mermas"           title="Registro de mermas"><span class="ic">📉</span><span class="lb">Mermas</span></button>
-  <button class="dm-btn" id="dmToggle" title="Modo oscuro" onclick="toggleDM()">
-    <span class="ic" id="dmIc">🌙</span>
-    <span class="lb" id="dmLb">Dark</span>
-  </button>
-  <button class="ni" data-p="logout" title="Cerrar sesión" style="margin-top:auto"><span class="ic">⎋</span><span class="lb">Salir</span></button>
+<!-- SIDEBAR invisible (compat) -->
+<nav class="sb" id="sidebar" style="display:none!important">
+  <button class="ni" data-p="social"></button>
+  <button class="ni" data-p="home"></button>
+  <button class="ni" data-p="productos"></button>
+  <button class="ni" data-p="inventory"></button>
+  <button class="ni" data-p="recipes"></button>
+  <button class="ni" data-p="costeo"></button>
+  <button class="ni" data-p="agenda"><span class="badge-dot" id="bdot"></span></button>
+  <button class="ni" data-p="academy"></button>
+  <button class="ni" data-p="buscador"></button>
+  <button class="ni" data-p="timers"></button>
+  <button class="ni" data-p="fichas"></button>
+  <button class="ni" data-p="mermas"></button>
+  <button class="ni" data-p="logout"></button>
+  <button class="dm-btn" id="dmToggle" onclick="toggleDM()"><span class="ic" id="dmIc">🌙</span><span class="lb" id="dmLb">Dark</span></button>
 </nav>
+
+<!-- TOP BAR -->
+<header class="ig-topbar" id="igTopbar" style="display:none">
+  <div class="ig-logo">MIX<span>LY</span></div>
+  <div class="ig-topbar-right">
+    <button class="ig-icon-btn" onclick="openNotifs()" title="Notificaciones" style="position:relative">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifDot" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;background:#FF3B5C;border-radius:50%;border:1.5px solid var(--bg)"></span>
+    </button>
+    <button class="ig-icon-btn" onclick="toggleDM()" title="Tema"><span id="igDmIc">🌙</span></button>
+    <button class="ig-icon-btn" onclick="openDrawer()" title="Herramientas">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- BOTTOM NAV -->
+<nav class="ig-bottomnav" id="igBottomNav" style="display:none">
+  <button class="ig-nav-btn active" data-np="social" onclick="igNav('social',this)"><span class="ic">🏠</span><span class="lb">Inicio</span></button>
+  <button class="ig-nav-btn" data-np="buscador" onclick="igNav('buscador',this)"><span class="ic">🔍</span><span class="lb">Buscar</span></button>
+  <button class="ig-nav-btn ig-nav-center" data-np="newpost" onclick="igNav('newpost',this)"><span class="ic">＋</span><span class="lb">Publicar</span></button>
+  <button class="ig-nav-btn" data-np="myposts" onclick="igNav('myposts',this)"><span class="ic">👤</span><span class="lb">Mis recetas</span></button>
+  <button class="ig-nav-btn" data-np="people" onclick="igNav('people',this)"><span class="ic">👥</span><span class="lb">Personas</span></button>
+</nav>
+
+<!-- TOOLS DRAWER -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+<div class="tools-drawer" id="toolsDrawer">
+  <div class="drawer-head">
+    <div class="drawer-logo">MIX<span>LY</span></div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-user">
+    <div class="drawer-user-name" id="wname">Mi Bar</div>
+    <div class="drawer-user-email" id="wemail"></div>
+  </div>
+  <div class="drawer-list">
+    <button class="drawer-item" onclick="spD('home')"><span class="di">🏠</span>Dashboard</button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestión de bar</div>
+    <button class="drawer-item" onclick="spD('productos')"><span class="di">📦</span>Productos</button>
+    <button class="drawer-item" onclick="spD('inventory')"><span class="di">📊</span>Inventario</button>
+    <button class="drawer-item" onclick="spD('recipes')"><span class="di">📖</span>Recetario</button>
+    <button class="drawer-item" onclick="spD('costeo')"><span class="di">💰</span>Costeo</button>
+    <button class="drawer-item" onclick="spD('mermas')"><span class="di">📉</span>Mermas</button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Más</div>
+    <button class="drawer-item" onclick="spD('agenda')"><span class="di">📅</span>Agenda <span id="bdot2" style="display:none;background:var(--danger);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;margin-left:4px">!</span></button>
+    <button class="drawer-item" onclick="spD('timers')"><span class="di">⏱</span>Timers</button>
+    <button class="drawer-item" onclick="spD('fichas')"><span class="di">📋</span>Fichas técnicas</button>
+    <button class="drawer-item" onclick="spD('academy')"><span class="di">🎓</span>Academia</button>
+    <button class="drawer-item" onclick="spD('buscador')"><span class="di">🔍</span>Buscador</button>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn bs" style="flex:1" onclick="toggleDM();closeDrawer()"><span id="dmIc">🌙</span> <span id="dmLb">Dark mode</span></button>
+    <button class="btn bd" onclick="closeDrawer();doLogout()">⎋ Salir</button>
+  </div>
+</div>
+
+<!-- SOCIAL PROFILE MODAL -->
+<div class="mo" id="socProfileMo">
+  <div class="mb" style="max-width:340px;overflow:hidden;padding:0">
+    <div class="mh" style="padding:12px 16px"><h3>Perfil</h3><button class="mc" onclick="document.getElementById('socProfileMo').classList.remove('show')">✕</button></div>
+    <div id="socProfileContent"></div>
+  </div>
+</div>
+
+<!-- SOCIAL COMMENTS MODAL -->
+<div class="mo" id="socCommentsMo">
+  <div class="mb" style="max-width:420px">
+    <div class="mh"><h3 id="socCommentTitle">Comentarios</h3><button class="mc" onclick="document.getElementById('socCommentsMo').classList.remove('show')">✕</button></div>
+    <div class="mbody">
+      <div id="socCommentsList" style="max-height:280px;overflow-y:auto;margin-bottom:14px"></div>
+      <div class="scomment-input-row">
+        <input class="scomment-input" id="socCommentInput" placeholder="Escribe un comentario…"/>
+        <button class="btn bp sm" onclick="submitComment()">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICACIONES MODAL -->
+<div class="mo" id="notifMo">
+  <div class="mb" style="max-width:400px">
+    <div class="mh">
+      <h3>Notificaciones</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn bs sm" onclick="markAllRead()" id="notifMarkAll" style="display:none;font-size:.65rem;padding:4px 10px">Marcar todas leídas</button>
+        <button class="mc" onclick="document.getElementById('notifMo').classList.remove('show')">✕</button>
+      </div>
+    </div>
+    <div id="notifList" class="notif-list"></div>
+  </div>
+</div>
+
+
+
 
 <!-- ONBOARDING OVERLAY -->
 <div id="obOverlay">
@@ -1184,6 +1483,76 @@ tbody tr:hover td{background:var(--s2)}
   <div id="fqGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px"></div>
 </div>
 
+<!-- ═══════════ SOCIAL ═══════════ -->
+<div class="panel active" id="panel-social">
+  <div class="social-wrap">
+    <div class="soc-tabs" id="socTabsEl">
+      <button class="soc-tab active" data-st="feed"    onclick="socSwitchTab('feed',this)">Feed</button>
+      <button class="soc-tab"        data-st="people"  onclick="socSwitchTab('people',this)">Personas</button>
+      <button class="soc-tab"        data-st="myposts" onclick="socSwitchTab('myposts',this)">Mis recetas</button>
+      <button class="soc-tab"        data-st="newpost" onclick="socSwitchTab('newpost',this)">＋ Publicar</button>
+    </div>
+    <!-- FEED -->
+    <div class="soc-section active" id="soc-feed">
+      <div class="feed-filters">
+        <button class="feed-filter active" data-ff="all"       onclick="setFeedFilter('all',this)">Todos</button>
+        <button class="feed-filter"        data-ff="following" onclick="setFeedFilter('following',this)">Siguiendo</button>
+        <button class="feed-filter"        data-ff="saved"     onclick="setFeedFilter('saved',this)">Guardados</button>
+      </div>
+      <div id="socFeedList"></div>
+    </div>
+    <!-- PEOPLE -->
+    <div class="soc-section" id="soc-people">
+      <div class="sw" style="margin-bottom:12px"><input id="socPSearch" placeholder="Buscar usuarios de Mixly…" oninput="renderSocPeople()"/></div>
+      <div id="socPeopleList" class="people-list"></div>
+    </div>
+    <!-- MY POSTS -->
+    <div class="soc-section" id="soc-myposts">
+      <div id="socMyList"></div>
+    </div>
+    <!-- NEW POST -->
+    <div class="soc-section" id="soc-newpost">
+      <div class="card">
+        <div class="ch"><div class="ci">🍸</div><div class="ct">Publicar en la Comunidad</div></div>
+        <div class="cb">
+          <div id="snp-ok" class="ab aok"></div>
+          <div id="snp-er" class="ab aer"></div>
+          <div class="fg c2">
+            <div class="fgroup"><label class="fl">Nombre del cóctel *</label>
+              <input id="snpName" placeholder="Ej: Mezcal Negroni"/></div>
+            <div class="fgroup"><label class="fl">Perfil de sabor</label>
+              <select id="snpPerfil">
+                <option value="">— elige —</option>
+                <option value="🍬 Dulce">🍬 Dulce</option>
+                <option value="🍋 Ácido">🍋 Ácido</option>
+                <option value="🌿 Amargo">🌿 Amargo</option>
+                <option value="🔥 Ahumado">🔥 Ahumado</option>
+                <option value="🌸 Floral">🌸 Floral</option>
+                <option value="🥭 Tropical">🥭 Tropical</option>
+              </select></div>
+          </div>
+          <div class="fgroup"><label class="fl">Descripción</label>
+            <textarea id="snpDesc" placeholder="Cuéntanos sobre este trago…" style="min-height:64px"></textarea></div>
+          <div class="fgroup">
+            <label class="fl">Ingredientes (separados por coma)</label>
+            <input id="snpIngs" placeholder="45ml Mezcal, 30ml Campari, 30ml Vermut…"/>
+            <div class="sub" style="margin-top:5px">
+              <button class="btn bs sm" onclick="snpImportRecipe()">📖 Importar desde mi Recetario</button>
+            </div>
+          </div>
+          <div class="fgroup"><label class="fl">Ícono</label>
+            <div class="emoji-pick" id="snpEmojiPick"></div>
+          </div>
+          <div class="row">
+            <button class="btn bp" onclick="saveSocPost()">Publicar 🍹</button>
+            <button class="btn bs" onclick="socSwitchTab('feed',document.querySelector('[data-st=feed]'))">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- AGENDA MODAL -->
@@ -1307,23 +1676,31 @@ async function lgsInitApp(u){
   initNav(); buildAc(); hStats();
   document.getElementById('ls').style.display='none';
   document.getElementById('loginScreen').classList.remove('show');
-  document.getElementById('sidebar').style.display='';
-  document.getElementById('mainApp').style.display='';
+  document.getElementById('sidebar').style.display='none';
+  document.getElementById('igTopbar').style.removeProperty('display');
+  document.getElementById('igBottomNav').style.removeProperty('display');
+  document.getElementById('mainApp').style.removeProperty('display');
+  initSocial();
+  sp('social');
   maybeStartOB();
 }
 
 /* NAV */
+function doLogout(){
+  db.auth.signOut().then(()=>{
+    uid=null;cat=[];inv=[];recs=[];rems=[];
+    document.getElementById('igTopbar').style.display='none';
+    document.getElementById('igBottomNav').style.display='none';
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('loginScreen').classList.add('show');
+    lgsTab('login');
+  });
+}
 function initNav(){
   document.querySelectorAll('.ni').forEach(b=>{
     b.addEventListener('click',()=>{
       const p=b.dataset.p;
-      if(p==='logout'){db.auth.signOut().then(()=>{
-    uid=null;cat=[];inv=[];recs=[];rems=[];
-    document.getElementById('sidebar').style.display='none';
-    document.getElementById('mainApp').style.display='none';
-    document.getElementById('loginScreen').classList.add('show');
-    lgsTab('login');
-  });return;}
+      if(p==='logout'){doLogout();return;}
       sp(p);
     });
   });
@@ -1331,8 +1708,10 @@ function initNav(){
 function sp(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.ni[data-p="'+name+'"]')?.classList.add('active');
   document.getElementById('panel-'+name)?.classList.add('active');
-  document.querySelector(`.ni[data-p="${name}"]`)?.classList.add('active');
+  document.querySelectorAll('.ig-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.ig-nav-btn[data-np="'+name+'"]')?.classList.add('active');
   if(name==='productos')renderP();
   if(name==='inventory')renderI();
   if(name==='recipes'){renderR();if(!rIC)addRI();}
@@ -1341,6 +1720,18 @@ function sp(name){
   if(name==='timers')renderTimers();
   if(name==='fichas')renderFichas();
   if(name==='mermas'){renderMermas();mStats();}
+  if(name==='social')renderSocFeed();
+}
+function openDrawer(){document.getElementById('drawerBackdrop').classList.add('open');document.getElementById('toolsDrawer').classList.add('open');}
+function closeDrawer(){document.getElementById('drawerBackdrop').classList.remove('open');document.getElementById('toolsDrawer').classList.remove('open');}
+function spD(name){closeDrawer();sp(name);}
+function igNav(name,btn){
+  document.querySelectorAll('.ig-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(name==='newpost'){sp('social');socSwitchTab('newpost',document.querySelector('[data-st=newpost]'));return;}
+  if(name==='myposts'){sp('social');socSwitchTab('myposts',document.querySelector('[data-st=myposts]'));return;}
+  if(name==='people'){sp('social');socSwitchTab('people',document.querySelector('[data-st=people]'));return;}
+  sp(name);
 }
 
 /* HELPERS */
@@ -2113,9 +2504,10 @@ async function importXLS(input){
 function toggleDM(){
   const isDark=document.documentElement.classList.toggle('dark');
   localStorage.setItem('mixly-theme',isDark?'dark':'light');
-  document.getElementById('dmIc').textContent=isDark?'☀️':'🌙';
-  document.getElementById('dmLb').textContent=isDark?'Light':'Dark';
-  document.getElementById('dmToggle').title=isDark?'Modo claro':'Modo oscuro';
+  const ic=isDark?'☀️':'🌙', lb=isDark?'Light':'Dark';
+  document.getElementById('dmIc').textContent=ic;
+  document.getElementById('dmLb').textContent=lb;
+  const igIc=document.getElementById('igDmIc');if(igIc)igIc.textContent=ic;
 }
 // Restore on load
 (function(){
@@ -2364,14 +2756,12 @@ function printFicha(id){
     </style>
     <!-- PWA -->
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
-  <link rel="shortcut icon" href="favicon.ico">
   <meta name="theme-color" content="#00C2FF">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Mixly">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head><body>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
       <div>
@@ -3462,6 +3852,584 @@ async function expMermasXLS(){
   a.click();URL.revokeObjectURL(url);
   ok('m-ok',`✓ Excel descargado · ${lista.length} registros`);
 }
+
+/* ══════════════════════════════════════════
+   MIXLY SOCIAL — Supabase real
+══════════════════════════════════════════ */
+const SOC_BGS=[
+  'linear-gradient(160deg,#0d2137,#0a4a7a)',
+  'linear-gradient(160deg,#1a0033,#5500aa)',
+  'linear-gradient(160deg,#001a0d,#005522)',
+  'linear-gradient(160deg,#2d0a00,#8b2200)',
+  'linear-gradient(160deg,#001433,#003399)',
+  'linear-gradient(160deg,#1a1200,#664400)',
+  'linear-gradient(160deg,#0d002b,#6600cc)',
+  'linear-gradient(160deg,#200020,#880044)',
+];
+const SOC_EMOJIS=['🍸','🥂','🍹','🫗','🥃','🍋','🌿','🍊','🍇','🌺','🫧','💫','🔥','🌙','❄️','✨'];
+const SOC_REACTIONS=['🔥','😍','🍹','⭐','💯','🤌'];
+const SOC_COLORS=['#00C2FF','#FF6B6B','#4ECDC4','#FFD700','#A8E6CF','#FF8B94','#C3A6FF','#FFA07A'];
+
+let socPosts=[], socFollows=[], socSaved=[], socFeedFilter='all', socEmojiSel='🍸';
+let socInited=false, socCommentPostId=null;
+
+function socInitials(name){return(name||'?').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();}
+function socColor(str){return SOC_COLORS[(str||'').charCodeAt(0)%SOC_COLORS.length];}
+function socMyName(){return document.getElementById('wname')?.textContent||'Mi Bar';}
+function socMyHandle(){const e=document.getElementById('wemail')?.textContent||'';return'@'+(e.split('@')[0]||'yo');}
+
+/* ── INIT ── */
+function initSocial(){
+  if(!socInited){
+    const pick=document.getElementById('snpEmojiPick');
+    if(pick)pick.innerHTML=SOC_EMOJIS.map(e=>`<div class="ep${e===socEmojiSel?' sel':''}" onclick="snpSelectEmoji('${e}',this)">${e}</div>`).join('');
+    socInited=true;
+  }
+  loadSocData();
+}
+
+async function loadSocData(){
+  document.getElementById('socFeedList').innerHTML='<div class="soc-loading">Cargando comunidad…</div>';
+  // Load follows & saves in parallel
+  const[followsRes,savesRes]=await Promise.all([
+    db.from('social_follows').select('following_id').eq('follower_id',uid),
+    db.from('social_saves').select('post_id').eq('user_id',uid)
+  ]);
+  socFollows=(followsRes.data||[]).map(r=>r.following_id);
+  socSaved=(savesRes.data||[]).map(r=>r.post_id);
+  await loadFeedPosts();
+  renderSocPeople();
+  renderSocMyPosts();
+}
+
+async function loadFeedPosts(){
+  // Load posts with reaction counts via a join-style approach
+  const{data,error}=await db.from('social_posts')
+    .select('*')
+    .order('created_at',{ascending:false})
+    .limit(50);
+  if(error){console.error('social posts error',error);return;}
+  socPosts=data||[];
+  // Load my reactions for these posts
+  if(socPosts.length){
+    const ids=socPosts.map(p=>p.id);
+    const[reactRes,countRes]=await Promise.all([
+      db.from('social_reactions').select('post_id,emoji').eq('user_id',uid).in('post_id',ids),
+      db.from('social_reactions').select('post_id,emoji')
+    ]);
+    const myReacts={};
+    (reactRes.data||[]).forEach(r=>{myReacts[r.post_id]=r.emoji;});
+    const allCounts={};
+    (countRes.data||[]).forEach(r=>{
+      if(!allCounts[r.post_id])allCounts[r.post_id]={};
+      allCounts[r.post_id][r.emoji]=(allCounts[r.post_id][r.emoji]||0)+1;
+    });
+    const commCountRes=await db.from('social_comments').select('post_id');
+    const commCounts={};
+    (commCountRes.data||[]).forEach(r=>{commCounts[r.post_id]=(commCounts[r.post_id]||0)+1;});
+    socPosts=socPosts.map(p=>({...p,_myReaction:myReacts[p.id]||null,_reactions:allCounts[p.id]||{},_comments:commCounts[p.id]||0}));
+  }
+  renderSocFeed();
+}
+
+/* ── FEED ── */
+window.setFeedFilter=function(val,btn){
+  socFeedFilter=val;
+  document.querySelectorAll('.feed-filter').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderSocFeed();
+};
+
+function renderSocFeed(){
+  const el=document.getElementById('socFeedList');if(!el)return;
+  let list=socFeedFilter==='following'
+    ?socPosts.filter(p=>socFollows.includes(p.user_id)||p.user_id===uid)
+    :socFeedFilter==='saved'?socPosts.filter(p=>socSaved.includes(p.id))
+    :socPosts;
+  if(!list.length){
+    const msgs={
+      all:`<div class="soc-empty"><span class="ei">🌐</span><p>La comunidad está vacía.<br>¡Sé el primero en publicar una receta!</p><button class="btn bp" onclick="socSwitchTab('newpost',document.querySelector('[data-st=newpost]'))">Publicar ahora</button></div>`,
+      following:`<div class="soc-empty"><span class="ei">👥</span><p>No sigues a nadie aún, o quienes sigues no han publicado.</p><button class="btn bs" onclick="socSwitchTab('people',document.querySelector('[data-st=people]'))">Buscar personas →</button></div>`,
+      saved:`<div class="soc-empty"><span class="ei">🔖</span><p>No has guardado ningún cóctel aún.<br>Toca 📌 en cualquier post.</p></div>`,
+    };
+    el.innerHTML=msgs[socFeedFilter]||msgs.all;return;
+  }
+  el.innerHTML=list.map(p=>socPostCard(p)).join('');
+}
+
+function socPostCard(p){
+  const isMe=p.user_id===uid;
+  const isFollowing=socFollows.includes(p.user_id)||isMe;
+  const isSaved=socSaved.includes(p.id);
+  const name=p.bar_name||'Mixly Bar';
+  const handle=p.username?'@'+p.username:'@bartender';
+  const color=socColor(name);
+  const bg=SOC_BGS[(p.bg_index||0)%SOC_BGS.length];
+  const reacts=p._reactions||{};
+  const reactTotal=Object.values(reacts).reduce((a,b)=>a+b,0);
+  const ago=socTimeAgo(p.created_at);
+  const ings=(p.ingredients||[]);
+  return`<div class="spost" id="spost-${p.id}">
+    <div class="spost-head">
+      <div class="savatar" style="background:${color}" onclick="socShowProfile('${p.user_id}','${name}','${handle}',${p._comments||0})">${socInitials(name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.84rem;cursor:pointer" onclick="socShowProfile('${p.user_id}','${name}','${handle}',0)">${name}</div>
+        <div style="font-size:.67rem;color:var(--t3)">${handle} · ${ago}</div>
+      </div>
+      ${!isMe?`<button class="sfollowbtn ${isFollowing?'fing':'flw'}" onclick="socToggleFollow('${p.user_id}',this)">${isFollowing?'✓ Siguiendo':'+ Seguir'}</button>`:''}
+    </div>
+    <div class="spost-visual" style="background:${bg}">
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.12)"></div>
+      <span class="semoji">${p.emoji||'🍸'}</span>
+    </div>
+    <div class="spost-body">
+      <div class="spost-name">${p.name}</div>
+      ${p.flavor?`<span class="pill pa" style="margin-bottom:6px;display:inline-block;font-size:.57rem">${p.flavor}</span>`:''}
+      ${p.description?`<div class="spost-desc">${p.description}</div>`:''}
+      ${ings.length?`<div class="spost-ings">${ings.map(i=>`<span class="sing">${i}</span>`).join('')}</div>`:''}
+      ${reactTotal?`<div class="sreacts-row">${SOC_REACTIONS.filter(r=>reacts[r]>0).map(r=>`<span class="sreact-chip${p._myReaction===r?' mine':''}">${r} ${reacts[r]}</span>`).join('')}</div>`:''}
+    </div>
+    <div class="spost-actions">
+      <div class="sreact-wrap">
+        <button class="sact${p._myReaction?' reacted':''}" onclick="socTogglePicker('${p.id}')">${p._myReaction||'🤍'} Reaccionar</button>
+        <div class="sreact-picker" id="srp-${p.id}">
+          ${SOC_REACTIONS.map(r=>`<button class="sreact-btn" onclick="socReact('${p.id}','${r}')">${r}</button>`).join('')}
+        </div>
+      </div>
+      <button class="sact" onclick="openComments('${p.id}','${p.name.replace(/'/g,"\\'")}')">💬 ${p._comments||0}</button>
+      <button class="sact${isSaved?' saved':''}" onclick="socToggleSave('${p.id}',this)">${isSaved?'🔖 Guardado':'📌 Guardar'}</button>
+      ${isMe?`<button class="sact" style="color:var(--danger);border-color:transparent;margin-left:auto" onclick="socDeletePost('${p.id}')">🗑</button>`:''}
+    </div>
+  </div>`;
+}
+
+function socTimeAgo(ts){
+  if(!ts)return'ahora';
+  const diff=Date.now()-new Date(ts).getTime();
+  const m=Math.floor(diff/60000);
+  if(m<1)return'ahora mismo';
+  if(m<60)return`hace ${m}min`;
+  const h=Math.floor(m/60);
+  if(h<24)return`hace ${h}h`;
+  const d=Math.floor(h/24);
+  if(d<7)return`hace ${d}d`;
+  return new Date(ts).toLocaleDateString('es-CL',{day:'numeric',month:'short'});
+}
+
+/* ── REACTIONS ── */
+window.socTogglePicker=function(postId){
+  document.querySelectorAll('.sreact-picker').forEach(p=>{if(p.id!=='srp-'+postId)p.classList.remove('show');});
+  document.getElementById('srp-'+postId)?.classList.toggle('show');
+};
+document.addEventListener('click',e=>{if(!e.target.closest('.sreact-wrap'))document.querySelectorAll('.sreact-picker').forEach(p=>p.classList.remove('show'));});
+
+window.socReact=async function(postId,emoji){
+  document.getElementById('srp-'+postId)?.classList.remove('show');
+  const post=socPosts.find(p=>p.id===postId);if(!post)return;
+  const prev=post._myReaction;
+  if(prev===emoji){
+    // Remove reaction
+    await db.from('social_reactions').delete().eq('post_id',postId).eq('user_id',uid);
+    post._myReaction=null;
+    post._reactions[emoji]=Math.max(0,(post._reactions[emoji]||1)-1);
+  } else {
+    // Upsert reaction
+    await db.from('social_reactions').upsert({post_id:postId,user_id:uid,emoji},{onConflict:'post_id,user_id'});
+    if(prev){post._reactions[prev]=Math.max(0,(post._reactions[prev]||1)-1);}
+    post._reactions[emoji]=(post._reactions[emoji]||0)+1;
+    post._myReaction=emoji;
+  }
+  socRefreshCard(postId);
+};
+
+/* ── FOLLOW ── */
+window.socToggleFollow=async function(targetId,btn){
+  const isNow=socFollows.includes(targetId);
+  if(isNow){
+    await db.from('social_follows').delete().eq('follower_id',uid).eq('following_id',targetId);
+    socFollows=socFollows.filter(id=>id!==targetId);
+  } else {
+    await db.from('social_follows').insert({follower_id:uid,following_id:targetId});
+    socFollows.push(targetId);
+  }
+  const now=socFollows.includes(targetId);
+  document.querySelectorAll(`button.sfollowbtn[onclick*="'${targetId}'"]`).forEach(b=>{
+    b.textContent=now?'✓ Siguiendo':'+ Seguir';b.className='sfollowbtn '+(now?'fing':'flw');
+  });
+  if(socFeedFilter==='following')renderSocFeed();
+};
+
+/* ── SAVE / BOOKMARK ── */
+window.socToggleSave=async function(postId,btn){
+  const isSaved=socSaved.includes(postId);
+  if(isSaved){
+    await db.from('social_saves').delete().eq('post_id',postId).eq('user_id',uid);
+    socSaved=socSaved.filter(id=>id!==postId);
+  } else {
+    await db.from('social_saves').insert({post_id:postId,user_id:uid});
+    socSaved.push(postId);
+  }
+  const now=socSaved.includes(postId);
+  if(btn){btn.className='sact'+(now?' saved':'');btn.textContent=now?'🔖 Guardado':'📌 Guardar';}
+  if(socFeedFilter==='saved')renderSocFeed();
+};
+
+/* ── COMMENTS ── */
+window.openComments=async function(postId,postName){
+  socCommentPostId=postId;
+  document.getElementById('socCommentTitle').textContent=postName||'Comentarios';
+  document.getElementById('socCommentsList').innerHTML='<div style="color:var(--t3);font-size:.78rem;padding:8px 0">Cargando…</div>';
+  document.getElementById('socCommentsMo').classList.add('show');
+  const{data}=await db.from('social_comments').select('*').eq('post_id',postId).order('created_at',{ascending:true});
+  const comments=data||[];
+  const el=document.getElementById('socCommentsList');
+  if(!comments.length){el.innerHTML='<div style="color:var(--t3);font-size:.78rem;padding:8px 0;text-align:center">Sin comentarios aún. ¡Sé el primero!</div>';return;}
+  el.innerHTML=comments.map(c=>`<div class="scomment">
+    <div class="savatar" style="background:${socColor(c.bar_name||'')};width:30px;height:30px;font-size:.6rem">${socInitials(c.bar_name||'?')}</div>
+    <div class="scomment-body">
+      <div class="scomment-user">${c.bar_name||'Mixly Bar'} <span style="font-weight:400;color:var(--t3)">${socTimeAgo(c.created_at)}</span></div>
+      ${c.body}
+    </div>
+  </div>`).join('');
+};
+
+window.submitComment=async function(){
+  const input=document.getElementById('socCommentInput');
+  const body=input.value.trim();
+  if(!body||!socCommentPostId)return;
+  const m=await db.auth.getUser();
+  const meta=m.data?.user?.user_metadata||{};
+  await db.from('social_comments').insert({
+    post_id:socCommentPostId,user_id:uid,
+    bar_name:meta.bar_name||meta.barName||'Mi Bar',
+    username:meta.username||'',body
+  });
+  input.value='';
+  // Update comment count
+  const post=socPosts.find(p=>p.id===socCommentPostId);
+  if(post){post._comments=(post._comments||0)+1;socRefreshCard(socCommentPostId);}
+  // Refresh comments modal
+  openComments(socCommentPostId, document.getElementById('socCommentTitle').textContent);
+};
+
+/* ── DELETE ── */
+window.socDeletePost=async function(postId){
+  if(!confirm('¿Eliminar esta receta de la comunidad?'))return;
+  await db.from('social_posts').delete().eq('id',postId).eq('user_id',uid);
+  socPosts=socPosts.filter(p=>p.id!==postId);
+  renderSocFeed();renderSocMyPosts();
+};
+
+/* ── PEOPLE (usuarios reales de Supabase) ── */
+window.renderSocPeople=async function(){
+  const el=document.getElementById('socPeopleList');if(!el)return;
+  el.innerHTML='<div class="soc-loading">Buscando bartenders…</div>';
+  // Get unique users from posts
+  const{data}=await db.from('social_posts').select('user_id,bar_name,username').neq('user_id',uid);
+  const seen=new Set();const users=[];
+  (data||[]).forEach(p=>{if(!seen.has(p.user_id)){seen.add(p.user_id);users.push(p);}});
+  const srch=(document.getElementById('socPSearch')?.value||'').toLowerCase();
+  const filtered=srch?users.filter(u=>(u.bar_name||'').toLowerCase().includes(srch)):users;
+  if(!filtered.length){
+    el.innerHTML='<div class="soc-empty"><span class="ei">👥</span><p>Aún no hay otros usuarios en la comunidad.<br>¡Comparte Mixly con tus colegas bartenders!</p></div>';
+    return;
+  }
+  el.innerHTML=filtered.map(u=>`<div class="pcard" onclick="socShowProfile('${u.user_id}','${(u.bar_name||'').replace(/'/g,"\\'")}','@${u.username||'bartender'}',0)">
+    <div class="savatar" style="background:${socColor(u.bar_name||'')};width:44px;height:44px;font-size:.75rem">${socInitials(u.bar_name||'?')}</div>
+    <div style="flex:1;min-width:0">
+      <div class="pcard-name">${u.bar_name||'Mixly Bar'}</div>
+      <div class="pcard-handle">@${u.username||'bartender'}</div>
+    </div>
+    <button class="sfollowbtn ${socFollows.includes(u.user_id)?'fing':'flw'}" onclick="event.stopPropagation();socToggleFollow('${u.user_id}',this)">${socFollows.includes(u.user_id)?'✓':'+ Seguir'}</button>
+  </div>`).join('');
+};
+
+/* ── MY POSTS ── */
+function renderSocMyPosts(){
+  const mine=socPosts.filter(p=>p.user_id===uid);
+  const el=document.getElementById('socMyList');if(!el)return;
+  if(!mine.length){
+    el.innerHTML='<div class="soc-empty"><span class="ei">🍹</span><p>Aún no has publicado ningún cóctel.</p><button class="btn bp" onclick="socSwitchTab(\'newpost\',document.querySelector(\'[data-st=newpost]\'))">Publicar ahora</button></div>';
+    return;
+  }
+  el.innerHTML=mine.map(p=>socPostCard(p)).join('');
+}
+
+/* ── PROFILE MODAL ── */
+window.socShowProfile=async function(userId,barName,handle,comments){
+  const postCount=socPosts.filter(p=>p.user_id===userId).length;
+  const isMe=userId===uid;
+  const isFollowing=socFollows.includes(userId);
+  const color=socColor(barName||'');
+  const mo=document.getElementById('socProfileMo');
+  document.getElementById('socProfileContent').innerHTML=`
+    <div class="sprofile-banner" style="background:linear-gradient(135deg,${color}55,${color}22)"></div>
+    <div style="padding:0 18px 20px;margin-top:-24px">
+      <div class="savatar" style="background:${color};width:52px;height:52px;border:3px solid var(--surface);margin-bottom:10px">${socInitials(barName||'?')}</div>
+      <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800">${barName||'Mixly Bar'}</div>
+      <div style="font-size:.7rem;color:var(--t3);margin-bottom:12px">${handle||''}</div>
+      <div class="sprofile-stats">
+        <div><div class="sprofile-stat-v">${postCount}</div><div class="sprofile-stat-l">Recetas</div></div>
+      </div>
+      ${!isMe?`<button class="sfollowbtn ${isFollowing?'fing':'flw'}" style="width:100%;padding:10px;border-radius:10px" onclick="socToggleFollow('${userId}',this)">${isFollowing?'✓ Siguiendo':'+ Seguir'}</button>`:'<div style="text-align:center;color:var(--t3);font-size:.75rem">Tu perfil</div>'}
+    </div>`;
+  mo.classList.add('show');
+};
+
+/* ── SWITCH TAB ── */
+window.socSwitchTab=function(tab,btn){
+  document.querySelectorAll('.soc-tab').forEach(b=>b.classList.remove('active'));
+  (btn||document.querySelector(`[data-st="${tab}"]`))?.classList.add('active');
+  document.querySelectorAll('.soc-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('soc-'+tab)?.classList.add('active');
+  document.querySelectorAll('.ig-nav-btn').forEach(b=>b.classList.remove('active'));
+  const nm={feed:'social',people:'people',myposts:'myposts',newpost:'newpost'};
+  document.querySelector(`.ig-nav-btn[data-np="${nm[tab]||tab}"]`)?.classList.add('active');
+  if(tab==='people')renderSocPeople();
+  if(tab==='myposts')renderSocMyPosts();
+};
+
+/* ── NEW POST ── */
+window.snpSelectEmoji=function(emoji,el){
+  socEmojiSel=emoji;
+  document.querySelectorAll('.ep').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+};
+
+window.snpImportRecipe=function(){
+  if(!recs||!recs.length){alert('No tienes recetas. Crea una en Recetario primero.');return;}
+  const opts=recs.map((r,i)=>`${i+1}. ${r.name}`).join('\n');
+  const idx=prompt(`Elige una receta:\n${opts}`);
+  if(!idx)return;
+  const rec=recs[parseInt(idx)-1];if(!rec)return;
+  document.getElementById('snpName').value=rec.name||'';
+  document.getElementById('snpDesc').value=rec.notas||rec.notes||'';
+  const ings=(rec.ingredients||[]).map(i=>{
+    const prod=cat.find(p=>p.id===i.product_id);
+    return prod?`${i.qty||''}${i.unit||prod.unit_type||''} ${prod.name}`:'';
+  }).filter(Boolean);
+  document.getElementById('snpIngs').value=ings.join(', ');
+};
+
+window.saveSocPost=async function(){
+  const name=document.getElementById('snpName').value.trim();
+  if(!name){
+    const er=document.getElementById('snp-er');er.textContent='⚠ El nombre del cóctel es requerido';er.style.display='block';
+    setTimeout(()=>er.style.display='none',3000);return;
+  }
+  const ings=document.getElementById('snpIngs').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const m=await db.auth.getUser();
+  const meta=m.data?.user?.user_metadata||{};
+  const payload={
+    user_id:uid,
+    bar_name:meta.bar_name||meta.barName||'Mi Bar',
+    username:meta.username||'',
+    name,
+    description:document.getElementById('snpDesc').value.trim()||null,
+    ingredients:ings,
+    flavor:document.getElementById('snpPerfil').value||null,
+    emoji:socEmojiSel,
+    bg_index:Math.floor(Math.random()*SOC_BGS.length)
+  };
+  const{data,error}=await db.from('social_posts').insert([payload]).select().single();
+  if(error){
+    const er=document.getElementById('snp-er');er.textContent='⚠ '+error.message;er.style.display='block';
+    setTimeout(()=>er.style.display='none',5000);return;
+  }
+  // Add to local list
+  socPosts.unshift({...data,_myReaction:null,_reactions:{},_comments:0});
+  ['snpName','snpDesc','snpIngs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('snpPerfil').value='';
+  const ok=document.getElementById('snp-ok');ok.textContent='✓ ¡Receta publicada en la comunidad!';ok.style.display='block';
+  setTimeout(()=>{ok.style.display='none';socSwitchTab('feed',document.querySelector('[data-st=feed]'));renderSocFeed();},1500);
+  renderSocMyPosts();
+};
+
+/* ── HELPER ── */
+function socRefreshCard(postId){
+  const el=document.getElementById('spost-'+postId);if(!el)return;
+  const post=socPosts.find(p=>p.id===postId);if(!post)return;
+  const tmp=document.createElement('div');
+  tmp.innerHTML=socPostCard(post);
+  el.replaceWith(tmp.firstChild);
+}
+
+function renderSocFeed(){
+  const el=document.getElementById('socFeedList');if(!el)return;
+  let list=socFeedFilter==='following'
+    ?socPosts.filter(p=>socFollows.includes(p.user_id)||p.user_id===uid)
+    :socFeedFilter==='saved'?socPosts.filter(p=>socSaved.includes(p.id))
+    :socPosts;
+  if(!list.length){
+    const msgs={
+      all:`<div class="soc-empty"><span class="ei">🌐</span><p>La comunidad está vacía.<br>¡Sé el primero en publicar una receta!</p><button class="btn bp" onclick="socSwitchTab('newpost',document.querySelector('[data-st=newpost]'))">Publicar ahora</button></div>`,
+      following:`<div class="soc-empty"><span class="ei">👥</span><p>No sigues a nadie aún, o quienes sigues no han publicado.</p><button class="btn bs" onclick="socSwitchTab('people',document.querySelector('[data-st=people]'))">Buscar personas →</button></div>`,
+      saved:`<div class="soc-empty"><span class="ei">🔖</span><p>No has guardado ningún cóctel aún.</p></div>`,
+    };
+    el.innerHTML=msgs[socFeedFilter]||msgs.all;return;
+  }
+  el.innerHTML=list.map(p=>socPostCard(p)).join('');
+}
+
+/* ══════════════════════════════════════════
+   NOTIFICACIONES — Supabase real
+   Tabla: social_notifications
+   SQL: ver social_notifications.sql
+══════════════════════════════════════════ */
+let notifData=[], notifPolling=null;
+
+// Crear notificación en Supabase
+async function createNotif(toUserId, type, postName){
+  if(!toUserId||toUserId===uid)return;
+  const meta=(await db.auth.getUser()).data?.user?.user_metadata||{};
+  const fromName=meta.bar_name||meta.barName||'Un bar';
+  try{
+    await db.from('social_notifications').insert({
+      to_user_id: toUserId,
+      from_user_id: uid,
+      from_bar_name: fromName,
+      type,           // 'reaction' | 'follow' | 'comment'
+      post_name: postName||null,
+      read: false
+    });
+  }catch(e){console.warn('notif insert fail',e);}
+}
+
+// Cargar notificaciones del usuario actual
+async function loadNotifs(){
+  try{
+    const{data}=await db.from('social_notifications')
+      .select('*')
+      .eq('to_user_id',uid)
+      .order('created_at',{ascending:false})
+      .limit(40);
+    notifData=data||[];
+    updateNotifBadge();
+  }catch(e){console.warn('notif load fail',e);}
+}
+
+function updateNotifBadge(){
+  const dot=document.getElementById('notifDot');
+  if(!dot)return;
+  const unread=notifData.filter(n=>!n.read).length;
+  dot.style.display=unread>0?'block':'none';
+}
+
+function openNotifs(){
+  document.getElementById('notifMo').classList.add('show');
+  renderNotifList();
+  const btn=document.getElementById('notifMarkAll');
+  const unread=notifData.filter(n=>!n.read).length;
+  if(btn)btn.style.display=unread>0?'':'none';
+  setTimeout(markAllRead,2000);
+}
+
+function closeNotifs(){
+  document.getElementById('notifMo').classList.remove('show');
+}
+
+function renderNotifList(){
+  const el=document.getElementById('notifList');
+  if(!el)return;
+  const unread=notifData.filter(n=>!n.read).length;
+  const btn=document.getElementById('notifMarkAll');
+  if(btn)btn.style.display=unread>0?'':'none';
+
+  if(!notifData.length){
+    el.innerHTML=`<div class="notif-empty">
+      <span class="ei">🔔</span>
+      <p>Sin notificaciones aún.<br>Cuando alguien te reaccione,<br>te siga o comente,<br>aparecerá aquí.</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML=notifData.map(n=>{
+    const color=SOC_COLORS[(n.from_bar_name||'').charCodeAt(0)%SOC_COLORS.length];
+    const ini=socInitials(n.from_bar_name||'?');
+    const ago=socTimeAgo(n.created_at);
+    const icons={reaction:'🔥',follow:'👥',comment:'💬'};
+    const icon=icons[n.type]||'🍹';
+    let text='';
+    if(n.type==='reaction') text=`<strong>${n.from_bar_name||'Alguien'}</strong> reaccionó a tu receta <strong>${n.post_name||''}</strong>`;
+    else if(n.type==='follow') text=`<strong>${n.from_bar_name||'Alguien'}</strong> comenzó a seguirte`;
+    else if(n.type==='comment') text=`<strong>${n.from_bar_name||'Alguien'}</strong> comentó en <strong>${n.post_name||'tu receta'}</strong>`;
+    else text=`<strong>${n.from_bar_name||'Alguien'}</strong> interactuó contigo`;
+    return`<div class="notif-item${n.read?'':' unread'}">
+      <div class="notif-dot${n.read?' read':''}"></div>
+      <div class="notif-avatar" style="background:${color}">${ini}</div>
+      <div class="notif-body">
+        <div class="notif-text">${text}</div>
+        <div class="notif-time">${ago}</div>
+      </div>
+      <div class="notif-type-icon">${icon}</div>
+    </div>`;
+  }).join('');
+}
+
+async function markAllRead(){
+  const ids=notifData.filter(n=>!n.read).map(n=>n.id);
+  if(!ids.length)return;
+  try{
+    await db.from('social_notifications').update({read:true}).in('id',ids);
+    notifData=notifData.map(n=>({...n,read:true}));
+    updateNotifBadge();
+    renderNotifList();
+  }catch(e){console.warn('markAllRead fail',e);}
+}
+
+// Polling cada 30s — busca nuevas notifs sin recargar todo
+function startNotifPolling(){
+  loadNotifs();
+  notifPolling=setInterval(async()=>{
+    try{
+      const{data}=await db.from('social_notifications')
+        .select('id,read')
+        .eq('to_user_id',uid)
+        .eq('read',false);
+      const newCount=(data||[]).length;
+      const prevCount=notifData.filter(n=>!n.read).length;
+      if(newCount!==prevCount){
+        await loadNotifs();
+        if(newCount>prevCount&&navigator.vibrate)navigator.vibrate([80,40,80]);
+      }
+    }catch(e){}
+  },30000);
+}
+
+// ── Parchar socReact para generar notif ──
+const _oSocReact=window.socReact;
+window.socReact=async function(postId,emoji){
+  await _oSocReact(postId,emoji);
+  const post=socPosts.find(p=>p.id===postId);
+  if(post&&post._myReaction&&post.user_id!==uid)
+    createNotif(post.user_id,'reaction',post.name);
+};
+
+// ── Parchar socToggleFollow para generar notif ──
+const _oToggleFollow=window.socToggleFollow;
+window.socToggleFollow=async function(targetId,btn){
+  const was=socFollows.includes(targetId);
+  await _oToggleFollow(targetId,btn);
+  if(!was&&socFollows.includes(targetId))
+    createNotif(targetId,'follow',null);
+};
+
+// ── Parchar submitComment para generar notif ──
+const _oSubmitComment=window.submitComment;
+window.submitComment=async function(){
+  await _oSubmitComment();
+  const post=socPosts.find(p=>p.id===socCommentPostId);
+  if(post&&post.user_id!==uid)
+    createNotif(post.user_id,'comment',post.name);
+};
+
+// ── Arrancar polling al iniciar sesión ──
+const _oInitSocial=initSocial;
+function initSocial(){
+  _oInitSocial();
+  if(!notifPolling)startNotifPolling();
+}
+
 
 </script>
   <script>
