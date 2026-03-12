@@ -231,7 +231,7 @@ body::before{content:'';position:fixed;inset:0;
 
 /* ── PANELS ── */
 .panel{position:absolute;top:52px;bottom:58px;left:0;right:0;
-  overflow-y:auto;padding:20px 16px;
+  overflow-y:auto;overflow-x:hidden;padding:20px 16px;
   opacity:0;transform:translateY(8px);pointer-events:none;
   transition:opacity .25s ease,transform .25s ease}
 .panel.active{opacity:1;transform:translateY(0);pointer-events:all}
@@ -239,57 +239,105 @@ body::before{content:'';position:fixed;inset:0;
 .panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
 /* Social panel: Instagram-style centered */
-#panel-social{padding:0}
+#panel-social{padding:0;overflow-x:hidden}
 .social-wrap{max-width:560px;margin:0 auto;padding:12px 12px 0}
 
 /* Tool panels wider padding on desktop */
 @media(min-width:700px){
   .panel:not(#panel-social){padding:28px 32px}
 }
-
 /* ── SOCIAL STYLES ── */
 .spost{background:var(--surface);border:1px solid var(--b2);
   border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
 .spost-head{padding:12px 14px;display:flex;align-items:center;gap:10px}
 .savatar{flex-shrink:0;border-radius:50%;display:flex;align-items:center;
   justify-content:center;font-size:.72rem;font-weight:800;color:#fff;
-  cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.5px;
-  width:38px;height:38px}
-.spost-visual{height:300px;display:flex;align-items:center;justify-content:center;
-  font-size:5rem;position:relative;overflow:hidden}
-.spost-visual .semoji{position:relative;z-index:1;
-  filter:drop-shadow(0 4px 24px rgba(0,0,0,.35))}
+  cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.5px;width:38px;height:38px}
+.spost-visual{height:260px;display:flex;align-items:center;justify-content:center;
+  font-size:5rem;position:relative;overflow:hidden;cursor:pointer}
+.spost-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.spost-visual:hover img{transform:scale(1.04)}
+.spost-visual .semoji{position:relative;z-index:1;filter:drop-shadow(0 4px 24px rgba(0,0,0,.35))}
+.spost-img-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(0,0,0,.5) 0%,transparent 55%)}
+/* Stars */
+.star-row{display:flex;align-items:center;gap:2px;margin-bottom:6px}
+.star{font-size:1.05rem;cursor:pointer;transition:transform .1s;color:#ccc;line-height:1}
+.star.lit{color:#FFD700}
+.star:hover{transform:scale(1.25)}
+.star-avg{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;color:#FFD700;margin-left:5px}
+.star-count{font-size:.65rem;color:var(--t3);margin-left:2px}
+/* Want-to-try */
+.sact.wtt{border-color:rgba(255,165,0,.4);color:#FFA500}
+.sact.wtt.active{background:rgba(255,165,0,.12);border-color:#FFA500;color:#FFA500}
+/* Hot section */
+.hot-section{margin-bottom:14px}
+.hot-label{display:flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;
+  font-size:.62rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:var(--t2);margin-bottom:10px}
+.hot-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.hot-scroll::-webkit-scrollbar{display:none}
+.hot-card{flex-shrink:0;width:128px;background:var(--surface);border:1px solid var(--b2);
+  border-radius:12px;overflow:hidden;cursor:pointer;transition:.18s;box-shadow:var(--shadow)}
+.hot-card:hover{transform:translateY(-2px);border-color:rgba(0,194,255,.3)}
+.hot-card-img{height:78px;display:flex;align-items:center;justify-content:center;
+  font-size:2rem;position:relative;overflow:hidden}
+.hot-card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hot-card-body{padding:7px 9px}
+.hot-card-name{font-weight:700;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.hot-card-stars{font-size:.62rem;color:#FFD700}
+/* Feed mode (Global/Following/Saved) */
+.feed-mode{display:flex;border-bottom:2px solid var(--b2);margin-bottom:14px}
+.feed-mode-btn{flex:1;padding:10px 6px;border:none;background:transparent;
+  font-family:'Syne',sans-serif;font-size:.6rem;font-weight:800;letter-spacing:1px;
+  text-transform:uppercase;color:var(--t3);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+.feed-mode-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* Image upload */
+.img-upload-area{border:2px dashed var(--border);border-radius:12px;min-height:110px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;cursor:pointer;transition:.2s;background:var(--s2);position:relative;overflow:hidden}
+.img-upload-area:hover{border-color:var(--accent);background:var(--abg)}
+.img-upload-icon{font-size:1.8rem;pointer-events:none;position:relative;z-index:2}
+.img-upload-label{font-size:.72rem;color:var(--t3);text-align:center;pointer-events:none;position:relative;z-index:2}
+/* Image fullview */
+.img-fullview{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.92);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.img-fullview.open{opacity:1;pointer-events:all}
+.img-fullview img{max-width:96vw;max-height:90vh;border-radius:10px;box-shadow:0 8px 48px rgba(0,0,0,.6)}
+.img-fullview-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.18);
+  border:none;color:#fff;font-size:1.4rem;width:42px;height:42px;border-radius:50%;cursor:pointer}
+/* Badges */
+.badge-strip{display:flex;gap:8px;flex-wrap:wrap}
+.badge{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;
+  background:var(--s2);border:1px solid var(--b2);border-radius:12px;min-width:68px;flex:1;text-align:center}
+.badge.earned{background:linear-gradient(135deg,rgba(0,194,255,.13),rgba(0,194,255,.04));border-color:rgba(0,194,255,.35)}
+.badge.locked{opacity:.35;filter:grayscale(1)}
+.badge-icon{font-size:1.6rem;line-height:1}
+.badge-name{font-family:'Syne',sans-serif;font-size:.44rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3)}
+.badge-earned-check{font-size:.6rem;color:var(--accent);font-weight:800}
 .spost-body{padding:11px 14px 2px}
-.spost-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;
-  letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.spost-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
 .spost-desc{font-size:.8rem;color:var(--t2);line-height:1.55;margin-bottom:9px}
 .spost-ings{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
-.sing{padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:600;
-  background:var(--abg);border:1px solid rgba(0,194,255,.2);color:var(--a2)}
+.sing{padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:600;background:var(--abg);border:1px solid rgba(0,194,255,.2);color:var(--a2)}
 .sreacts-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
-.sreact-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;
-  border-radius:20px;font-size:.68rem;background:var(--s2);border:1px solid var(--b2);color:var(--t2)}
+.sreact-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.68rem;background:var(--s2);border:1px solid var(--b2);color:var(--t2)}
 .sreact-chip.mine{background:var(--abg);border-color:rgba(0,194,255,.3);color:var(--a2)}
-.spost-actions{border-top:1px solid var(--b2);padding:8px 14px;
-  display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.sact{padding:5px 10px;border:1px solid var(--b2);border-radius:20px;
-  background:transparent;font-family:'DM Sans',sans-serif;font-size:.7rem;
-  font-weight:600;cursor:pointer;color:var(--t2);transition:.15s;
-  display:inline-flex;align-items:center;gap:4px}
+.spost-actions{border-top:1px solid var(--b2);padding:8px 14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sact{padding:5px 10px;border:1px solid var(--b2);border-radius:20px;background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--t2);
+  transition:.15s;display:inline-flex;align-items:center;gap:4px}
 .sact:hover{border-color:var(--accent);color:var(--a2);background:var(--abg)}
 .sact.reacted{border-color:var(--accent);color:var(--a2);background:var(--abg)}
 .sact.saved{border-color:var(--ok);color:var(--ok);background:var(--obg)}
 .sreact-wrap{position:relative}
-.sreact-picker{position:absolute;bottom:calc(100%+8px);left:0;z-index:50;
-  background:var(--surface);border:1px solid var(--b2);border-radius:14px;
-  padding:9px 12px;display:flex;gap:8px;box-shadow:var(--shadowL);
-  opacity:0;transform:translateY(6px) scale(.96);pointer-events:none;
-  transition:.15s;transform-origin:bottom left}
+.sreact-picker{position:absolute;bottom:calc(100%+8px);left:0;z-index:50;background:var(--surface);
+  border:1px solid var(--b2);border-radius:14px;padding:9px 12px;display:flex;gap:8px;box-shadow:var(--shadowL);
+  opacity:0;transform:translateY(6px) scale(.96);pointer-events:none;transition:.15s;transform-origin:bottom left}
 .sreact-picker.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
-.sreact-btn{font-size:1.4rem;cursor:pointer;background:none;border:none;
-  padding:3px 4px;border-radius:8px;transition:.15s}
+.sreact-btn{font-size:1.4rem;cursor:pointer;background:none;border:none;padding:3px 4px;border-radius:8px;transition:.15s}
 .sreact-btn:hover{background:var(--abg);transform:scale(1.25)}
-/* Comments section */
 .scomments{padding:0 14px 12px;display:none}
 .scomments.open{display:block}
 .scomment{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
@@ -299,58 +347,42 @@ body::before{content:'';position:fixed;inset:0;
 .scomment-input{flex:1;padding:7px 11px;background:var(--s2);border:1.5px solid var(--border);
   border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--text);outline:none}
 .scomment-input:focus{border-color:var(--accent)}
-/* Follow button */
-.sfollowbtn{padding:5px 12px;border-radius:20px;font-family:'Syne',sans-serif;
-  font-size:.56rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
-.sfollowbtn.flw{background:var(--accent);color:#fff;border:none;
-  box-shadow:0 3px 10px rgba(0,194,255,.25)}
+.sfollowbtn{padding:5px 12px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.56rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0}
+.sfollowbtn.flw{background:var(--accent);color:#fff;border:none;box-shadow:0 3px 10px rgba(0,194,255,.25)}
 .sfollowbtn.flw:hover{background:var(--a2)}
 .sfollowbtn.fing{background:transparent;color:var(--t3);border:1px solid var(--border)}
 .sfollowbtn.fing:hover{border-color:var(--danger);color:var(--danger);background:var(--dbg)}
-/* Empty states */
 .soc-empty{text-align:center;padding:50px 20px}
 .soc-empty .ei{font-size:2.8rem;margin-bottom:10px;display:block}
 .soc-empty p{font-size:.82rem;color:var(--t3);line-height:1.6;margin-bottom:14px}
-/* People */
 .people-list{display:flex;flex-direction:column;gap:10px}
-.pcard{background:var(--surface);border:1px solid var(--b2);border-radius:14px;
-  padding:13px;display:flex;align-items:center;gap:11px;
-  box-shadow:var(--shadow);cursor:pointer;transition:.2s}
+.pcard{background:var(--surface);border:1px solid var(--b2);border-radius:14px;padding:13px;
+  display:flex;align-items:center;gap:11px;box-shadow:var(--shadow);cursor:pointer;transition:.2s}
 .pcard:hover{border-color:rgba(0,194,255,.3);transform:translateY(-1px)}
 .pcard-name{font-weight:700;font-size:.84rem}
 .pcard-handle{font-size:.67rem;color:var(--t3);margin-bottom:2px}
-.pcard-bio{font-size:.72rem;color:var(--t2);display:-webkit-box;
-  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-/* Profile modal */
+.pcard-bio{font-size:.72rem;color:var(--t2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sprofile-banner{height:72px}
 .sprofile-stats{display:flex;gap:22px;margin:12px 0 16px}
 .sprofile-stat-v{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent)}
 .sprofile-stat-l{font-size:.58rem;color:var(--t3);letter-spacing:1px;text-transform:uppercase}
-/* New post emoji picker */
 .emoji-pick{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:10px}
-.ep{font-size:1.4rem;cursor:pointer;text-align:center;padding:5px;border-radius:7px;
-  border:2px solid transparent;transition:.13s}
+.ep{font-size:1.4rem;cursor:pointer;text-align:center;padding:5px;border-radius:7px;border:2px solid transparent;transition:.13s}
 .ep:hover{background:var(--abg)}.ep.sel{border-color:var(--accent);background:var(--abg)}
-/* Social tabs */
 .soc-tabs{display:flex;border-bottom:1px solid var(--b2);margin-bottom:12px;overflow-x:auto}
-.soc-tab{flex-shrink:0;padding:9px 12px;border:none;background:transparent;
-  font-family:'Syne',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:1.5px;
-  text-transform:uppercase;color:var(--t3);cursor:pointer;transition:.15s;
-  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.soc-tab{flex-shrink:0;padding:9px 12px;border:none;background:transparent;font-family:'Syne',sans-serif;
+  font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);
+  cursor:pointer;transition:.15s;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .soc-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .soc-section{display:none}
 .soc-section.active{display:block}
-/* Feed filters */
 .feed-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.feed-filter{padding:5px 12px;border:1px solid var(--border);border-radius:20px;
-  background:var(--s2);font-size:.6rem;font-weight:600;letter-spacing:1px;
-  text-transform:uppercase;cursor:pointer;color:var(--t2);transition:.15s}
+.feed-filter{padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:var(--s2);
+  font-size:.6rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--t2);transition:.15s}
 .feed-filter:hover{border-color:var(--accent);color:var(--a2)}
 .feed-filter.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-/* Loading spinner for social */
 .soc-loading{text-align:center;padding:30px;color:var(--t3);font-size:.8rem}
-
 /* ── NOTIFICATIONS ── */
 .notif-item{display:flex;align-items:flex-start;gap:11px;padding:13px 16px;
   border-bottom:1px solid var(--b2);transition:.15s;cursor:pointer}
@@ -449,14 +481,16 @@ textarea{resize:vertical;min-height:72px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* ── TABLES ── */
-.tw{overflow-x:auto}
+.tw{overflow-x:auto;width:100%;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:.8rem}
+.tw table{min-width:640px}
 thead{background:var(--s2)}
 th{padding:9px 13px;text-align:left;font-size:.58rem;font-weight:700;
   letter-spacing:2px;text-transform:uppercase;color:var(--t3);
-  border-bottom:1px solid var(--b2);white-space:nowrap}
+  border-bottom:1px solid var(--b2);white-space:nowrap;vertical-align:middle}
 th.c,td.c{text-align:center}
-td{padding:10px 13px;border-bottom:1px solid var(--b2)}
+td{padding:8px 13px;border-bottom:1px solid var(--b2);white-space:nowrap;
+  vertical-align:middle;height:44px;line-height:1.2}
 tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:var(--s2)}
 .ni2{width:70px;padding:6px 7px;background:var(--s2);border:1.5px solid var(--border);
@@ -936,7 +970,62 @@ tbody tr:hover td{background:var(--s2)}
 
 
 
+<!-- CONTACT BUTTON -->
+<button id="contactFab" onclick="openContact()"
+  style="display:none;position:fixed;bottom:74px;right:16px;z-index:199;
+    width:46px;height:46px;border-radius:50%;border:none;
+    background:var(--accent);color:#fff;font-size:1.2rem;cursor:pointer;
+    box-shadow:0 4px 18px rgba(0,194,255,.4);transition:.2s"
+  title="Contactar a Mixly">✉️</button>
+
+<!-- CONTACT MODAL -->
+<div class="mo" id="contactMo">
+  <div class="mb" style="max-width:380px">
+    <div class="mh">
+      <h3>Contacto</h3>
+      <button class="mc" onclick="document.getElementById('contactMo').classList.remove('show')">✕</button>
+    </div>
+    <div class="mbody" style="text-align:center;padding:28px 20px">
+      <div style="font-size:2.5rem;margin-bottom:12px">✉️</div>
+      <div style="font-family:'Syne',sans-serif;font-size:.8rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">¿Tienes dudas o sugerencias?</div>
+      <div style="font-size:.82rem;color:var(--t2);margin-bottom:22px;line-height:1.6">Escríbenos directamente y te respondemos a la brevedad.</div>
+      <a href="/cdn-cgi/l/email-protection#85c6cacbd1c4c6d1cadac0c8c4ccc9" id="contactEmailLink" style="display:inline-flex;align-items:center;gap:8px;
+          padding:12px 22px;background:var(--accent);color:#fff;
+          border-radius:12px;font-weight:700;font-size:.85rem;
+          text-decoration:none;box-shadow:0 4px 16px rgba(0,194,255,.3)">
+        ✉️ <span id="contactEmailText">Enviar correo</span>
+      </a>
+      <div style="margin-top:16px;font-size:.7rem;color:var(--t3)">También puedes copiar el correo:</div>
+      <div id="contactEmailDisplay"
+        style="margin-top:6px;font-size:.78rem;font-weight:600;color:var(--accent);
+          cursor:pointer;text-decoration:underline"
+        onclick="copyContactEmail()">CONTACTO_EMAIL</div>
+      <div id="contactCopyOk" style="display:none;font-size:.7rem;color:var(--ok);margin-top:4px">✓ Correo copiado</div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- IMAGE FULLVIEW -->
+<div class="img-fullview" id="imgFullview" onclick="closeImgFull()">
+  <button class="img-fullview-close" onclick="event.stopPropagation();closeImgFull()">✕</button>
+  <img id="imgFullviewImg" src="" alt="" onclick="event.stopPropagation()"/>
+</div>
+
+<!-- BADGES MODAL -->
+<div class="mo" id="badgesMo">
+  <div class="mb" style="max-width:380px">
+    <div class="mh"><h3>🏅 Mis Badges</h3><button class="mc" onclick="document.getElementById('badgesMo').classList.remove('show')">✕</button></div>
+    <div class="mbody" style="padding:18px">
+      <p style="font-size:.78rem;color:var(--t3);margin-bottom:16px">Desbloquea badges siendo activo en la comunidad Mixly.</p>
+      <div id="badgesList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ONBOARDING OVERLAY -->
+
 <div id="obOverlay">
   <div class="ob-backdrop" onclick="obSkip()"></div>
   <div class="ob-spotlight" id="obSpot"></div>
@@ -1494,10 +1583,14 @@ tbody tr:hover td{background:var(--s2)}
     </div>
     <!-- FEED -->
     <div class="soc-section active" id="soc-feed">
-      <div class="feed-filters">
-        <button class="feed-filter active" data-ff="all"       onclick="setFeedFilter('all',this)">Todos</button>
-        <button class="feed-filter"        data-ff="following" onclick="setFeedFilter('following',this)">Siguiendo</button>
-        <button class="feed-filter"        data-ff="saved"     onclick="setFeedFilter('saved',this)">Guardados</button>
+      <div class="feed-mode">
+        <button class="feed-mode-btn active" data-fm="global" onclick="setFeedMode('global',this)">🌍 Global</button>
+        <button class="feed-mode-btn" data-fm="following" onclick="setFeedMode('following',this)">👥 Siguiendo</button>
+        <button class="feed-mode-btn" data-fm="saved" onclick="setFeedMode('saved',this)">🔖 Guardados</button>
+      </div>
+      <div class="hot-section" id="hotSection" style="display:none">
+        <div class="hot-label">🔥 Hot esta semana</div>
+        <div class="hot-scroll" id="hotScroll"></div>
       </div>
       <div id="socFeedList"></div>
     </div>
@@ -1518,7 +1611,15 @@ tbody tr:hover td{background:var(--s2)}
           <div id="snp-ok" class="ab aok"></div>
           <div id="snp-er" class="ab aer"></div>
           <div class="fg c2">
-            <div class="fgroup"><label class="fl">Nombre del cóctel *</label>
+            <div class="fgroup"><label class="fl">Foto del cóctel</label>
+            <div class="img-upload-area" id="snpImgArea" onclick="document.getElementById('snpImgInput').click()">
+              <input type="file" id="snpImgInput" accept="image/*" style="display:none" onchange="snpPreviewImg(this)"/>
+              <span class="img-upload-icon">📷</span>
+              <span class="img-upload-label">Toca para agregar foto<br><small style="opacity:.6">JPG, PNG · máx 5MB</small></span>
+            </div>
+            <button class="btn bs sm" id="snpImgRemove" style="display:none;margin-top:6px" onclick="snpRemoveImg()">✕ Quitar foto</button>
+          </div>
+          <div class="fgroup"><label class="fl">Nombre del cóctel *</label>
               <input id="snpName" placeholder="Ej: Mezcal Negroni"/></div>
             <div class="fgroup"><label class="fl">Perfil de sabor</label>
               <select id="snpPerfil">
@@ -1584,7 +1685,7 @@ tbody tr:hover td{background:var(--s2)}
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ══════════ ANTI-ZOOM MÓVIL (Xiaomi HyperOS) ══════════ */
 (function(){
   const vp=document.querySelector('meta[name=viewport]');
@@ -1720,7 +1821,9 @@ function sp(name){
   if(name==='timers')renderTimers();
   if(name==='fichas')renderFichas();
   if(name==='mermas'){renderMermas();mStats();}
-  if(name==='social')renderSocFeed();
+  // social feed renders itself after loadSocData() finishes
+  // only re-render if data is already loaded (navigating back)
+  if(name==='social'&&socInited&&socPosts.length)renderSocFeed();
 }
 function openDrawer(){document.getElementById('drawerBackdrop').classList.add('open');document.getElementById('toolsDrawer').classList.add('open');}
 function closeDrawer(){document.getElementById('drawerBackdrop').classList.remove('open');document.getElementById('toolsDrawer').classList.remove('open');}
@@ -1853,11 +1956,13 @@ function renderP(){
       <td class="c" style="color:var(--a2);font-weight:700">$${ppu.toFixed(2)}/${p.unit_type}</td>
       <td class="c">
         <span class="${minSt>0?(lowStock?'pill pw':'pill po'):'pill pm'}">${minSt>0?minSt:'—'}</span>
-        ${totalStock!==null?`<div class="sub">stock: ${totalStock.toFixed(2)}</div>`:''}
+        ${totalStock!==null?`<span style="font-size:.65rem;color:var(--t3);margin-left:4px">${totalStock.toFixed(0)}</span>`:''}
       </td>
-      <td class="c" style="display:flex;gap:5px;justify-content:center">
+      <td class="c">
+        <div style="display:flex;gap:5px;justify-content:center;align-items:center">
         <button class="btn bs sm" onclick="editP(${p.id})">Editar</button>
         <button class="btn bd sm" onclick="delP(${p.id})">Eliminar</button>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -1990,7 +2095,7 @@ function renderI(){
           inputmode="decimal" enterkeyhint="next"
           onfocus="invFocus(this)"
           onchange="uIS('${item.id}',this.value)">
-        <div class="sub" style="${zero?'color:var(--danger);font-weight:600':''}">Total: ${total.toFixed(2)}</div>
+        <span class="sub" style="display:block;font-size:.6rem;${zero?'color:var(--danger);font-weight:600':''}">Tot: ${total.toFixed(1)}</span>
       </td>
       <td class="c"><span style="font-size:.72rem;color:var(--t3)">${item.unit}</span></td>
       <td class="c" style="color:var(--t3);font-size:.8rem">${min>0?min:'—'}</td>
@@ -2000,7 +2105,7 @@ function renderI(){
           inputmode="numeric" enterkeyhint="next"
           onfocus="invFocus(this)"
           onchange="uIPed('${item.id}',this.value)">
-        ${min>0&&total<min?`<div class="sub" style="color:${inputCol}">sug: ${Math.ceil(min-total)}</div>`:''}
+        ${min>0&&total<min?`<span class="sub" style="display:block;font-size:.6rem;color:${inputCol}">sug: ${Math.ceil(min-total)}</span>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -3886,36 +3991,40 @@ function initSocial(){
     socInited=true;
   }
   loadSocData();
+  if(!notifPolling)startNotifPolling();
 }
 
 async function loadSocData(){
   document.getElementById('socFeedList').innerHTML='<div class="soc-loading">Cargando comunidad…</div>';
-  // Load follows & saves in parallel
-  const[followsRes,savesRes]=await Promise.all([
+  const[followsRes,savesRes,wttRes]=await Promise.all([
     db.from('social_follows').select('following_id').eq('follower_id',uid),
-    db.from('social_saves').select('post_id').eq('user_id',uid)
+    db.from('social_saves').select('post_id').eq('user_id',uid),
+    db.from('social_want_try').select('post_id').eq('user_id',uid).catch(()=>({data:[]})),
   ]);
   socFollows=(followsRes.data||[]).map(r=>r.following_id);
   socSaved=(savesRes.data||[]).map(r=>r.post_id);
+  socWantTry=(wttRes.data||[]).map(r=>r.post_id);
   await loadFeedPosts();
   renderSocPeople();
   renderSocMyPosts();
+  checkBadges();
 }
 
 async function loadFeedPosts(){
-  // Load posts with reaction counts via a join-style approach
   const{data,error}=await db.from('social_posts')
     .select('*')
     .order('created_at',{ascending:false})
-    .limit(50);
+    .limit(60);
   if(error){console.error('social posts error',error);return;}
   socPosts=data||[];
-  // Load my reactions for these posts
   if(socPosts.length){
     const ids=socPosts.map(p=>p.id);
-    const[reactRes,countRes]=await Promise.all([
+    const[reactRes,countRes,commRes,ratingRes,myRatingRes]=await Promise.all([
       db.from('social_reactions').select('post_id,emoji').eq('user_id',uid).in('post_id',ids),
-      db.from('social_reactions').select('post_id,emoji')
+      db.from('social_reactions').select('post_id,emoji'),
+      db.from('social_comments').select('post_id'),
+      db.from('social_ratings').select('post_id,stars').catch(()=>({data:[]})),
+      db.from('social_ratings').select('post_id,stars').eq('user_id',uid).in('post_id',ids).catch(()=>({data:[]})),
     ]);
     const myReacts={};
     (reactRes.data||[]).forEach(r=>{myReacts[r.post_id]=r.emoji;});
@@ -3924,43 +4033,89 @@ async function loadFeedPosts(){
       if(!allCounts[r.post_id])allCounts[r.post_id]={};
       allCounts[r.post_id][r.emoji]=(allCounts[r.post_id][r.emoji]||0)+1;
     });
-    const commCountRes=await db.from('social_comments').select('post_id');
     const commCounts={};
-    (commCountRes.data||[]).forEach(r=>{commCounts[r.post_id]=(commCounts[r.post_id]||0)+1;});
-    socPosts=socPosts.map(p=>({...p,_myReaction:myReacts[p.id]||null,_reactions:allCounts[p.id]||{},_comments:commCounts[p.id]||0}));
+    (commRes.data||[]).forEach(r=>{commCounts[r.post_id]=(commCounts[r.post_id]||0)+1;});
+    const ratingMap={};
+    (ratingRes.data||[]).forEach(r=>{
+      if(!ratingMap[r.post_id])ratingMap[r.post_id]={sum:0,count:0};
+      ratingMap[r.post_id].sum+=r.stars;ratingMap[r.post_id].count++;
+    });
+    const myRatings={};
+    (myRatingRes.data||[]).forEach(r=>{myRatings[r.post_id]=r.stars;});
+    socPosts=socPosts.map(p=>({
+      ...p,
+      _myReaction:myReacts[p.id]||null,
+      _reactions:allCounts[p.id]||{},
+      _comments:commCounts[p.id]||0,
+      _ratingAvg:ratingMap[p.id]?ratingMap[p.id].sum/ratingMap[p.id].count:0,
+      _ratingCount:ratingMap[p.id]?.count||0,
+      _myRating:myRatings[p.id]||0,
+    }));
   }
   renderSocFeed();
+  renderHotSection();
 }
 
 /* ── FEED ── */
-window.setFeedFilter=function(val,btn){
-  socFeedFilter=val;
-  document.querySelectorAll('.feed-filter').forEach(b=>b.classList.remove('active'));
+/* ── FEED MODE ── */
+window.setFeedMode=function(mode,btn){
+  socFeedMode=mode;
+  document.querySelectorAll('.feed-mode-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   renderSocFeed();
 };
 
 function renderSocFeed(){
   const el=document.getElementById('socFeedList');if(!el)return;
-  let list=socFeedFilter==='following'
+  let list=socFeedMode==='following'
     ?socPosts.filter(p=>socFollows.includes(p.user_id)||p.user_id===uid)
-    :socFeedFilter==='saved'?socPosts.filter(p=>socSaved.includes(p.id))
+    :socFeedMode==='saved'?socPosts.filter(p=>socSaved.includes(p.id))
     :socPosts;
-  if(!list.length){
-    const msgs={
-      all:`<div class="soc-empty"><span class="ei">🌐</span><p>La comunidad está vacía.<br>¡Sé el primero en publicar una receta!</p><button class="btn bp" onclick="socSwitchTab('newpost',document.querySelector('[data-st=newpost]'))">Publicar ahora</button></div>`,
-      following:`<div class="soc-empty"><span class="ei">👥</span><p>No sigues a nadie aún, o quienes sigues no han publicado.</p><button class="btn bs" onclick="socSwitchTab('people',document.querySelector('[data-st=people]'))">Buscar personas →</button></div>`,
-      saved:`<div class="soc-empty"><span class="ei">🔖</span><p>No has guardado ningún cóctel aún.<br>Toca 📌 en cualquier post.</p></div>`,
-    };
-    el.innerHTML=msgs[socFeedFilter]||msgs.all;return;
-  }
+  const msgs={
+    global:`<div class="soc-empty"><span class="ei">🌐</span><p>La comunidad está vacía.<br>¡Sé el primero en publicar una receta!</p><button class="btn bp" onclick="socSwitchTab('newpost',document.querySelector('[data-st=newpost]'))">Publicar ahora</button></div>`,
+    following:`<div class="soc-empty"><span class="ei">👥</span><p>No sigues a nadie aún, o quienes sigues no han publicado.</p><button class="btn bs" onclick="socSwitchTab('people',document.querySelector('[data-st=people]'))">Buscar personas →</button></div>`,
+    saved:`<div class="soc-empty"><span class="ei">🔖</span><p>No has guardado ningún cóctel aún.<br>Toca 📌 en cualquier post.</p></div>`,
+  };
+  if(!list.length){el.innerHTML=msgs[socFeedMode]||msgs.global;return;}
   el.innerHTML=list.map(p=>socPostCard(p)).join('');
 }
+
+function renderHotSection(){
+  const cutoff=Date.now()-7*24*60*60*1000;
+  const hot=socPosts
+    .filter(p=>new Date(p.created_at).getTime()>cutoff)
+    .map(p=>({...p,_score:Object.values(p._reactions||{}).reduce((a,b)=>a+b,0)}))
+    .filter(p=>p._score>0)
+    .sort((a,b)=>b._score-a._score)
+    .slice(0,8);
+  const sec=document.getElementById('hotSection');
+  const scroll=document.getElementById('hotScroll');
+  if(!sec||!scroll)return;
+  if(!hot.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  scroll.innerHTML=hot.map(p=>`
+    <div class="hot-card" onclick="scrollToPost('${p.id}')">
+      <div class="hot-card-img" style="background:${SOC_BGS[(p.bg_index||0)%SOC_BGS.length]}">
+        ${p.image_url?`<img src="${p.image_url}" alt=""/>`:`<span style="font-size:1.8rem;position:relative;z-index:1">${p.emoji||'🍸'}</span>`}
+      </div>
+      <div class="hot-card-body">
+        <div class="hot-card-name">${p.name}</div>
+        <div class="hot-card-stars">${'★'.repeat(Math.round(p._ratingAvg||0))}${'☆'.repeat(5-Math.round(p._ratingAvg||0))} <span style="color:var(--t3)">${p._score}🔥</span></div>
+      </div>
+    </div>`).join('');
+}
+
+window.scrollToPost=function(postId){
+  const el=document.getElementById('spost-'+postId);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+  else{socFeedMode='global';renderSocFeed();setTimeout(()=>window.scrollToPost(postId),400);}
+};
 
 function socPostCard(p){
   const isMe=p.user_id===uid;
   const isFollowing=socFollows.includes(p.user_id)||isMe;
   const isSaved=socSaved.includes(p.id);
+  const isWtt=socWantTry.includes(p.id);
   const name=p.bar_name||'Mixly Bar';
   const handle=p.username?'@'+p.username:'@bartender';
   const color=socColor(name);
@@ -3969,22 +4124,28 @@ function socPostCard(p){
   const reactTotal=Object.values(reacts).reduce((a,b)=>a+b,0);
   const ago=socTimeAgo(p.created_at);
   const ings=(p.ingredients||[]);
+  const myStars=p._myRating||0;
+  const avgStars=p._ratingAvg||0;
+  const safeId=p.id.replace(/[^a-z0-9-]/gi,'');
+  const safeName=name.replace(/['"<>]/g,'');
+  const starHtml=[1,2,3,4,5].map(s=>`<span class="star${s<=myStars?' lit':''}" onclick="socRate('${p.id}',${s})">★</span>`).join('');
+  const avgHtml=avgStars>0?`<span class="star-avg">${avgStars.toFixed(1)}</span><span class="star-count">(${p._ratingCount})</span>`:'';
   return`<div class="spost" id="spost-${p.id}">
     <div class="spost-head">
-      <div class="savatar" style="background:${color}" onclick="socShowProfile('${p.user_id}','${name}','${handle}',${p._comments||0})">${socInitials(name)}</div>
+      <div class="savatar" style="background:${color}" onclick="socShowProfile('${p.user_id}','${safeName}','${handle}',${p._comments||0})">${socInitials(name)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:.84rem;cursor:pointer" onclick="socShowProfile('${p.user_id}','${name}','${handle}',0)">${name}</div>
+        <div style="font-weight:700;font-size:.84rem;cursor:pointer" onclick="socShowProfile('${p.user_id}','${safeName}','${handle}',0)">${name}</div>
         <div style="font-size:.67rem;color:var(--t3)">${handle} · ${ago}</div>
       </div>
       ${!isMe?`<button class="sfollowbtn ${isFollowing?'fing':'flw'}" onclick="socToggleFollow('${p.user_id}',this)">${isFollowing?'✓ Siguiendo':'+ Seguir'}</button>`:''}
     </div>
-    <div class="spost-visual" style="background:${bg}">
-      <div style="position:absolute;inset:0;background:rgba(0,0,0,.12)"></div>
-      <span class="semoji">${p.emoji||'🍸'}</span>
+    <div class="spost-visual" style="background:${bg}" onclick="openImgFull('${p.image_url||''}')">
+      ${p.image_url?`<img src="${p.image_url}" alt="${safeName}"/><div class="spost-img-overlay"></div><span class="semoji" style="position:relative;z-index:2;font-size:2rem;opacity:.7">${p.emoji||'🍸'}</span>`:`<div style="position:absolute;inset:0;background:rgba(0,0,0,.12)"></div><span class="semoji">${p.emoji||'🍸'}</span>`}
     </div>
     <div class="spost-body">
       <div class="spost-name">${p.name}</div>
       ${p.flavor?`<span class="pill pa" style="margin-bottom:6px;display:inline-block;font-size:.57rem">${p.flavor}</span>`:''}
+      <div class="star-row">${starHtml}${avgHtml}</div>
       ${p.description?`<div class="spost-desc">${p.description}</div>`:''}
       ${ings.length?`<div class="spost-ings">${ings.map(i=>`<span class="sing">${i}</span>`).join('')}</div>`:''}
       ${reactTotal?`<div class="sreacts-row">${SOC_REACTIONS.filter(r=>reacts[r]>0).map(r=>`<span class="sreact-chip${p._myReaction===r?' mine':''}">${r} ${reacts[r]}</span>`).join('')}</div>`:''}
@@ -3996,12 +4157,80 @@ function socPostCard(p){
           ${SOC_REACTIONS.map(r=>`<button class="sreact-btn" onclick="socReact('${p.id}','${r}')">${r}</button>`).join('')}
         </div>
       </div>
-      <button class="sact" onclick="openComments('${p.id}','${p.name.replace(/'/g,"\\'")}')">💬 ${p._comments||0}</button>
-      <button class="sact${isSaved?' saved':''}" onclick="socToggleSave('${p.id}',this)">${isSaved?'🔖 Guardado':'📌 Guardar'}</button>
+      <button class="sact" onclick="openComments('${p.id}','${p.name.replace(/'/g,"\'")}')">💬 ${p._comments||0}</button>
+      <button class="sact wtt${isWtt?' active':''}" onclick="socToggleWtt('${p.id}',this)" title="Quiero probarlo">🎯 ${isWtt?'Quiero':'Probar'}</button>
+      <button class="sact${isSaved?' saved':''}" onclick="socToggleSave('${p.id}',this)">${isSaved?'🔖':'📌'}</button>
       ${isMe?`<button class="sact" style="color:var(--danger);border-color:transparent;margin-left:auto" onclick="socDeletePost('${p.id}')">🗑</button>`:''}
     </div>
   </div>`;
 }
+
+/* ── IMAGE FULLVIEW ── */
+window.openImgFull=function(url){
+  if(!url)return;
+  document.getElementById('imgFullviewImg').src=url;
+  document.getElementById('imgFullview').classList.add('open');
+};
+window.closeImgFull=function(){document.getElementById('imgFullview').classList.remove('open');};
+
+/* ── RATINGS ── */
+window.socRate=async function(postId,stars){
+  const post=socPosts.find(p=>p.id===postId);if(!post)return;
+  const prev=post._myRating||0;
+  if(prev===stars){
+    await db.from('social_ratings').delete().eq('post_id',postId).eq('user_id',uid).catch(()=>{});
+    const cnt=Math.max(0,(post._ratingCount||1)-1);
+    post._ratingAvg=cnt>0?((post._ratingAvg*(post._ratingCount||1))-stars)/cnt:0;
+    post._ratingCount=cnt;post._myRating=0;
+  } else {
+    await db.from('social_ratings').upsert({post_id:postId,user_id:uid,stars},{onConflict:'post_id,user_id'}).catch(()=>{});
+    if(prev>0){post._ratingAvg=((post._ratingAvg*(post._ratingCount||1))-prev+stars)/(post._ratingCount||1);}
+    else{const c=(post._ratingCount||0);post._ratingAvg=(post._ratingAvg*c+stars)/(c+1);post._ratingCount=c+1;}
+    post._myRating=stars;
+  }
+  socRefreshCard(postId);renderHotSection();
+};
+
+/* ── QUIERO PROBAR ── */
+window.socToggleWtt=async function(postId,btn){
+  const is=socWantTry.includes(postId);
+  if(is){
+    await db.from('social_want_try').delete().eq('post_id',postId).eq('user_id',uid).catch(()=>{});
+    socWantTry=socWantTry.filter(id=>id!==postId);
+  } else {
+    await db.from('social_want_try').insert({post_id:postId,user_id:uid}).catch(()=>{});
+    socWantTry.push(postId);
+  }
+  const now=socWantTry.includes(postId);
+  if(btn){btn.className='sact wtt'+(now?' active':'');btn.textContent='🎯 '+(now?'Quiero':'Probar');}
+};
+
+/* ── BADGES ── */
+async function checkBadges(){
+  try{
+    const myPosts=socPosts.filter(p=>p.user_id===uid).length;
+    const myFollowCount=socFollows.length;
+    const myReactTotal=socPosts.filter(p=>p.user_id===uid).reduce((a,p)=>a+Object.values(p._reactions||{}).reduce((x,y)=>x+y,0),0);
+    const earned=SOC_BADGES.filter(b=>b.req(myPosts,myFollowCount,myReactTotal));
+    for(const b of earned){
+      await db.from('social_badges').upsert({user_id:uid,badge_id:b.id},{onConflict:'user_id,badge_id'}).catch(()=>{});
+    }
+  }catch(e){}
+}
+
+window.openBadges=async function(){
+  closeDrawer();
+  const myPosts=socPosts.filter(p=>p.user_id===uid).length;
+  const myFollowCount=socFollows.length;
+  const myReactTotal=socPosts.filter(p=>p.user_id===uid).reduce((a,p)=>a+Object.values(p._reactions||{}).reduce((x,y)=>x+y,0),0);
+  const el=document.getElementById('badgesList');
+  if(!el)return;
+  el.innerHTML=`<div class="badge-strip">${SOC_BADGES.map(b=>{
+    const ok=b.req(myPosts,myFollowCount,myReactTotal);
+    return`<div class="badge${ok?' earned':' locked'}"><div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>${ok?'<div class="badge-earned-check">✓</div>':''}</div>`;
+  }).join('')}</div>`;
+  document.getElementById('badgesMo').classList.add('show');
+};
 
 function socTimeAgo(ts){
   if(!ts)return'ahora';
@@ -4211,11 +4440,48 @@ window.snpImportRecipe=function(){
   document.getElementById('snpIngs').value=ings.join(', ');
 };
 
+/* ── IMAGE UPLOAD HELPERS ── */
+window.snpPreviewImg=function(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('Imagen muy grande. Máx 5MB.');return;}
+  socImgFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const area=document.getElementById('snpImgArea');
+    let img=area.querySelector('img.prev');
+    if(!img){img=document.createElement('img');img.className='prev';img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;z-index:1';area.prepend(img);}
+    img.src=e.target.result;
+    area.querySelector('.img-upload-icon').style.visibility='hidden';
+    area.querySelector('.img-upload-label').style.visibility='hidden';
+    document.getElementById('snpImgRemove').style.display='';
+  };
+  reader.readAsDataURL(file);
+};
+window.snpRemoveImg=function(){
+  socImgFile=null;
+  const area=document.getElementById('snpImgArea');
+  const img=area.querySelector('img.prev');if(img)img.remove();
+  const ic=area.querySelector('.img-upload-icon');if(ic)ic.style.visibility='';
+  const lb=area.querySelector('.img-upload-label');if(lb)lb.style.visibility='';
+  const fi=document.getElementById('snpImgInput');if(fi)fi.value='';
+  document.getElementById('snpImgRemove').style.display='none';
+};
+
 window.saveSocPost=async function(){
   const name=document.getElementById('snpName').value.trim();
-  if(!name){
-    const er=document.getElementById('snp-er');er.textContent='⚠ El nombre del cóctel es requerido';er.style.display='block';
-    setTimeout(()=>er.style.display='none',3000);return;
+  const okEl=document.getElementById('snp-ok');
+  const erEl=document.getElementById('snp-er');
+  if(!name){erEl.textContent='⚠ El nombre del cóctel es requerido';erEl.style.display='block';setTimeout(()=>erEl.style.display='none',3000);return;}
+  // Upload image if selected
+  let imageUrl=null;
+  if(socImgFile){
+    okEl.textContent='📤 Subiendo imagen…';okEl.style.display='block';
+    const ext=(socImgFile.name.split('.').pop()||'jpg').toLowerCase();
+    const path=`social/${uid}/${Date.now()}.${ext}`;
+    const{error:upErr}=await db.storage.from('cocktail-images').upload(path,socImgFile,{contentType:socImgFile.type,upsert:false});
+    if(upErr){erEl.textContent='⚠ Error imagen: '+upErr.message;erEl.style.display='block';okEl.style.display='none';setTimeout(()=>erEl.style.display='none',5000);return;}
+    const{data:urlData}=db.storage.from('cocktail-images').getPublicUrl(path);
+    imageUrl=urlData?.publicUrl||null;
   }
   const ings=document.getElementById('snpIngs').value.split(',').map(s=>s.trim()).filter(Boolean);
   const m=await db.auth.getUser();
@@ -4229,22 +4495,20 @@ window.saveSocPost=async function(){
     ingredients:ings,
     flavor:document.getElementById('snpPerfil').value||null,
     emoji:socEmojiSel,
-    bg_index:Math.floor(Math.random()*SOC_BGS.length)
+    bg_index:Math.floor(Math.random()*SOC_BGS.length),
+    image_url:imageUrl,
   };
   const{data,error}=await db.from('social_posts').insert([payload]).select().single();
-  if(error){
-    const er=document.getElementById('snp-er');er.textContent='⚠ '+error.message;er.style.display='block';
-    setTimeout(()=>er.style.display='none',5000);return;
-  }
-  // Add to local list
-  socPosts.unshift({...data,_myReaction:null,_reactions:{},_comments:0});
+  if(error){erEl.textContent='⚠ '+error.message;erEl.style.display='block';okEl.style.display='none';setTimeout(()=>erEl.style.display='none',5000);return;}
+  socPosts.unshift({...data,_myReaction:null,_reactions:{},_comments:0,_ratingAvg:0,_ratingCount:0,_myRating:0});
   ['snpName','snpDesc','snpIngs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('snpPerfil').value='';
-  const ok=document.getElementById('snp-ok');ok.textContent='✓ ¡Receta publicada en la comunidad!';ok.style.display='block';
-  setTimeout(()=>{ok.style.display='none';socSwitchTab('feed',document.querySelector('[data-st=feed]'));renderSocFeed();},1500);
+  snpRemoveImg();
+  checkBadges();
+  okEl.textContent='✓ ¡Receta publicada en la comunidad!';okEl.style.display='block';
+  setTimeout(()=>{okEl.style.display='none';socSwitchTab('feed',document.querySelector('[data-st=feed]'));renderSocFeed();renderHotSection();},1500);
   renderSocMyPosts();
 };
-
 /* ── HELPER ── */
 function socRefreshCard(postId){
   const el=document.getElementById('spost-'+postId);if(!el)return;
@@ -4252,23 +4516,6 @@ function socRefreshCard(postId){
   const tmp=document.createElement('div');
   tmp.innerHTML=socPostCard(post);
   el.replaceWith(tmp.firstChild);
-}
-
-function renderSocFeed(){
-  const el=document.getElementById('socFeedList');if(!el)return;
-  let list=socFeedFilter==='following'
-    ?socPosts.filter(p=>socFollows.includes(p.user_id)||p.user_id===uid)
-    :socFeedFilter==='saved'?socPosts.filter(p=>socSaved.includes(p.id))
-    :socPosts;
-  if(!list.length){
-    const msgs={
-      all:`<div class="soc-empty"><span class="ei">🌐</span><p>La comunidad está vacía.<br>¡Sé el primero en publicar una receta!</p><button class="btn bp" onclick="socSwitchTab('newpost',document.querySelector('[data-st=newpost]'))">Publicar ahora</button></div>`,
-      following:`<div class="soc-empty"><span class="ei">👥</span><p>No sigues a nadie aún, o quienes sigues no han publicado.</p><button class="btn bs" onclick="socSwitchTab('people',document.querySelector('[data-st=people]'))">Buscar personas →</button></div>`,
-      saved:`<div class="soc-empty"><span class="ei">🔖</span><p>No has guardado ningún cóctel aún.</p></div>`,
-    };
-    el.innerHTML=msgs[socFeedFilter]||msgs.all;return;
-  }
-  el.innerHTML=list.map(p=>socPostCard(p)).join('');
 }
 
 /* ══════════════════════════════════════════
@@ -4423,12 +4670,38 @@ window.submitComment=async function(){
     createNotif(post.user_id,'comment',post.name);
 };
 
-// ── Arrancar polling al iniciar sesión ──
-const _oInitSocial=initSocial;
-function initSocial(){
-  _oInitSocial();
-  if(!notifPolling)startNotifPolling();
+// polling arranca desde initSocial directamente (ver definición original)
+
+/* ── CONTACTO ── */
+const CONTACT_EMAIL = 'CONTACTO_EMAIL'; // ← cambia aquí tu correo
+
+function openContact(){
+  document.getElementById('contactMo').classList.add('show');
 }
+function copyContactEmail(){
+  navigator.clipboard.writeText(CONTACT_EMAIL).then(()=>{
+    const ok=document.getElementById('contactCopyOk');
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none',2000);
+  }).catch(()=>{
+    prompt('Copia este correo:',CONTACT_EMAIL);
+  });
+}
+// Show FAB after login
+(function patchContactFab(){
+  const orig=window.lgsInitApp||lgsInitApp;
+  // Just show the FAB when topbar shows
+  const obs=new MutationObserver(()=>{
+    const tb=document.getElementById('igTopbar');
+    const fab=document.getElementById('contactFab');
+    if(tb&&fab){
+      fab.style.display=tb.style.display==='none'?'none':'flex';
+      fab.style.alignItems='center';fab.style.justifyContent='center';
+    }
+  });
+  const tb=document.getElementById('igTopbar');
+  if(tb)obs.observe(tb,{attributes:true,attributeFilter:['style']});
+})();
 
 
 </script>
@@ -4436,10 +4709,4 @@ function initSocial(){
     if('serviceWorker' in navigator){
       window.addEventListener('load',()=>{
         navigator.serviceWorker.register('sw.js')
-          .then(r=>console.log('SW registered:',r.scope))
-          .catch(e=>console.log('SW error:',e));
-      });
-    }
-  </script>
-</body>
-</html>
+          .the
