@@ -223,7 +223,8 @@ body::before{content:'';position:fixed;inset:0;
 .drawer-item:hover{background:var(--abg);color:var(--a2)}
 .drawer-item .di{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
 .drawer-divider{height:1px;background:var(--b2);margin:4px 0}
-.drawer-footer{padding:12px 16px;border-top:1px solid var(--b2);display:flex;gap:8px}
+.drawer-footer{padding:12px 16px 20px;border-top:1px solid var(--b2);
+  display:flex;flex-direction:column;gap:8px}
 
 /* ── MAIN ── */
 .main{display:block;position:relative;z-index:1;
@@ -792,6 +793,34 @@ tbody tr:hover td{background:var(--s2)}
 .ep-avatar-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.5);
   display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;font-size:.7rem;color:#fff;font-weight:700}
 .ep-avatar-wrap:hover .ep-avatar-overlay{opacity:1}
+
+/* ── SHARE POST ── */
+.share-canvas-wrap{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.share-canvas-wrap.open{opacity:1;pointer-events:all}
+.share-canvas-wrap canvas{border-radius:16px;max-width:min(400px,90vw);box-shadow:0 8px 48px rgba(0,0,0,.6)}
+.share-btns{display:flex;gap:10px}
+
+/* ── MENTION DROPDOWN ── */
+.mention-drop{position:absolute;bottom:calc(100%+6px);left:0;right:0;z-index:200;
+  background:var(--surface);border:1px solid var(--b2);border-radius:12px;
+  box-shadow:var(--shadowL);max-height:180px;overflow-y:auto;display:none}
+.mention-drop.show{display:block}
+.mention-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:.12s}
+.mention-item:hover{background:var(--abg)}
+.mention-item-name{font-size:.8rem;font-weight:700}
+.mention-item-handle{font-size:.65rem;color:var(--t3)}
+
+/* ── EXPLORE BY INGREDIENT ── */
+.ing-explore{margin-bottom:14px}
+.ing-explore-label{font-family:'Syne',sans-serif;font-size:.62rem;font-weight:800;
+  letter-spacing:2px;text-transform:uppercase;color:var(--t2);margin-bottom:8px;display:block}
+.ing-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ing-tag{padding:4px 12px;border-radius:20px;font-size:.68rem;font-weight:600;
+  background:var(--s2);border:1px solid var(--b2);color:var(--t2);cursor:pointer;transition:.15s}
+.ing-tag:hover,.ing-tag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ing-search-wrap{position:relative;margin-bottom:10px}
 </style>
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
@@ -894,7 +923,7 @@ tbody tr:hover td{background:var(--s2)}
 
 <!-- TOP BAR -->
 <header class="ig-topbar" id="igTopbar" style="display:none">
-  <div class="ig-logo">MIX<span>LY</span></div>
+  <div class="ig-logo">MIX<span>LY</span><sup style="font-size:.38rem;font-weight:700;letter-spacing:1px;color:var(--accent);vertical-align:super;margin-left:2px;font-family:'DM Sans',sans-serif">BETA</sup></div>
   <div class="ig-topbar-right">
     <button class="ig-icon-btn" onclick="openNotifs()" title="Notificaciones" style="position:relative">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -944,8 +973,8 @@ tbody tr:hover td{background:var(--s2)}
     <button class="drawer-item" onclick="spD('buscador')"><span class="di">🔍</span>Buscador</button>
   </div>
   <div class="drawer-footer">
-    <button class="btn bs" style="flex:1" onclick="toggleDM();closeDrawer()"><span id="dmIc">🌙</span> <span id="dmLb">Dark mode</span></button>
-    <button class="btn bs" style="margin-bottom:6px" onclick="closeDrawer();openContact()">✉️ Contactar a Mixly</button>
+    <button class="btn bs" onclick="toggleDM();closeDrawer()"><span id="dmIc">🌙</span> <span id="dmLb">Dark mode</span></button>
+    <button class="btn bs" onclick="closeDrawer();openContact()">✉️ Contactar a Mixly</button>
     <button class="btn bd" onclick="closeDrawer();doLogout()">⎋ Salir</button>
   </div>
 </div>
@@ -968,8 +997,11 @@ tbody tr:hover td{background:var(--s2)}
         <span></span>
         <button onclick="cancelReply()">✕</button>
       </div>
-      <div class="scomment-input-row">
-        <input class="scomment-input" id="socCommentInput" placeholder="Escribe un comentario…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment();}"/>
+      <div class="scomment-input-row" style="position:relative">
+        <div class="mention-drop" id="mentionDrop"></div>
+        <input class="scomment-input" id="socCommentInput" placeholder="Escribe un comentario… usa @ para mencionar"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment();}"
+          oninput="handleCommentInput(this)"/>
         <button class="btn bp sm" onclick="submitComment()">Enviar</button>
       </div>
     </div>
@@ -1040,6 +1072,16 @@ tbody tr:hover td{background:var(--s2)}
       </div>
     </div>
   </div>
+</div>
+
+<!-- SHARE POST CANVAS -->
+<div class="share-canvas-wrap" id="shareWrap">
+  <canvas id="shareCanvas"></canvas>
+  <div class="share-btns">
+    <button class="btn bp" onclick="downloadShareImg()">⬇ Descargar imagen</button>
+    <button class="btn bs" onclick="closeShareWrap()">✕ Cerrar</button>
+  </div>
+  <div style="font-size:.68rem;color:rgba(255,255,255,.5);text-align:center">1080×1080px · listo para Instagram</div>
 </div>
 
 <!-- IMAGE FULLVIEW -->
@@ -1162,7 +1204,7 @@ tbody tr:hover td{background:var(--s2)}
   <div class="ph"><h1>Dash<em>board</em></h1><p>Tu centro de operaciones Mixly</p></div>
   <div class="wbar">
     <div><div class="wname" id="wname">Mi Bar</div><div class="wemail" id="wemail"></div></div>
-    <div class="vbadge">🍸 Mixly v2.0</div>
+    <div class="vbadge">🍸 Mixly v2.0 <span style="background:var(--accent);color:#fff;font-size:.5rem;padding:1px 5px;border-radius:4px;vertical-align:middle;font-weight:700;letter-spacing:1px">BETA</span></div>
   </div>
   <div class="hgrid">
     <div class="hcard" onclick="sp('productos')"><span class="hci">📦</span><div class="hct">Productos</div><div class="hcd">Catálogo central de licores, frutas e insumos</div></div>
@@ -1697,10 +1739,26 @@ tbody tr:hover td{background:var(--s2)}
       </div>
       <div id="socFeedList"></div>
     </div>
-    <!-- PEOPLE -->
+    <!-- PEOPLE / EXPLORE -->
     <div class="soc-section" id="soc-people">
-      <div class="sw" style="margin-bottom:12px"><input id="socPSearch" placeholder="Buscar usuarios de Mixly…" oninput="renderSocPeople()"/></div>
-      <div id="socPeopleList" class="people-list"></div>
+      <!-- Tabs: Personas | Ingredientes -->
+      <div class="feed-mode" style="margin-bottom:12px">
+        <button class="feed-mode-btn active" id="exploreTabPeople" onclick="switchExploreTab('people',this)">👥 Personas</button>
+        <button class="feed-mode-btn" id="exploreTabIng" onclick="switchExploreTab('ing',this)">🍋 Por ingrediente</button>
+      </div>
+      <!-- PERSONAS -->
+      <div id="explorePeople">
+        <div class="sw" style="margin-bottom:12px"><input id="socPSearch" placeholder="Buscar usuarios de Mixly…" oninput="renderSocPeople()"/></div>
+        <div id="socPeopleList" class="people-list"></div>
+      </div>
+      <!-- POR INGREDIENTE -->
+      <div id="exploreIng" style="display:none">
+        <div class="ing-search-wrap">
+          <div class="sw"><input id="ingSearchInput" placeholder="Buscar ingrediente… ej: Campari, Gin, Limón" oninput="searchByIngredient()"/></div>
+        </div>
+        <div class="ing-tags" id="ingPopularTags"></div>
+        <div id="ingResultsList"></div>
+      </div>
     </div>
     <!-- MY POSTS -->
     <div class="soc-section" id="soc-myposts">
@@ -1939,6 +1997,12 @@ function sp(name){
   // social feed renders itself after loadSocData() finishes
   // only re-render if data is already loaded (navigating back)
   if(name==='social'&&socInited&&socPosts.length)renderSocFeed();
+  if(name==='dash'){
+    // Dashboard is panel-home
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-home')?.classList.add('active');
+    hStats();
+  }
 }
 function openDrawer(){document.getElementById('drawerBackdrop').classList.add('open');document.getElementById('toolsDrawer').classList.add('open');}
 function closeDrawer(){document.getElementById('drawerBackdrop').classList.remove('open');document.getElementById('toolsDrawer').classList.remove('open');}
@@ -2573,6 +2637,15 @@ window.saveR=async function(){const name=document.getElementById('rN').value.tri
   if(rEditId){await db.from('recipes').update(payload).eq('id',rEditId).eq('user_id',uid);}
   else{await db.from('recipes').insert([{user_id:uid,...payload}]);}
   document.getElementById('rN').value=document.getElementById('rD').value=document.getElementById('rPr').value='';document.getElementById('rIC').innerHTML='';rIngs=[];rProf=null;rColor='#00C2FF';rEditId=null;rIC=0;document.querySelectorAll('.po2').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('.rcol-btn').forEach((b,i)=>{b.style.border=i===0?'3px solid var(--accent)':'2px solid transparent';});document.getElementById('rCP').style.display='none';document.getElementById('rFormTitle').textContent='Nueva Receta';document.getElementById('rSaveBtn').textContent='Guardar receta';addRI();await lRecs();renderR();hStats();};
+// Convierte cualquier unidad a ml/gr para comparar cantidades
+function ingToBase(qty,unit){
+  const f={ml:1,oz:29.5735,cl:10,lt:1000,gr:1,kg:1000,un:1,cdta:5,cda:15,taza:240,pzca:0.5,g:1,l:1000};
+  return (parseFloat(qty)||0)*(f[unit]||1);
+}
+function sortIngs(ings){
+  return [...(ings||[])].sort((a,b)=>ingToBase(b.quantity,b.unit)-ingToBase(a.quantity,a.unit));
+}
+
 function renderR(){const c=document.getElementById('rList'),s=(document.getElementById('rSrch')?.value||'').toLowerCase();let l=recs;if(rFilt!=='all')l=l.filter(r=>r.profile===rFilt);if(s)l=l.filter(r=>r.name.toLowerCase().includes(s)||r.description?.toLowerCase().includes(s));
   if(!l.length){c.innerHTML='<div class="empty"><div class="ei">🍹</div><p>No se encontraron recetas</p></div>';return;}
   const pi={dulce:'🍬',suave:'🌸',seco:'🍋',fuerte:'🔥','extra-fuerte':'💥'};
@@ -2591,7 +2664,7 @@ function renderR(){const c=document.getElementById('rList'),s=(document.getEleme
     </div>
     ${r.description?`<div style="font-size:.75rem;color:var(--t3);margin-bottom:8px">${r.description}</div>`:''}
     <div style="font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:5px">Ingredientes</div>
-    ${(r.ingredients||[]).map(i=>`<div class="rrow"><span>${i.name} — ${i.quantity} ${i.unit}</span><span class="rcost">${i.line_cost?'$'+Number(i.line_cost).toFixed(2):''}</span></div>`).join('')}
+    ${sortIngs(r.ingredients).map(i=>`<div class="rrow"><span>${i.name} — ${i.quantity} ${i.unit}</span><span class="rcost">${i.line_cost?'$'+Number(i.line_cost).toFixed(2):''}</span></div>`).join('')}
     ${r.preparation?`<div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--b2);font-size:.75rem;color:var(--t2)">${r.preparation}</div>`:''}
   </div>`).join('');}
 window.delR=async(id)=>{if(!confirm('¿Eliminar receta?'))return;await db.from('recipes').delete().eq('id',id).eq('user_id',uid);await lRecs();renderR();hStats();};
@@ -3018,7 +3091,7 @@ function renderFichas(){
         <!-- Ingredientes -->
         <div style="margin-bottom:16px">
           <div style="font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Ingredientes</div>
-          ${ings.length?ings.map((ing,i)=>`
+          ${ings.length?sortIngs(ings).map((ing,i)=>`
             <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;${i<ings.length-1?'border-bottom:1px solid var(--b2)':''}">
               <span style="font-size:.82rem;color:var(--text)">${ing.name||''}</span>
               <span style="font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;color:var(--a2)">${ing.quantity||''}${ing.unit||''}</span>
@@ -3079,7 +3152,7 @@ function printFicha(id){
     </div>
     <div class="sec">Ingredientes</div>
     <div style="margin-bottom:20px">
-      ${ings.map(i=>`<div class="ing"><span>${i.name||''}</span><span class="qty">${i.quantity||''}${i.unit||''}</span></div>`).join('')||'<p style="font-size:.8rem;color:#aaa">Sin ingredientes</p>'}
+      ${sortIngs(ings).map(i=>`<div class="ing"><span>${i.name||''}</span><span class="qty">${i.quantity||''}${i.unit||''}</span></div>`).join('')||'<p style="font-size:.8rem;color:#aaa">Sin ingredientes</p>'}
     </div>
     ${r.preparation?`<div class="sec">Preparación</div><div class="prep">${r.preparation}</div>`:''}
     <div class="footer">
@@ -3634,11 +3707,26 @@ window.acHide=function(id){
   setTimeout(()=>{
     const list=document.getElementById('ac-'+id);
     if(list) list.classList.remove('show');
-    // Save name from input if not set via acSel
+    // Always sync name from input — even if previously set via acSel
     const inp=document.getElementById('rn-'+id);
     const ing=rIngs.find(i=>i.id===id);
-    if(ing&&inp&&inp.value.trim()&&!ing.name){
-      ing.name=inp.value.trim();
+    if(ing&&inp){
+      const typed=inp.value.trim();
+      if(typed&&typed!==ing.name){
+        // User typed something different — check if it matches a catalog product
+        const match=cat.find(p=>p.name.toLowerCase()===typed.toLowerCase());
+        if(match){
+          ing.pid=match.id;ing.name=match.name;ing.ppm=match.price_per_ml||0;ing.unit=match.unit_type||'un';
+          inp.value=match.name;
+        } else {
+          // Free ingredient — clear product association
+          ing.pid=null;ing.name=typed;ing.ppm=0;
+        }
+        updRC();
+      } else if(typed&&!ing.name){
+        ing.name=typed;ing.pid=null;ing.ppm=0;
+        updRC();
+      }
     }
   },150);
 };
@@ -4457,10 +4545,295 @@ function socPostCard(p){
       <button class="sact" onclick="openComments('${p.id}','${p.name.replace(/'/g,"\'")}')">💬 ${p._comments||0}</button>
       <button class="sact wtt${isWtt?' active':''}" onclick="socToggleWtt('${p.id}',this)" title="Quiero probarlo">🎯 ${isWtt?'Quiero':'Probar'}</button>
       <button class="sact${isSaved?' saved':''}" onclick="socToggleSave('${p.id}',this)">${isSaved?'🔖':'📌'}</button>
+      <button class="sact" onclick="sharePost('${p.id}')" title="Compartir como imagen">📤</button>
       ${isMe?`<button class="sact" style="color:var(--danger);border-color:transparent;margin-left:auto" onclick="socDeletePost('${p.id}')">🗑</button>`:''}
     </div>
   </div>`;
 }
+
+/* ══════════════════════════════════════════
+   COMPARTIR RECETA COMO IMAGEN (Instagram)
+   Canvas 1080×1080 con gradiente + datos
+══════════════════════════════════════════ */
+let sharePostData=null;
+
+window.sharePost=function(postId){
+  const p=socPosts.find(x=>x.id===postId);if(!p)return;
+  sharePostData=p;
+  const canvas=document.getElementById('shareCanvas');
+  const ctx=canvas.getContext('2d');
+  const S=1080;
+  canvas.width=S;canvas.height=S;
+
+  // Background gradient
+  const bg=SOC_BGS[(p.bg_index||0)%SOC_BGS.length];
+  const grad=ctx.createLinearGradient(0,0,S,S);
+  // Parse gradient colors from CSS string
+  const colMatch=bg.match(/#[0-9a-f]{3,6}/gi)||['#0d2137','#0a4a7a'];
+  grad.addColorStop(0,colMatch[0]||'#0d2137');
+  grad.addColorStop(1,colMatch[1]||'#0a4a7a');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,S,S);
+
+  // Dark overlay
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.fillRect(0,0,S,S);
+
+  // If image exists, draw it as background
+  if(p.image_url){
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      ctx.save();
+      ctx.globalAlpha=0.7;
+      // Cover fit
+      const ar=img.width/img.height;
+      let sx=0,sy=0,sw=img.width,sh=img.height;
+      if(ar>1){sw=img.height;sx=(img.width-sw)/2;}
+      else{sh=img.width;sy=(img.height-sh)/2;}
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,S,S);
+      ctx.globalAlpha=1;
+      ctx.restore();
+      ctx.fillStyle='rgba(0,0,0,0.45)';
+      ctx.fillRect(0,0,S,S);
+      drawShareText(ctx,p,S);
+      showShareCanvas();
+    };
+    img.onerror=()=>{drawShareText(ctx,p,S);showShareCanvas();};
+    img.src=cleanAvatarUrl(p.image_url);
+  } else {
+    // Big emoji
+    ctx.font=`${S*0.22}px serif`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,0.4)';ctx.shadowBlur=40;
+    ctx.fillText(p.emoji||'🍸',S/2,S*0.38);
+    ctx.shadowBlur=0;
+    drawShareText(ctx,p,S);
+    showShareCanvas();
+  }
+};
+
+function drawShareText(ctx,p,S){
+  const pad=72;
+
+  // Mixly watermark top-right
+  ctx.font=`bold ${S*0.028}px 'Arial',sans-serif`;
+  ctx.textAlign='right';ctx.textBaseline='top';
+  ctx.fillStyle='rgba(0,194,255,0.9)';
+  ctx.fillText('MIXLY.LAT',S-pad,pad*0.7);
+
+  // Bar name + handle
+  ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillStyle='rgba(255,255,255,0.75)';
+  ctx.font=`${S*0.026}px 'Arial',sans-serif`;
+  ctx.fillText((p.bar_name||'Mixly Bar')+' · @'+(p.username||'bartender'),pad,pad*0.7);
+
+  // Bottom gradient overlay
+  const btmGrad=ctx.createLinearGradient(0,S*0.55,0,S);
+  btmGrad.addColorStop(0,'rgba(0,0,0,0)');
+  btmGrad.addColorStop(1,'rgba(0,0,0,0.88)');
+  ctx.fillStyle=btmGrad;
+  ctx.fillRect(0,S*0.55,S,S*0.45);
+
+  // Cocktail name
+  ctx.textAlign='left';ctx.textBaseline='bottom';
+  ctx.fillStyle='#ffffff';
+  ctx.font=`900 ${S*0.072}px 'Arial Black','Arial',sans-serif`;
+  // Word wrap if long
+  const maxW=S-pad*2;
+  const name=(p.name||'').toUpperCase();
+  let fontSize=S*0.072;
+  ctx.font=`900 ${fontSize}px 'Arial Black','Arial',sans-serif`;
+  while(ctx.measureText(name).width>maxW&&fontSize>S*0.038){
+    fontSize-=4;ctx.font=`900 ${fontSize}px 'Arial Black','Arial',sans-serif`;
+  }
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=12;
+  ctx.fillText(name,pad,S-pad*2.4);
+  ctx.shadowBlur=0;
+
+  // Flavor pill
+  if(p.flavor){
+    ctx.font=`700 ${S*0.028}px 'Arial',sans-serif`;
+    ctx.fillStyle='rgba(0,194,255,0.9)';
+    ctx.fillText(p.flavor,pad,S-pad*1.7);
+  }
+
+  // Ingredients (up to 4)
+  const ings=(p.ingredients||[]).slice(0,4);
+  if(ings.length){
+    ctx.font=`${S*0.026}px 'Arial',sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    ctx.fillText(ings.join(' · '),pad,S-pad*1.1);
+  }
+
+  // Stars
+  if(p._ratingAvg>0){
+    const stars='★'.repeat(Math.round(p._ratingAvg))+'☆'.repeat(5-Math.round(p._ratingAvg));
+    ctx.font=`${S*0.032}px serif`;
+    ctx.fillStyle='#FFD700';
+    ctx.fillText(stars+` ${p._ratingAvg.toFixed(1)}`,pad,S-pad*0.55);
+  }
+}
+
+function showShareCanvas(){
+  const canvas=document.getElementById('shareCanvas');
+  // Scale down for display
+  const displaySize=Math.min(400,window.innerWidth*0.88);
+  canvas.style.width=displaySize+'px';
+  canvas.style.height=displaySize+'px';
+  document.getElementById('shareWrap').classList.add('open');
+}
+
+window.closeShareWrap=function(){
+  document.getElementById('shareWrap').classList.remove('open');
+  sharePostData=null;
+};
+
+window.downloadShareImg=function(){
+  const canvas=document.getElementById('shareCanvas');
+  const name=(sharePostData?.name||'mixly-receta').toLowerCase().replace(/[^a-z0-9]/g,'-');
+  const a=document.createElement('a');
+  a.download=`mixly-${name}.png`;
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+};
+
+/* ══════════════════════════════════════════
+   MENCIONES @USUARIO EN COMENTARIOS
+══════════════════════════════════════════ */
+let mentionQuery='', mentionActive=-1;
+const mentionUsers=[];
+
+window.handleCommentInput=function(input){
+  const val=input.value;
+  const cursor=input.selectionStart;
+  // Find @ before cursor
+  const before=val.slice(0,cursor);
+  const atMatch=before.match(/@(\w*)$/);
+  if(!atMatch){closeMentionDrop();return;}
+  mentionQuery=atMatch[1].toLowerCase();
+  showMentionDrop(input,mentionQuery);
+};
+
+function showMentionDrop(input,query){
+  const drop=document.getElementById('mentionDrop');
+  if(!drop)return;
+  // Build user list from socProfileCache + socPosts
+  const seen=new Set();const users=[];
+  socPosts.forEach(p=>{
+    if(!seen.has(p.user_id)&&p.user_id!==uid){
+      seen.add(p.user_id);
+      users.push({user_id:p.user_id,bar_name:p.bar_name||'Mixly Bar',username:p.username||'bartender'});
+    }
+  });
+  const filtered=query
+    ?users.filter(u=>u.username.toLowerCase().includes(query)||u.bar_name.toLowerCase().includes(query))
+    :users.slice(0,6);
+  if(!filtered.length){closeMentionDrop();return;}
+  drop.innerHTML=filtered.slice(0,6).map((u,i)=>{
+    const av=socAvatarHtml(u.user_id,u.bar_name,28,'flex-shrink:0');
+    return`<div class="mention-item" onmousedown="selectMention('${u.username||'bartender'}')">
+      ${av}
+      <div><div class="mention-item-name">${u.bar_name}</div>
+      <div class="mention-item-handle">@${u.username||'bartender'}</div></div>
+    </div>`;
+  }).join('');
+  drop.classList.add('show');
+}
+
+window.selectMention=function(username){
+  const input=document.getElementById('socCommentInput');
+  if(!input)return;
+  const val=input.value;
+  const cursor=input.selectionStart;
+  const before=val.slice(0,cursor);
+  const after=val.slice(cursor);
+  const newBefore=before.replace(/@\w*$/,'@'+username+' ');
+  input.value=newBefore+after;
+  input.focus();
+  input.setSelectionRange(newBefore.length,newBefore.length);
+  closeMentionDrop();
+};
+
+function closeMentionDrop(){
+  document.getElementById('mentionDrop')?.classList.remove('show');
+}
+
+// Close mention drop when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.scomment-input-row'))closeMentionDrop();
+});
+
+/* ══════════════════════════════════════════
+   EXPLORAR POR INGREDIENTE
+══════════════════════════════════════════ */
+window.switchExploreTab=function(tab,btn){
+  document.querySelectorAll('.feed-mode-btn').forEach(b=>{
+    if(b.id==='exploreTabPeople'||b.id==='exploreTabIng')b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  document.getElementById('explorePeople').style.display=tab==='people'?'':'none';
+  document.getElementById('exploreIng').style.display=tab==='ing'?'':'none';
+  if(tab==='ing')initIngExplore();
+};
+
+function initIngExplore(){
+  // Build popular ingredients from all posts
+  const ingCount={};
+  socPosts.forEach(p=>{
+    (p.ingredients||[]).forEach(ing=>{
+      const key=typeof ing==='string'?ing:ing.name||'';
+      if(key)ingCount[key]=(ingCount[key]||0)+1;
+    });
+  });
+  const popular=Object.entries(ingCount)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,12)
+    .map(([k])=>k);
+  const tagsEl=document.getElementById('ingPopularTags');
+  if(tagsEl){
+    tagsEl.innerHTML=`<span class="ing-explore-label">Más usados:</span>`
+      +popular.map(ing=>`<button class="ing-tag" onclick="filterByIngredient('${ing.replace(/'/g,"\\'")}',this)">${ing}</button>`).join('');
+  }
+  if(!document.getElementById('ingSearchInput').value){
+    document.getElementById('ingResultsList').innerHTML=
+      '<div style="text-align:center;padding:30px;color:var(--t3);font-size:.8rem">Escribe un ingrediente o toca uno popular ↑</div>';
+  }
+}
+
+window.searchByIngredient=function(){
+  const q=document.getElementById('ingSearchInput').value.trim();
+  if(!q){
+    document.getElementById('ingResultsList').innerHTML=
+      '<div style="text-align:center;padding:30px;color:var(--t3);font-size:.8rem">Escribe un ingrediente o toca uno popular ↑</div>';
+    return;
+  }
+  filterByIngredient(q,null);
+};
+
+window.filterByIngredient=function(ing,btn){
+  // Update active tag
+  document.querySelectorAll('.ing-tag').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('ingSearchInput').value=ing;
+  const q=ing.toLowerCase();
+  // Filter posts that contain this ingredient
+  const results=socPosts.filter(p=>{
+    const ings=p.ingredients||[];
+    return ings.some(i=>{
+      const name=typeof i==='string'?i:i.name||'';
+      return name.toLowerCase().includes(q);
+    });
+  });
+  const el=document.getElementById('ingResultsList');
+  if(!results.length){
+    el.innerHTML=`<div class="soc-empty"><span class="ei">🔍</span><p>No hay recetas con <strong>"${ing}"</strong> en la comunidad.</p></div>`;
+    return;
+  }
+  el.innerHTML=`<div style="font-family:'Syne',sans-serif;font-size:.62rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t2);margin-bottom:10px">${results.length} receta${results.length!==1?'s':''} con ${ing}</div>`
+    +results.map(p=>socPostCard(p)).join('');
+};
 
 /* ── IMAGE FULLVIEW ── */
 window.openImgFull=function(url){
