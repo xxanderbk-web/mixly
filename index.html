@@ -90,7 +90,7 @@
 .ob-nav{display:flex;gap:8px}
 
 /* Help button */
-#obHelpBtn{position:fixed;bottom:24px;right:24px;z-index:5000;width:44px;height:44px;
+#obHelpBtn{display:none!important;position:fixed;bottom:24px;right:24px;z-index:5000;width:44px;height:44px;
   border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:1.2rem;
   cursor:pointer;box-shadow:0 4px 18px rgba(0,194,255,.45);transition:.2s;
   display:none;align-items:center;justify-content:center;font-weight:700;
@@ -370,7 +370,7 @@ body::before{content:'';position:fixed;inset:0;
 .emoji-pick{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:10px}
 .ep{font-size:1.4rem;cursor:pointer;text-align:center;padding:5px;border-radius:7px;border:2px solid transparent;transition:.13s}
 .ep:hover{background:var(--abg)}.ep.sel{border-color:var(--accent);background:var(--abg)}
-.soc-tabs{display:flex;border-bottom:1px solid var(--b2);margin-bottom:12px;overflow-x:auto}
+.soc-tabs{display:none}
 .soc-tab{flex-shrink:0;padding:9px 12px;border:none;background:transparent;font-family:'Syne',sans-serif;
   font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);
   cursor:pointer;transition:.15s;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
@@ -772,6 +772,26 @@ tbody tr:hover td{background:var(--s2)}
 @keyframes fuD{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fI{from{opacity:0}to{opacity:1}}
 @keyframes sU{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── COMMENT REPLIES ── */
+.reply-btn{background:none;border:none;color:var(--t3);font-size:.62rem;cursor:pointer;
+  padding:2px 6px;border-radius:6px;margin-left:6px;font-family:'DM Sans',sans-serif;font-weight:600}
+.reply-btn:hover{color:var(--accent);background:var(--abg)}
+.reply-mention{color:var(--accent);font-weight:600;font-size:.78rem}
+.replies-list{margin-top:8px;padding-left:12px;border-left:2px solid var(--b2);display:flex;flex-direction:column;gap:6px}
+.reply-item{margin-bottom:0!important}
+.reply-badge{display:none;align-items:center;gap:6px;padding:5px 10px;background:var(--abg);
+  border-radius:8px;font-size:.68rem;color:var(--accent);margin-bottom:6px;font-weight:600}
+.reply-badge button{background:none;border:none;cursor:pointer;color:var(--t3);font-size:.9rem;padding:0 2px}
+
+/* ── EDIT PROFILE ── */
+.ep-avatar-wrap{position:relative;width:80px;height:80px;margin:0 auto 14px;cursor:pointer}
+.ep-avatar-wrap img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--b2)}
+.ep-avatar-placeholder{width:80px;height:80px;border-radius:50%;background:var(--s2);
+  border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem}
+.ep-avatar-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;font-size:.7rem;color:#fff;font-weight:700}
+.ep-avatar-wrap:hover .ep-avatar-overlay{opacity:1}
 </style>
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
@@ -870,7 +890,6 @@ tbody tr:hover td{background:var(--s2)}
   <button class="ni" data-p="fichas"></button>
   <button class="ni" data-p="mermas"></button>
   <button class="ni" data-p="logout"></button>
-  <button class="dm-btn" id="dmToggle" onclick="toggleDM()"><span class="ic" id="dmIc">🌙</span><span class="lb" id="dmLb">Dark</span></button>
 </nav>
 
 <!-- TOP BAR -->
@@ -881,7 +900,6 @@ tbody tr:hover td{background:var(--s2)}
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="notifDot" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;background:#FF3B5C;border-radius:50%;border:1.5px solid var(--bg)"></span>
     </button>
-    <button class="ig-icon-btn" onclick="toggleDM()" title="Tema"><span id="igDmIc">🌙</span></button>
     <button class="ig-icon-btn" onclick="openDrawer()" title="Herramientas">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
@@ -890,11 +908,11 @@ tbody tr:hover td{background:var(--s2)}
 
 <!-- BOTTOM NAV -->
 <nav class="ig-bottomnav" id="igBottomNav" style="display:none">
+  <button class="ig-nav-btn" data-np="dashboard" onclick="igNav('dashboard',this)"><span class="ic">📊</span><span class="lb">Dashboard</span></button>
+  <button class="ig-nav-btn" data-np="buscar" onclick="igNav('buscar',this)"><span class="ic">🔍</span><span class="lb">Buscar</span></button>
+  <button class="ig-nav-btn ig-nav-center" data-np="newpost" onclick="igNav('newpost',this)"><span class="ic">＋</span></button>
   <button class="ig-nav-btn active" data-np="social" onclick="igNav('social',this)"><span class="ic">🏠</span><span class="lb">Inicio</span></button>
-  <button class="ig-nav-btn" data-np="buscador" onclick="igNav('buscador',this)"><span class="ic">🔍</span><span class="lb">Buscar</span></button>
-  <button class="ig-nav-btn ig-nav-center" data-np="newpost" onclick="igNav('newpost',this)"><span class="ic">＋</span><span class="lb">Publicar</span></button>
-  <button class="ig-nav-btn" data-np="myposts" onclick="igNav('myposts',this)"><span class="ic">👤</span><span class="lb">Mis recetas</span></button>
-  <button class="ig-nav-btn" data-np="people" onclick="igNav('people',this)"><span class="ic">👥</span><span class="lb">Personas</span></button>
+  <button class="ig-nav-btn" data-np="profile" id="navProfileBtn" onclick="igNav('profile',this)"><span class="ic" id="navProfileIc">👤</span><span class="lb">Perfil</span></button>
 </nav>
 
 <!-- TOOLS DRAWER -->
@@ -927,6 +945,7 @@ tbody tr:hover td{background:var(--s2)}
   </div>
   <div class="drawer-footer">
     <button class="btn bs" style="flex:1" onclick="toggleDM();closeDrawer()"><span id="dmIc">🌙</span> <span id="dmLb">Dark mode</span></button>
+    <button class="btn bs" style="margin-bottom:6px" onclick="closeDrawer();openContact()">✉️ Contactar a Mixly</button>
     <button class="btn bd" onclick="closeDrawer();doLogout()">⎋ Salir</button>
   </div>
 </div>
@@ -944,9 +963,13 @@ tbody tr:hover td{background:var(--s2)}
   <div class="mb" style="max-width:420px">
     <div class="mh"><h3 id="socCommentTitle">Comentarios</h3><button class="mc" onclick="document.getElementById('socCommentsMo').classList.remove('show')">✕</button></div>
     <div class="mbody">
-      <div id="socCommentsList" style="max-height:280px;overflow-y:auto;margin-bottom:14px"></div>
+      <div id="socCommentsList" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+      <div class="reply-badge" id="socReplyBadge">
+        <span></span>
+        <button onclick="cancelReply()">✕</button>
+      </div>
       <div class="scomment-input-row">
-        <input class="scomment-input" id="socCommentInput" placeholder="Escribe un comentario…"/>
+        <input class="scomment-input" id="socCommentInput" placeholder="Escribe un comentario…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment();}"/>
         <button class="btn bp sm" onclick="submitComment()">Enviar</button>
       </div>
     </div>
@@ -970,13 +993,7 @@ tbody tr:hover td{background:var(--s2)}
 
 
 
-<!-- CONTACT BUTTON -->
-<button id="contactFab" onclick="openContact()"
-  style="display:none;position:fixed;bottom:74px;right:16px;z-index:199;
-    width:46px;height:46px;border-radius:50%;border:none;
-    background:var(--accent);color:#fff;font-size:1.2rem;cursor:pointer;
-    box-shadow:0 4px 18px rgba(0,194,255,.4);transition:.2s"
-  title="Contactar a Mixly">✉️</button>
+<!-- contact FAB removed -->
 
 <!-- CONTACT MODAL -->
 <div class="mo" id="contactMo">
@@ -989,7 +1006,7 @@ tbody tr:hover td{background:var(--s2)}
       <div style="font-size:2.5rem;margin-bottom:12px">✉️</div>
       <div style="font-family:'Syne',sans-serif;font-size:.8rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">¿Tienes dudas o sugerencias?</div>
       <div style="font-size:.82rem;color:var(--t2);margin-bottom:22px;line-height:1.6">Escríbenos directamente y te respondemos a la brevedad.</div>
-      <a href="/cdn-cgi/l/email-protection#85c6cacbd1c4c6d1cadac0c8c4ccc9" id="contactEmailLink" style="display:inline-flex;align-items:center;gap:8px;
+      <a href="/cdn-cgi/l/email-protection#93ebebf2fdf7f6e1bdf1f8d3f4fef2faffbdf0fcfe" id="contactEmailLink" style="display:inline-flex;align-items:center;gap:8px;
           padding:12px 22px;background:var(--accent);color:#fff;
           border-radius:12px;font-weight:700;font-size:.85rem;
           text-decoration:none;box-shadow:0 4px 16px rgba(0,194,255,.3)">
@@ -999,13 +1016,59 @@ tbody tr:hover td{background:var(--s2)}
       <div id="contactEmailDisplay"
         style="margin-top:6px;font-size:.78rem;font-weight:600;color:var(--accent);
           cursor:pointer;text-decoration:underline"
-        onclick="copyContactEmail()">CONTACTO_EMAIL</div>
+        onclick="copyContactEmail()"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c1b9b9a0afa5a4b3efa3aa81a6aca0a8adefa2aeac">[email&#160;protected]</a></div>
       <div id="contactCopyOk" style="display:none;font-size:.7rem;color:var(--ok);margin-top:4px">✓ Correo copiado</div>
     </div>
   </div>
 </div>
 
 
+
+<!-- MY PROFILE MODAL -->
+<div class="mo" id="myProfileMo">
+  <div class="mb" style="max-width:360px">
+    <div class="mh">
+      <h3>Mi Perfil</h3>
+      <button class="mc" onclick="document.getElementById('myProfileMo').classList.remove('show')">✕</button>
+    </div>
+    <div class="mbody" style="padding:14px 16px 20px">
+      <div id="myProfileContent"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+        <button class="btn bp" onclick="document.getElementById('myProfileMo').classList.remove('show');openEditProfile()">✏️ Editar perfil</button>
+        <button class="btn bs" onclick="document.getElementById('myProfileMo').classList.remove('show');openContact()">✉️ Contactar a Mixly</button>
+        <button class="btn bd" onclick="document.getElementById('myProfileMo').classList.remove('show');doLogout()">⎋ Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE FULLVIEW -->
+<div class="img-fullview" id="imgFullview" onclick="closeImgFull()">
+  <button class="img-fullview-close" onclick="event.stopPropagation();closeImgFull()">✕</button>
+  <img id="imgFullviewImg" src="" alt="" onclick="event.stopPropagation()"/>
+</div>
+
+<!-- FOLLOWERS/FOLLOWING LIST MODAL -->
+<div class="mo" id="followListMo">
+  <div class="mb" style="max-width:380px">
+    <div class="mh">
+      <h3 id="followListTitle">Seguidores</h3>
+      <button class="mc" onclick="document.getElementById('followListMo').classList.remove('show')">✕</button>
+    </div>
+    <div class="mbody" style="max-height:60vh;overflow-y:auto;padding:0 16px 16px" id="followListBody"></div>
+  </div>
+</div>
+
+<!-- BADGES MODAL -->
+<div class="mo" id="badgesMo">
+  <div class="mb" style="max-width:380px">
+    <div class="mh"><h3>🏅 Mis Badges</h3><button class="mc" onclick="document.getElementById('badgesMo').classList.remove('show')">✕</button></div>
+    <div class="mbody" style="padding:18px">
+      <p style="font-size:.78rem;color:var(--t3);margin-bottom:16px">Desbloquea badges siendo activo en la comunidad Mixly.</p>
+      <div id="badgesList"></div>
+    </div>
+  </div>
+</div>
 
 <!-- IMAGE FULLVIEW -->
 <div class="img-fullview" id="imgFullview" onclick="closeImgFull()">
@@ -1020,6 +1083,46 @@ tbody tr:hover td{background:var(--s2)}
     <div class="mbody" style="padding:18px">
       <p style="font-size:.78rem;color:var(--t3);margin-bottom:16px">Desbloquea badges siendo activo en la comunidad Mixly.</p>
       <div id="badgesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="mo" id="editProfileMo">
+  <div class="mb" style="max-width:380px">
+    <div class="mh"><h3>✏️ Editar perfil</h3><button class="mc" onclick="document.getElementById('editProfileMo').classList.remove('show')">✕</button></div>
+    <div class="mbody">
+      <div id="ep-ok" class="ab aok"></div>
+      <div id="ep-er" class="ab aer"></div>
+      <!-- Avatar -->
+      <div class="fgroup" style="text-align:center">
+        <label class="fl">Foto de perfil</label>
+        <div class="ep-avatar-wrap" onclick="epPickAvatar()">
+          <img id="epAvatarPreview" src="" style="display:none"/>
+          <div class="ep-avatar-placeholder" id="epAvatarPlaceholder">🧑‍🍳</div>
+          <div class="ep-avatar-overlay">Cambiar</div>
+        </div>
+        <input type="file" id="epAvatarInput" accept="image/*" style="display:none" onchange="epPreviewAvatar(this)"/>
+      </div>
+      <!-- Nombre completo -->
+      <div class="fgroup">
+        <label class="fl">Nombre completo</label>
+        <input id="epFullName" placeholder="Ej: Alejandro García"/>
+      </div>
+      <!-- Bio -->
+      <div class="fgroup">
+        <label class="fl">Bio del bar</label>
+        <textarea id="epBio" placeholder="Ej: Coctelería de autor en Valparaíso. Especialistas en tragos cítricos y amargos." style="min-height:72px"></textarea>
+      </div>
+      <!-- Link -->
+      <div class="fgroup">
+        <label class="fl">Link (Instagram, carta, etc.)</label>
+        <input id="epLink" placeholder="https://instagram.com/mibar" type="url"/>
+      </div>
+      <div class="row">
+        <button class="btn bp" onclick="saveProfile()">Guardar</button>
+        <button class="btn bs" onclick="document.getElementById('editProfileMo').classList.remove('show')">Cancelar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1685,7 +1788,7 @@ tbody tr:hover td{background:var(--s2)}
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ══════════ ANTI-ZOOM MÓVIL (Xiaomi HyperOS) ══════════ */
 (function(){
   const vp=document.querySelector('meta[name=viewport]');
@@ -1769,9 +1872,17 @@ db.auth.onAuthStateChange((event,session)=>{
 
 async function lgsInitApp(u){
   uid=u.id;
+  window._currentUser=u;
   const m=u.user_metadata||{};
   document.getElementById('wname').textContent=m.bar_name||m.barName||'Mi Bar';
   document.getElementById('wemail').textContent=m.username||u.email;
+  // Load profile extras (bio, avatar, link)
+  try{
+    const{data:prof}=await db.from('user_profiles').select('avatar_url,bio,link,full_name').eq('user_id',uid).maybeSingle();
+    myProfile=prof||{};
+  }catch(e){myProfile={};}
+  // Pre-cache own profile so avatar shows immediately
+  if(uid)socProfileCache[uid]=myProfile;
   await lCat();
   await Promise.all([lInv(),lRecs(),lRems(),lMermas()]);
   initNav(); buildAc(); hStats();
@@ -1783,7 +1894,11 @@ async function lgsInitApp(u){
   document.getElementById('mainApp').style.removeProperty('display');
   initSocial();
   sp('social');
+  // Always land on feed tab
+  setTimeout(()=>socSwitchTab('feed',null),100);
   maybeStartOB();
+  // Update nav profile button with avatar if available
+  setTimeout(updateNavAvatar, 1200);
 }
 
 /* NAV */
@@ -1828,13 +1943,100 @@ function sp(name){
 function openDrawer(){document.getElementById('drawerBackdrop').classList.add('open');document.getElementById('toolsDrawer').classList.add('open');}
 function closeDrawer(){document.getElementById('drawerBackdrop').classList.remove('open');document.getElementById('toolsDrawer').classList.remove('open');}
 function spD(name){closeDrawer();sp(name);}
+async function updateNavAvatar(){
+  // Fetch fresh if needed
+  if(!myProfile?.avatar_url){
+    try{
+      const{data}=await db.from('user_profiles').select('avatar_url,bio,link,full_name').eq('user_id',uid).maybeSingle();
+      if(data?.avatar_url){myProfile=data;socProfileCache[uid]=data;}
+    }catch(e){}
+  }
+  const prof=myProfile||socProfileCache[uid]||{};
+  const btn=document.getElementById('navProfileBtn');
+  if(!btn)return;
+  if(prof.avatar_url){
+    btn.querySelector('.ic').innerHTML=`<img src="${cleanAvatarUrl(prof.avatar_url)}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)"/>`;
+  }
+}
+
 function igNav(name,btn){
   document.querySelectorAll('.ig-nav-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  if(name==='newpost'){sp('social');socSwitchTab('newpost',document.querySelector('[data-st=newpost]'));return;}
-  if(name==='myposts'){sp('social');socSwitchTab('myposts',document.querySelector('[data-st=myposts]'));return;}
-  if(name==='people'){sp('social');socSwitchTab('people',document.querySelector('[data-st=people]'));return;}
+  if(name==='social'){
+    sp('social');socSwitchTab('feed',document.querySelector('[data-st=feed]'));return;
+  }
+  if(name==='dashboard'){
+    sp('dash');return;
+  }
+  if(name==='buscar'||name==='search'){
+    sp('social');socSwitchTab('people',document.querySelector('[data-st=people]'));return;
+  }
+  if(name==='newpost'){
+    sp('social');socSwitchTab('newpost',document.querySelector('[data-st=newpost]'));return;
+  }
+  if(name==='profile'){
+    openMyProfile();return;
+  }
   sp(name);
+}
+
+function openBuscarPanel(){
+  // Show people tab (has search bar for users) but also show recipe search
+  sp('social');
+  socSwitchTab('people',document.querySelector('[data-st=people]'));
+}
+
+async function openMyProfile(){
+  const m=document.getElementById('myProfileMo');
+  const meta=(window._currentUser?.user_metadata)||{};
+  const barName=meta.bar_name||meta.barName||'Mi Bar';
+  const username=meta.username||'bartender';
+  const email=window._currentUser?.email||'';
+  // Always fetch fresh profile + followers count
+  let prof=socProfileCache[uid]||myProfile||{};
+  try{
+    const[profRes,fcRes]=await Promise.all([
+      db.from('user_profiles').select('avatar_url,bio,link,full_name').eq('user_id',uid).maybeSingle(),
+      db.from('social_follows').select('follower_id',{count:'exact',head:true}).eq('following_id',uid),
+    ]);
+    if(profRes.data){prof=profRes.data;myProfile=prof;socProfileCache[uid]=prof;}
+    var followersCount=fcRes.count||0;
+  }catch(e){var followersCount=0;}
+  const fullName=prof.full_name||barName;
+  const myPostCount=socPosts.filter(p=>p.user_id===uid).length;
+  const avatarEl=prof.avatar_url
+    ?`<img src="${cleanAvatarUrl(prof.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
+    :`<span style="font-size:1.6rem;font-weight:800;color:#fff;font-family:'Syne',sans-serif">${socInitials(barName)}</span>`;
+  document.getElementById('myProfileContent').innerHTML=`
+    <div style="text-align:center;padding:8px 0 4px">
+      <div onclick="document.getElementById('myProfileMo').classList.remove('show');openEditProfile()"
+        style="width:80px;height:80px;border-radius:50%;background:${socColor(barName)};margin:0 auto 4px;
+          display:flex;align-items:center;justify-content:center;overflow:hidden;
+          border:3px solid var(--accent);cursor:pointer;position:relative;flex-shrink:0">
+        ${avatarEl}
+        <div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.4);
+          display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s"
+          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+          <span style="font-size:.65rem;color:#fff;font-weight:700">Editar</span>
+        </div>
+      </div>
+      <div style="font-size:.62rem;color:var(--t3);margin-bottom:8px">Toca la foto para editarla</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:2px">${fullName}</div>
+      <div style="font-size:.75rem;color:var(--accent);margin-bottom:4px">@${username}</div>
+      ${prof.bio?`<div style="font-size:.78rem;color:var(--t2);line-height:1.5;margin:6px 16px 6px">${prof.bio}</div>`:''}
+      ${prof.link?`<a href="${prof.link}" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--accent);text-decoration:none;display:block;margin-bottom:6px">🔗 ${prof.link.replace(/^https?:\/\//,'')}</a>`:''}
+      <div style="display:flex;gap:18px;justify-content:center;margin:12px 0 12px">
+        <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent)">${myPostCount}</div><div style="font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px">Recetas</div></div>
+        <div onclick="document.getElementById('myProfileMo').classList.remove('show');showFollowersList('${uid}','seguidores')" style="cursor:pointer"><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent)">${followersCount}</div><div style="font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-decoration:underline dotted">Seguidores</div></div>
+        <div onclick="document.getElementById('myProfileMo').classList.remove('show');showFollowersList('${uid}','siguiendo')" style="cursor:pointer"><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--accent)">${socFollows.length}</div><div style="font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-decoration:underline dotted">Siguiendo</div></div>
+      </div>
+      <div style="background:var(--s2);border-radius:10px;padding:10px 14px;margin:0 4px;text-align:left">
+        <div style="font-size:.62rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:700">Datos de cuenta</div>
+        <div style="font-size:.78rem;color:var(--t2);margin-bottom:4px">✉️ ${email}</div>
+        <div style="font-size:.78rem;color:var(--t2)">🏷️ ID: <span style="font-size:.65rem;color:var(--t3)">${uid?.slice(0,8)}…</span></div>
+      </div>
+    </div>`;
+  m.classList.add('show');
 }
 
 /* HELPERS */
@@ -3974,12 +4176,39 @@ const SOC_BGS=[
 const SOC_EMOJIS=['🍸','🥂','🍹','🫗','🥃','🍋','🌿','🍊','🍇','🌺','🫧','💫','🔥','🌙','❄️','✨'];
 const SOC_REACTIONS=['🔥','😍','🍹','⭐','💯','🤌'];
 const SOC_COLORS=['#00C2FF','#FF6B6B','#4ECDC4','#FFD700','#A8E6CF','#FF8B94','#C3A6FF','#FFA07A'];
+const SOC_BADGES=[
+  {id:'first_post', icon:'🍹', name:'Primera receta', req:(p)=>p>=1},
+  {id:'five_posts',  icon:'📖', name:'5 recetas',      req:(p)=>p>=5},
+  {id:'ten_posts',   icon:'🏆', name:'10 recetas',     req:(p)=>p>=10},
+  {id:'first_follow',icon:'🤝', name:'Primer amigo',   req:(p,f)=>f>=1},
+  {id:'five_follows',icon:'👥', name:'Red social',     req:(p,f)=>f>=5},
+  {id:'popular',     icon:'🌟', name:'Popular',        req:(p,f,r)=>r>=10},
+];
 
-let socPosts=[], socFollows=[], socSaved=[], socFeedFilter='all', socEmojiSel='🍸';
+let socPosts=[], socFollows=[], socSaved=[], socWantTry=[];
+let socFeedMode='global', socEmojiSel='🍸', socFeedFilter='all';
+let socImgFile=null;
 let socInited=false, socCommentPostId=null;
+let socReplyToId=null, socReplyToName=null;
+let myProfile={}; // {avatar_url, bio, link}
 
 function socInitials(name){return(name||'?').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();}
 function socColor(str){return SOC_COLORS[(str||'').charCodeAt(0)%SOC_COLORS.length];}
+function cleanAvatarUrl(url){
+  // Strip any ?t= or ?v= timestamp params that may have been stored in DB
+  if(!url)return url;
+  try{const u=new URL(url);u.searchParams.delete('t');u.searchParams.delete('v');return u.toString();}catch(e){return url.split('?')[0];}
+}
+function socAvatarHtml(userId,name,size=38,extraStyle=''){
+  const prof=socProfileCache[userId]||{};
+  const color=socColor(name||'');
+  const sz=`width:${size}px;height:${size}px`;
+  if(prof.avatar_url){
+    const src=cleanAvatarUrl(prof.avatar_url);
+    return`<div class="savatar" style="${sz};background:${color};overflow:hidden;${extraStyle}"><img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/></div>`;
+  }
+  return`<div class="savatar" style="background:${color};${sz};font-size:${Math.round(size*.3)}px;${extraStyle}">${socInitials(name)}</div>`;
+}
 function socMyName(){return document.getElementById('wname')?.textContent||'Mi Bar';}
 function socMyHandle(){const e=document.getElementById('wemail')?.textContent||'';return'@'+(e.split('@')[0]||'yo');}
 
@@ -3994,16 +4223,32 @@ function initSocial(){
   if(!notifPolling)startNotifPolling();
 }
 
+// Cache of user_id -> {avatar_url, bio, link}
+const socProfileCache={};
+
 async function loadSocData(){
   document.getElementById('socFeedList').innerHTML='<div class="soc-loading">Cargando comunidad…</div>';
-  const[followsRes,savesRes,wttRes]=await Promise.all([
+  // Cache own profile FIRST so avatar shows in own posts
+  if(myProfile&&uid)socProfileCache[uid]={...myProfile};
+  // Load all in parallel
+  const[followsRes,savesRes,profilesRes]=await Promise.all([
     db.from('social_follows').select('following_id').eq('follower_id',uid),
     db.from('social_saves').select('post_id').eq('user_id',uid),
-    db.from('social_want_try').select('post_id').eq('user_id',uid).catch(()=>({data:[]})),
+    db.from('user_profiles').select('user_id,avatar_url,bio,link,full_name').then(r=>r).catch(()=>({data:[]})),
   ]);
   socFollows=(followsRes.data||[]).map(r=>r.following_id);
   socSaved=(savesRes.data||[]).map(r=>r.post_id);
-  socWantTry=(wttRes.data||[]).map(r=>r.post_id);
+  // Fill profile cache (own profile takes priority)
+  (profilesRes.data||[]).forEach(p=>{
+    if(p.user_id===uid){
+      socProfileCache[uid]={...p,...(myProfile||{})};// merge, own myProfile wins
+    } else {
+      socProfileCache[p.user_id]=p;
+    }
+  });
+  // Re-ensure own profile is cached
+  if(myProfile&&uid)socProfileCache[uid]={...socProfileCache[uid],...myProfile};
+  try{const r=await db.from('social_want_try').select('post_id').eq('user_id',uid);socWantTry=(r.data||[]).map(x=>x.post_id);}catch(e){socWantTry=[];}
   await loadFeedPosts();
   renderSocPeople();
   renderSocMyPosts();
@@ -4019,13 +4264,16 @@ async function loadFeedPosts(){
   socPosts=data||[];
   if(socPosts.length){
     const ids=socPosts.map(p=>p.id);
-    const[reactRes,countRes,commRes,ratingRes,myRatingRes]=await Promise.all([
+    const[reactRes,countRes,commRes]=await Promise.all([
       db.from('social_reactions').select('post_id,emoji').eq('user_id',uid).in('post_id',ids),
       db.from('social_reactions').select('post_id,emoji'),
       db.from('social_comments').select('post_id'),
-      db.from('social_ratings').select('post_id,stars').catch(()=>({data:[]})),
-      db.from('social_ratings').select('post_id,stars').eq('user_id',uid).in('post_id',ids).catch(()=>({data:[]})),
     ]);
+    let ratingRes={data:[]},myRatingRes={data:[]};
+    try{[ratingRes,myRatingRes]=await Promise.all([
+      db.from('social_ratings').select('post_id,stars'),
+      db.from('social_ratings').select('post_id,stars').eq('user_id',uid).in('post_id',ids),
+    ]);}catch(e){}
     const myReacts={};
     (reactRes.data||[]).forEach(r=>{myReacts[r.post_id]=r.emoji;});
     const allCounts={};
@@ -4067,10 +4315,16 @@ window.setFeedMode=function(mode,btn){
 
 function renderSocFeed(){
   const el=document.getElementById('socFeedList');if(!el)return;
-  let list=socFeedMode==='following'
-    ?socPosts.filter(p=>socFollows.includes(p.user_id)||p.user_id===uid)
-    :socFeedMode==='saved'?socPosts.filter(p=>socSaved.includes(p.id))
-    :socPosts;
+  let list;
+  if(socFeedMode==='global'){
+    // Use recommendation algorithm — falls back to chronological if no signals
+    const rec=socRecommendedPosts();
+    list=rec.length?rec:socPosts.filter(p=>p.user_id!==uid).concat(socPosts.filter(p=>p.user_id===uid));
+  } else if(socFeedMode==='following'){
+    list=socPosts.filter(p=>socFollows.includes(p.user_id)||p.user_id===uid);
+  } else {
+    list=socPosts.filter(p=>socSaved.includes(p.id));
+  }
   const msgs={
     global:`<div class="soc-empty"><span class="ei">🌐</span><p>La comunidad está vacía.<br>¡Sé el primero en publicar una receta!</p><button class="btn bp" onclick="socSwitchTab('newpost',document.querySelector('[data-st=newpost]'))">Publicar ahora</button></div>`,
     following:`<div class="soc-empty"><span class="ei">👥</span><p>No sigues a nadie aún, o quienes sigues no han publicado.</p><button class="btn bs" onclick="socSwitchTab('people',document.querySelector('[data-st=people]'))">Buscar personas →</button></div>`,
@@ -4105,6 +4359,48 @@ function renderHotSection(){
     </div>`).join('');
 }
 
+/* ── ALGORITMO DE RECOMENDACIÓN ── */
+function socRecommendedPosts(){
+  // Score based on: follows, flavor affinity, rating, recency, reactions
+  const myFollowSet=new Set(socFollows);
+  // Build flavor affinity from posts I've reacted/saved/rated
+  const myFlavorAffinity={};
+  socPosts.forEach(p=>{
+    if(p._myReaction||socSaved.includes(p.id)||p._myRating>0){
+      if(p.flavor)myFlavorAffinity[p.flavor]=(myFlavorAffinity[p.flavor]||0)+1;
+    }
+  });
+  const now=Date.now();
+  return socPosts
+    .filter(p=>p.user_id!==uid)
+    .map(p=>{
+      let score=0;
+      // Following boost
+      if(myFollowSet.has(p.user_id))score+=30;
+      // Flavor affinity
+      if(p.flavor&&myFlavorAffinity[p.flavor])score+=myFlavorAffinity[p.flavor]*10;
+      // Rating quality
+      score+=(p._ratingAvg||0)*8;
+      // Reaction popularity
+      score+=Math.min(Object.values(p._reactions||{}).reduce((a,b)=>a+b,0)*2,20);
+      // Recency (decay over 7 days)
+      const age=(now-new Date(p.created_at).getTime())/(1000*3600*24);
+      score+=Math.max(0,15-age*2);
+      // Not yet saved or reacted = discovery bonus
+      if(!socSaved.includes(p.id)&&!p._myReaction)score+=5;
+      return{...p,_recScore:score};
+    })
+    .sort((a,b)=>b._recScore-a._recScore)
+    .slice(0,20);
+}
+
+function renderRecommended(){
+  if(socFeedMode!=='global')return;
+  const list=socRecommendedPosts();
+  const el=document.getElementById('socFeedList');
+  if(el)el.innerHTML=list.map(p=>socPostCard(p)).join('');
+}
+
 window.scrollToPost=function(postId){
   const el=document.getElementById('spost-'+postId);
   if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
@@ -4130,9 +4426,10 @@ function socPostCard(p){
   const safeName=name.replace(/['"<>]/g,'');
   const starHtml=[1,2,3,4,5].map(s=>`<span class="star${s<=myStars?' lit':''}" onclick="socRate('${p.id}',${s})">★</span>`).join('');
   const avgHtml=avgStars>0?`<span class="star-avg">${avgStars.toFixed(1)}</span><span class="star-count">(${p._ratingCount})</span>`:'';
+  const avatarEl=socAvatarHtml(p.user_id,name,38,`cursor:pointer;flex-shrink:0`);
   return`<div class="spost" id="spost-${p.id}">
     <div class="spost-head">
-      <div class="savatar" style="background:${color}" onclick="socShowProfile('${p.user_id}','${safeName}','${handle}',${p._comments||0})">${socInitials(name)}</div>
+      <div onclick="socShowProfile('${p.user_id}','${safeName}','${handle}',${p._comments||0})">${avatarEl}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:.84rem;cursor:pointer" onclick="socShowProfile('${p.user_id}','${safeName}','${handle}',0)">${name}</div>
         <div style="font-size:.67rem;color:var(--t3)">${handle} · ${ago}</div>
@@ -4178,12 +4475,12 @@ window.socRate=async function(postId,stars){
   const post=socPosts.find(p=>p.id===postId);if(!post)return;
   const prev=post._myRating||0;
   if(prev===stars){
-    await db.from('social_ratings').delete().eq('post_id',postId).eq('user_id',uid).catch(()=>{});
+    try{await db.from('social_ratings').delete().eq('post_id',postId).eq('user_id',uid);}catch(e){}
     const cnt=Math.max(0,(post._ratingCount||1)-1);
     post._ratingAvg=cnt>0?((post._ratingAvg*(post._ratingCount||1))-stars)/cnt:0;
     post._ratingCount=cnt;post._myRating=0;
   } else {
-    await db.from('social_ratings').upsert({post_id:postId,user_id:uid,stars},{onConflict:'post_id,user_id'}).catch(()=>{});
+    try{await db.from('social_ratings').upsert({post_id:postId,user_id:uid,stars},{onConflict:'post_id,user_id'});}catch(e){}
     if(prev>0){post._ratingAvg=((post._ratingAvg*(post._ratingCount||1))-prev+stars)/(post._ratingCount||1);}
     else{const c=(post._ratingCount||0);post._ratingAvg=(post._ratingAvg*c+stars)/(c+1);post._ratingCount=c+1;}
     post._myRating=stars;
@@ -4195,10 +4492,10 @@ window.socRate=async function(postId,stars){
 window.socToggleWtt=async function(postId,btn){
   const is=socWantTry.includes(postId);
   if(is){
-    await db.from('social_want_try').delete().eq('post_id',postId).eq('user_id',uid).catch(()=>{});
+    try{await db.from('social_want_try').delete().eq('post_id',postId).eq('user_id',uid);}catch(e){}
     socWantTry=socWantTry.filter(id=>id!==postId);
   } else {
-    await db.from('social_want_try').insert({post_id:postId,user_id:uid}).catch(()=>{});
+    try{await db.from('social_want_try').insert({post_id:postId,user_id:uid});}catch(e){}
     socWantTry.push(postId);
   }
   const now=socWantTry.includes(postId);
@@ -4207,14 +4504,16 @@ window.socToggleWtt=async function(postId,btn){
 
 /* ── BADGES ── */
 async function checkBadges(){
+  // Silent — don't block if table has issues
   try{
     const myPosts=socPosts.filter(p=>p.user_id===uid).length;
     const myFollowCount=socFollows.length;
     const myReactTotal=socPosts.filter(p=>p.user_id===uid).reduce((a,p)=>a+Object.values(p._reactions||{}).reduce((x,y)=>x+y,0),0);
     const earned=SOC_BADGES.filter(b=>b.req(myPosts,myFollowCount,myReactTotal));
-    for(const b of earned){
-      await db.from('social_badges').upsert({user_id:uid,badge_id:b.id},{onConflict:'user_id,badge_id'}).catch(()=>{});
-    }
+    // Fire and forget — don't await, don't block
+    Promise.all(earned.map(b=>
+      db.from('social_badges').upsert({user_id:uid,badge_id:b.id},{onConflict:'user_id,badge_id'})
+    )).catch(()=>{});
   }catch(e){}
 }
 
@@ -4306,6 +4605,7 @@ window.socToggleSave=async function(postId,btn){
 /* ── COMMENTS ── */
 window.openComments=async function(postId,postName){
   socCommentPostId=postId;
+  socReplyToId=null;socReplyToName=null;
   document.getElementById('socCommentTitle').textContent=postName||'Comentarios';
   document.getElementById('socCommentsList').innerHTML='<div style="color:var(--t3);font-size:.78rem;padding:8px 0">Cargando…</div>';
   document.getElementById('socCommentsMo').classList.add('show');
@@ -4313,13 +4613,49 @@ window.openComments=async function(postId,postName){
   const comments=data||[];
   const el=document.getElementById('socCommentsList');
   if(!comments.length){el.innerHTML='<div style="color:var(--t3);font-size:.78rem;padding:8px 0;text-align:center">Sin comentarios aún. ¡Sé el primero!</div>';return;}
-  el.innerHTML=comments.map(c=>`<div class="scomment">
-    <div class="savatar" style="background:${socColor(c.bar_name||'')};width:30px;height:30px;font-size:.6rem">${socInitials(c.bar_name||'?')}</div>
-    <div class="scomment-body">
-      <div class="scomment-user">${c.bar_name||'Mixly Bar'} <span style="font-weight:400;color:var(--t3)">${socTimeAgo(c.created_at)}</span></div>
-      ${c.body}
-    </div>
-  </div>`).join('');
+  // Build threaded: root comments + replies
+  const roots=comments.filter(c=>!c.reply_to_id);
+  const replies=comments.filter(c=>c.reply_to_id);
+  el.innerHTML=roots.map(c=>{
+    const cReplies=replies.filter(r=>r.reply_to_id===c.id);
+    const av=socAvatarHtml(c.user_id,c.bar_name||'',30,'flex-shrink:0');
+    return`<div class="scomment" id="sc-${c.id}">
+      ${av}
+      <div class="scomment-body">
+        <div class="scomment-user">${c.bar_name||'Mixly Bar'} <span style="font-weight:400;color:var(--t3)">${socTimeAgo(c.created_at)}</span>
+          <button class="reply-btn" onclick="socSetReply('${c.id}','${(c.bar_name||'').replace(/'/g,"\'")}')">↩ Responder</button>
+        </div>
+        <div>${c.body}</div>
+        ${cReplies.length?`<div class="replies-list">${cReplies.map(r=>{
+          const rav=socAvatarHtml(r.user_id,r.bar_name||'',24,'flex-shrink:0');
+          return`<div class="scomment reply-item">
+            ${rav}
+            <div class="scomment-body">
+              <div class="scomment-user">${r.bar_name||'Mixly Bar'} <span style="font-weight:400;color:var(--t3)">${socTimeAgo(r.created_at)}</span></div>
+              <div><span class="reply-mention">@${r.reply_to_name||'bartender'}</span> ${r.body}</div>
+            </div>
+          </div>`;
+        }).join('')}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+};
+
+window.socSetReply=function(commentId,barName){
+  socReplyToId=commentId;
+  socReplyToName=barName;
+  const input=document.getElementById('socCommentInput');
+  input.placeholder=`Respondiendo a ${barName}…`;
+  input.focus();
+  document.getElementById('socReplyBadge').style.display='flex';
+  document.getElementById('socReplyBadge').querySelector('span').textContent=`↩ ${barName}`;
+};
+
+window.cancelReply=function(){
+  socReplyToId=null;socReplyToName=null;
+  document.getElementById('socCommentInput').placeholder='Escribe un comentario…';
+  document.getElementById('socReplyBadge').style.display='none';
 };
 
 window.submitComment=async function(){
@@ -4331,14 +4667,16 @@ window.submitComment=async function(){
   await db.from('social_comments').insert({
     post_id:socCommentPostId,user_id:uid,
     bar_name:meta.bar_name||meta.barName||'Mi Bar',
-    username:meta.username||'',body
+    username:meta.username||'',
+    body,
+    reply_to_id:socReplyToId||null,
+    reply_to_name:socReplyToName||null,
   });
   input.value='';
-  // Update comment count
+  cancelReply();
   const post=socPosts.find(p=>p.id===socCommentPostId);
   if(post){post._comments=(post._comments||0)+1;socRefreshCard(socCommentPostId);}
-  // Refresh comments modal
-  openComments(socCommentPostId, document.getElementById('socCommentTitle').textContent);
+  openComments(socCommentPostId,document.getElementById('socCommentTitle').textContent);
 };
 
 /* ── DELETE ── */
@@ -4352,25 +4690,157 @@ window.socDeletePost=async function(postId){
 /* ── PEOPLE (usuarios reales de Supabase) ── */
 window.renderSocPeople=async function(){
   const el=document.getElementById('socPeopleList');if(!el)return;
-  el.innerHTML='<div class="soc-loading">Buscando bartenders…</div>';
-  // Get unique users from posts
-  const{data}=await db.from('social_posts').select('user_id,bar_name,username').neq('user_id',uid);
-  const seen=new Set();const users=[];
-  (data||[]).forEach(p=>{if(!seen.has(p.user_id)){seen.add(p.user_id);users.push(p);}});
+  el.innerHTML='<div class="soc-loading">Buscando bartenders...</div>';
   const srch=(document.getElementById('socPSearch')?.value||'').toLowerCase();
-  const filtered=srch?users.filter(u=>(u.bar_name||'').toLowerCase().includes(srch)):users;
+
+  // 3 fuentes en paralelo
+  const[profRes,postRes,followersRes,followingRes]=await Promise.all([
+    db.from('user_profiles').select('user_id,bio,avatar_url,full_name'),
+    db.from('social_posts').select('user_id,bar_name,username').neq('user_id',uid),
+    db.from('social_follows').select('follower_id').eq('following_id',uid),
+    db.from('social_follows').select('following_id').eq('follower_id',uid),
+  ]);
+  // Also try public_users view (needs SQL view — see instructions)
+  let pubUsersRes={data:[]};
+  try{pubUsersRes=await db.from('public_users').select('user_id,bar_name,username').neq('user_id',uid);}catch(e){}
+
+  const seen=new Set();seen.add(uid); // excluir al usuario actual
+  const users=[];
+
+  // Helper: encontrar nombre de un user_id en posts o public_users
+  const getName=(userId)=>{
+    const p=(postRes.data||[]).find(x=>x.user_id===userId);
+    const pub=(pubUsersRes.data||[]).find(x=>x.user_id===userId);
+    return {bar_name:p?.bar_name||pub?.bar_name||null, username:p?.username||pub?.username||null};
+  };
+  // 0. Agregar todos los users de public_users view primero
+  (pubUsersRes.data||[]).forEach(p=>{
+    if(seen.has(p.user_id))return;
+    seen.add(p.user_id);
+    const prof=(profRes.data||[]).find(x=>x.user_id===p.user_id);
+    users.push({user_id:p.user_id,bar_name:p.bar_name||'Mixly Bar',username:p.username||'bartender',bio:prof?.bio||'',avatar_url:prof?.avatar_url||null});
+  });
+
+  // 1. Los que tienen user_profiles
+  (profRes.data||[]).forEach(p=>{
+    if(seen.has(p.user_id))return;
+    seen.add(p.user_id);
+    const {bar_name,username}=getName(p.user_id);
+    users.push({user_id:p.user_id,bar_name:bar_name||p.full_name||'Mixly Bar',username:username||'bartender',bio:p.bio||'',avatar_url:p.avatar_url||null});
+  });
+
+  // 2. Los que han publicado (sin perfil)
+  (postRes.data||[]).forEach(p=>{
+    if(seen.has(p.user_id))return;
+    seen.add(p.user_id);
+    users.push({user_id:p.user_id,bar_name:p.bar_name||'Mixly Bar',username:p.username||'bartender',bio:'',avatar_url:null});
+  });
+
+  // 3. Los que me siguen (aunque no tengan perfil ni posts)
+  (followersRes.data||[]).forEach(r=>{
+    if(seen.has(r.follower_id))return;
+    seen.add(r.follower_id);
+    const {bar_name,username}=getName(r.follower_id);
+    const prof=(profRes.data||[]).find(p=>p.user_id===r.follower_id);
+    users.push({user_id:r.follower_id,bar_name:bar_name||prof?.full_name||'Mixly Bar',username:username||'bartender',bio:prof?.bio||'',avatar_url:prof?.avatar_url||null});
+  });
+
+  // 4. Los que sigo (aunque no aparezcan en las otras fuentes)
+  (followingRes.data||[]).forEach(r=>{
+    if(seen.has(r.following_id))return;
+    seen.add(r.following_id);
+    const {bar_name,username}=getName(r.following_id);
+    const prof=(profRes.data||[]).find(p=>p.user_id===r.following_id);
+    users.push({user_id:r.following_id,bar_name:bar_name||prof?.full_name||'Mixly Bar',username:username||'bartender',bio:prof?.bio||'',avatar_url:prof?.avatar_url||null});
+  });
+
+  const filtered=srch
+    ?users.filter(u=>(u.bar_name||'').toLowerCase().includes(srch)||(u.username||'').toLowerCase().includes(srch))
+    :users;
+
   if(!filtered.length){
-    el.innerHTML='<div class="soc-empty"><span class="ei">👥</span><p>Aún no hay otros usuarios en la comunidad.<br>¡Comparte Mixly con tus colegas bartenders!</p></div>';
+    el.innerHTML='<div class="soc-empty"><span class="ei">&#128101;</span><p>No hay otros usuarios aun.<br>Comparte Mixly con tus colegas!</p></div>';
     return;
   }
-  el.innerHTML=filtered.map(u=>`<div class="pcard" onclick="socShowProfile('${u.user_id}','${(u.bar_name||'').replace(/'/g,"\\'")}','@${u.username||'bartender'}',0)">
-    <div class="savatar" style="background:${socColor(u.bar_name||'')};width:44px;height:44px;font-size:.75rem">${socInitials(u.bar_name||'?')}</div>
-    <div style="flex:1;min-width:0">
-      <div class="pcard-name">${u.bar_name||'Mixly Bar'}</div>
-      <div class="pcard-handle">@${u.username||'bartender'}</div>
-    </div>
-    <button class="sfollowbtn ${socFollows.includes(u.user_id)?'fing':'flw'}" onclick="event.stopPropagation();socToggleFollow('${u.user_id}',this)">${socFollows.includes(u.user_id)?'✓':'+ Seguir'}</button>
-  </div>`).join('');
+
+  // Cachear perfiles
+  (profRes.data||[]).forEach(p=>{if(!socProfileCache[p.user_id])socProfileCache[p.user_id]=p;});
+
+  el.innerHTML=filtered.map(u=>{
+    const safeBar=(u.bar_name||'').replace(/['"<>]/g,'');
+    const av=socAvatarHtml(u.user_id,u.bar_name||'',44,'flex-shrink:0');
+    const bio=socProfileCache[u.user_id]?.bio||u.bio||'';
+    const isFollowing=socFollows.includes(u.user_id);
+    return `<div class="pcard" onclick="socShowProfile('${u.user_id}','${safeBar}','@${u.username||'bartender'}',0)">
+      ${av}
+      <div style="flex:1;min-width:0">
+        <div class="pcard-name">${u.bar_name||'Mixly Bar'}</div>
+        <div class="pcard-handle">@${u.username||'bartender'}</div>
+        ${bio?`<div class="pcard-bio">${bio}</div>`:''}
+      </div>
+      <button class="sfollowbtn ${isFollowing?'fing':'flw'}"
+        onclick="event.stopPropagation();socToggleFollow('${u.user_id}',this)">
+        ${isFollowing?'&#10003; Siguiendo':'+ Seguir'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* ── FOLLOWERS / FOLLOWING LIST ── */
+window.showFollowersList=async function(userId,mode){
+  const mo=document.getElementById('followListMo');
+  const title=document.getElementById('followListTitle');
+  const list=document.getElementById('followListBody');
+  title.textContent=mode==='seguidores'?'Seguidores':'Siguiendo';
+  list.innerHTML='<div class="soc-loading">Cargando...</div>';
+  mo.classList.add('show');
+
+  // Get the IDs
+  let ids=[];
+  if(mode==='seguidores'){
+    const{data}=await db.from('social_follows').select('follower_id').eq('following_id',userId);
+    ids=(data||[]).map(r=>r.follower_id);
+  } else {
+    const{data}=await db.from('social_follows').select('following_id').eq('follower_id',userId);
+    ids=(data||[]).map(r=>r.following_id);
+  }
+
+  if(!ids.length){list.innerHTML='<div style="text-align:center;padding:28px;color:var(--t3);font-size:.82rem">Nadie aqui todavia.</div>';return;}
+
+  // Get names from public_users or social_posts
+  let names={};
+  try{
+    const{data:pu}=await db.from('public_users').select('user_id,bar_name,username').in('user_id',ids);
+    (pu||[]).forEach(u=>{names[u.user_id]={bar_name:u.bar_name,username:u.username};});
+  }catch(e){}
+  // Fallback: social_posts
+  try{
+    const{data:sp}=await db.from('social_posts').select('user_id,bar_name,username').in('user_id',ids);
+    (sp||[]).forEach(u=>{if(!names[u.user_id])names[u.user_id]={bar_name:u.bar_name,username:u.username};});
+  }catch(e){}
+  // Profiles for avatars
+  let profs={};
+  try{
+    const{data:pr}=await db.from('user_profiles').select('user_id,avatar_url,bio').in('user_id',ids);
+    (pr||[]).forEach(p=>{profs[p.user_id]=p;socProfileCache[p.user_id]=p;});
+  }catch(e){}
+
+  list.innerHTML=ids.map(id=>{
+    const n=names[id]||{};
+    const barName=n.bar_name||'Mixly Bar';
+    const username=n.username||'bartender';
+    const av=socAvatarHtml(id,barName,40,'flex-shrink:0');
+    const isFollowing=socFollows.includes(id);
+    const isMe=id===uid;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--b2)">
+      <div onclick="document.getElementById('followListMo').classList.remove('show');socShowProfile('${id}','${barName.replace(/'/g,"\'")}','@${username}',0)" style="cursor:pointer">${av}</div>
+      <div style="flex:1;min-width:0;cursor:pointer" onclick="document.getElementById('followListMo').classList.remove('show');socShowProfile('${id}','${barName.replace(/'/g,"\'")}','@${username}',0)">
+        <div style="font-weight:700;font-size:.84rem">${barName}</div>
+        <div style="font-size:.68rem;color:var(--t3)">@${username}</div>
+      </div>
+      ${!isMe?`<button class="sfollowbtn ${isFollowing?'fing':'flw'}" onclick="socToggleFollow('${id}',this)">${isFollowing?'&#10003; Siguiendo':'+ Seguir'}</button>`:'<span style="font-size:.68rem;color:var(--t3)">Tú</span>'}
+    </div>`;
+  }).join('');
 };
 
 /* ── MY POSTS ── */
@@ -4387,22 +4857,98 @@ function renderSocMyPosts(){
 /* ── PROFILE MODAL ── */
 window.socShowProfile=async function(userId,barName,handle,comments){
   const postCount=socPosts.filter(p=>p.user_id===userId).length;
+  let followersCount=0,followingCount=0;
+  try{
+    const[fr,fg]=await Promise.all([
+      db.from('social_follows').select('follower_id',{count:'exact',head:true}).eq('following_id',userId),
+      db.from('social_follows').select('following_id',{count:'exact',head:true}).eq('follower_id',userId),
+    ]);
+    followersCount=fr.count||0;followingCount=fg.count||0;
+  }catch(e){}
   const isMe=userId===uid;
   const isFollowing=socFollows.includes(userId);
   const color=socColor(barName||'');
+  // Fetch fresh profile if not cached
+  if(!socProfileCache[userId]){
+    try{
+      const{data}=await db.from('user_profiles').select('avatar_url,bio,link').eq('user_id',userId).maybeSingle();
+      socProfileCache[userId]=data||{};
+    }catch(e){socProfileCache[userId]={};}
+  }
+  const prof=socProfileCache[userId]||{};
+  const avatarHtml=prof.avatar_url
+    ?`<div style="width:58px;height:58px;border-radius:50%;overflow:hidden;border:3px solid var(--surface);margin-bottom:10px;flex-shrink:0"><img src="${prof.avatar_url}" style="width:100%;height:100%;object-fit:cover"/></div>`
+    :`<div class="savatar" style="background:${color};width:58px;height:58px;border:3px solid var(--surface);margin-bottom:10px;font-size:.85rem">${socInitials(barName||'?')}</div>`;
   const mo=document.getElementById('socProfileMo');
   document.getElementById('socProfileContent').innerHTML=`
     <div class="sprofile-banner" style="background:linear-gradient(135deg,${color}55,${color}22)"></div>
-    <div style="padding:0 18px 20px;margin-top:-24px">
-      <div class="savatar" style="background:${color};width:52px;height:52px;border:3px solid var(--surface);margin-bottom:10px">${socInitials(barName||'?')}</div>
+    <div style="padding:0 18px 20px;margin-top:-28px">
+      ${avatarHtml}
       <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800">${barName||'Mixly Bar'}</div>
-      <div style="font-size:.7rem;color:var(--t3);margin-bottom:12px">${handle||''}</div>
-      <div class="sprofile-stats">
+      <div style="font-size:.7rem;color:var(--t3);margin-bottom:6px">${handle||''}</div>
+      ${prof.bio?`<div style="font-size:.78rem;color:var(--t2);line-height:1.5;margin-bottom:8px">${prof.bio}</div>`:''}
+      ${prof.link?`<a href="${prof.link}" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px">🔗 ${prof.link.replace(/^https?:\/\//,'')}</a>`:''}
+      <div class="sprofile-stats" style="cursor:pointer">
         <div><div class="sprofile-stat-v">${postCount}</div><div class="sprofile-stat-l">Recetas</div></div>
+        <div onclick="showFollowersList('${userId}','seguidores')" style="cursor:pointer"><div class="sprofile-stat-v">${followersCount}</div><div class="sprofile-stat-l" style="text-decoration:underline dotted">Seguidores</div></div>
+        <div onclick="showFollowersList('${userId}','siguiendo')" style="cursor:pointer"><div class="sprofile-stat-v">${followingCount}</div><div class="sprofile-stat-l" style="text-decoration:underline dotted">Siguiendo</div></div>
       </div>
-      ${!isMe?`<button class="sfollowbtn ${isFollowing?'fing':'flw'}" style="width:100%;padding:10px;border-radius:10px" onclick="socToggleFollow('${userId}',this)">${isFollowing?'✓ Siguiendo':'+ Seguir'}</button>`:'<div style="text-align:center;color:var(--t3);font-size:.75rem">Tu perfil</div>'}
+      ${!isMe
+        ?`<button class="sfollowbtn ${isFollowing?'fing':'flw'}" style="width:100%;padding:10px;border-radius:10px" onclick="socToggleFollow('${userId}',this)">${isFollowing?'✓ Siguiendo':'+ Seguir'}</button>`
+        :`<button class="btn bs" style="width:100%;padding:10px;border-radius:10px;font-size:.75rem" onclick="document.getElementById('socProfileMo').classList.remove('show');openEditProfile()">✏️ Editar perfil</button>`
+      }
     </div>`;
   mo.classList.add('show');
+};
+
+/* ── EDIT OWN PROFILE ── */
+window.openEditProfile=function(){
+  const prof=socProfileCache[uid]||myProfile||{};
+  const m=document.getElementById('editProfileMo');
+  document.getElementById('epFullName').value=prof.full_name||'';
+  document.getElementById('epBio').value=prof.bio||'';
+  document.getElementById('epLink').value=prof.link||'';
+  const prev=document.getElementById('epAvatarPreview');
+  const ph=document.getElementById('epAvatarPlaceholder');
+  if(prof.avatar_url){prev.src=prof.avatar_url;prev.style.display='block';if(ph)ph.style.display='none';}
+  else{prev.style.display='none';if(ph)ph.style.display='flex';}
+  m.classList.add('show');
+};
+
+window.saveProfile=async function(){
+  const bio=document.getElementById('epBio').value.trim();
+  const link=document.getElementById('epLink').value.trim();
+  const okEl=document.getElementById('ep-ok');
+  const erEl=document.getElementById('ep-er');
+  let avatar_url=socProfileCache[uid]?.avatar_url||null;
+  // Upload avatar if selected
+  const file=document.getElementById('epAvatarInput').files[0];
+  if(file){
+    if(file.size>3*1024*1024){erEl.textContent='⚠ Imagen muy grande. Máx 3MB';erEl.style.display='block';setTimeout(()=>erEl.style.display='none',3000);return;}
+    okEl.textContent='📤 Subiendo foto…';okEl.style.display='block';
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+    const path=`avatars/${uid}.${ext}`;
+    await db.storage.from('cocktail-images').upload(path,file,{contentType:file.type,upsert:true});
+    const{data:urlData}=db.storage.from('cocktail-images').getPublicUrl(path);
+    // Store clean URL (no timestamp) in DB — add timestamp only when displaying
+    avatar_url=urlData?.publicUrl||avatar_url;
+  }
+  const full_name=document.getElementById('epFullName')?.value.trim()||'';
+  const{error}=await db.from('user_profiles').upsert({user_id:uid,avatar_url,bio,link,full_name},{onConflict:'user_id'});
+  if(error){erEl.textContent='⚠ '+error.message;erEl.style.display='block';okEl.style.display='none';setTimeout(()=>erEl.style.display='none',4000);return;}
+  myProfile={avatar_url,bio,link,full_name,_v:Date.now()};
+  socProfileCache[uid]=myProfile;
+  updateNavAvatar();
+  okEl.textContent='✓ Perfil actualizado';okEl.style.display='block';
+  setTimeout(()=>{okEl.style.display='none';document.getElementById('editProfileMo').classList.remove('show');renderSocFeed();},1400);
+};
+
+window.epPickAvatar=function(){document.getElementById('epAvatarInput').click();};
+window.epPreviewAvatar=function(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{const p=document.getElementById('epAvatarPreview');p.src=e.target.result;p.style.display='block';};
+  reader.readAsDataURL(file);
 };
 
 /* ── SWITCH TAB ── */
@@ -4411,9 +4957,12 @@ window.socSwitchTab=function(tab,btn){
   (btn||document.querySelector(`[data-st="${tab}"]`))?.classList.add('active');
   document.querySelectorAll('.soc-section').forEach(s=>s.classList.remove('active'));
   document.getElementById('soc-'+tab)?.classList.add('active');
+  // Sync bottom nav highlight
   document.querySelectorAll('.ig-nav-btn').forEach(b=>b.classList.remove('active'));
-  const nm={feed:'social',people:'people',myposts:'myposts',newpost:'newpost'};
-  document.querySelector(`.ig-nav-btn[data-np="${nm[tab]||tab}"]`)?.classList.add('active');
+  if(tab==='feed'){document.querySelector('.ig-nav-btn[data-np="social"]')?.classList.add('active');}
+  else if(tab==='newpost'){document.querySelector('.ig-nav-btn[data-np="newpost"]')?.classList.add('active');}
+  else if(tab==='people'){document.querySelector('.ig-nav-btn[data-np="buscar"]')?.classList.add('active');}
+  else if(tab==='myposts'){document.querySelector('.ig-nav-btn[data-np="profile"]')?.classList.add('active');}
   if(tab==='people')renderSocPeople();
   if(tab==='myposts')renderSocMyPosts();
 };
@@ -4673,7 +5222,7 @@ window.submitComment=async function(){
 // polling arranca desde initSocial directamente (ver definición original)
 
 /* ── CONTACTO ── */
-const CONTACT_EMAIL = 'CONTACTO_EMAIL'; // ← cambia aquí tu correo
+const CONTACT_EMAIL = 'xxander.bk@gmail.com'; // ← cambia aquí tu correo
 
 function openContact(){
   document.getElementById('contactMo').classList.add('show');
@@ -4687,26 +5236,7 @@ function copyContactEmail(){
     prompt('Copia este correo:',CONTACT_EMAIL);
   });
 }
-// Show FAB after login
-(function patchContactFab(){
-  const orig=window.lgsInitApp||lgsInitApp;
-  // Just show the FAB when topbar shows
-  const obs=new MutationObserver(()=>{
-    const tb=document.getElementById('igTopbar');
-    const fab=document.getElementById('contactFab');
-    if(tb&&fab){
-      fab.style.display=tb.style.display==='none'?'none':'flex';
-      fab.style.alignItems='center';fab.style.justifyContent='center';
-    }
-  });
-  const tb=document.getElementById('igTopbar');
-  if(tb)obs.observe(tb,{attributes:true,attributeFilter:['style']});
-})();
-
-
+// contact accessible from profile modal and drawer
 </script>
-  <script>
-    if('serviceWorker' in navigator){
-      window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('sw.js')
-          .the
+</body>
+</html>
