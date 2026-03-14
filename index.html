@@ -321,6 +321,10 @@ body::before{content:'';position:fixed;inset:0;
 .spost-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
 .spost-desc{font-size:.8rem;color:var(--t2);line-height:1.55;margin-bottom:9px}
 .spost-ings{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.spost-ings-list{margin-bottom:8px}
+.sing-row{display:flex;align-items:baseline;gap:6px;padding:1px 0;font-size:.79rem;color:var(--t2);line-height:1.45}
+.sing-dot{color:var(--accent);font-size:1rem;line-height:1;flex-shrink:0;opacity:.7}
+.sing-name{color:var(--t2)}
 .sing{padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:600;background:var(--abg);border:1px solid rgba(0,194,255,.2);color:var(--a2)}
 .sreacts-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
 .sreact-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.68rem;background:var(--s2);border:1px solid var(--b2);color:var(--t2)}
@@ -1796,11 +1800,11 @@ tbody tr:hover td{background:var(--s2)}
           <div class="fgroup"><label class="fl">Descripción</label>
             <textarea id="snpDesc" placeholder="Cuéntanos sobre este trago…" style="min-height:64px"></textarea></div>
           <div class="fgroup">
-            <label class="fl">Ingredientes (separados por coma)</label>
-            <input id="snpIngs" placeholder="45ml Mezcal, 30ml Campari, 30ml Vermut…"/>
-            <div class="sub" style="margin-top:5px">
-              <button class="btn bs sm" onclick="snpImportRecipe()">📖 Importar desde mi Recetario</button>
-            </div>
+            <label class="fl">Ingredientes</label>
+            <div id="snpIngRows" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
+            <button class="btn bs sm" onclick="snpAddIngRow()" style="width:100%">＋ Agregar ingrediente</button>
+            <!-- hidden field for compatibility -->
+            <input id="snpIngs" style="display:none"/>
           </div>
           <div class="fgroup"><label class="fl">Ícono</label>
             <div class="emoji-pick" id="snpEmojiPick"></div>
@@ -2657,8 +2661,9 @@ function renderR(){const c=document.getElementById('rList'),s=(document.getEleme
           ${r.total_cost?`<span class="pill po">$${Number(r.total_cost).toFixed(2)}</span>`:''}
         </div>
       </div>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn bs sm" onclick="editR(${r.id})">✏ Editar</button>
+        <button class="btn bp sm" onclick="publishRecipe(${r.id})" title="Publicar en la comunidad">🌐 Publicar</button>
         <button class="btn bd sm" onclick="delR(${r.id})">Eliminar</button>
       </div>
     </div>
@@ -4532,7 +4537,15 @@ function socPostCard(p){
       ${p.flavor?`<span class="pill pa" style="margin-bottom:6px;display:inline-block;font-size:.57rem">${p.flavor}</span>`:''}
       <div class="star-row">${starHtml}${avgHtml}</div>
       ${p.description?`<div class="spost-desc">${p.description}</div>`:''}
-      ${ings.length?`<div class="spost-ings">${ings.map(i=>`<span class="sing">${i}</span>`).join('')}</div>`:''}
+      ${ings.length?`<div class="spost-ings-list">${(()=>{
+        function sqty(s){return(s||'').replace(/^[\d.,]+\s*(oz|ml|cl|lt|gr|kg|un|cdta|cda|taza|pzca|g|l)?\s*[-—]?\s*/i,'').trim();}
+        const flat=[];
+        ings.forEach(i=>{
+          const raw=typeof i==='string'?i:(i.name||'');
+          raw.split(/\s*[—–-]{1,2}\s*/).filter(Boolean).forEach(p=>{const c=sqty(p.trim());if(c)flat.push(c);});
+        });
+        return flat.slice(0,7).map(n=>`<div class="sing-row"><span class="sing-dot">·</span><span class="sing-name">${n}</span></div>`).join('');
+      })()}</div>`:''}
       ${reactTotal?`<div class="sreacts-row">${SOC_REACTIONS.filter(r=>reacts[r]>0).map(r=>`<span class="sreact-chip${p._myReaction===r?' mine':''}">${r} ${reacts[r]}</span>`).join('')}</div>`:''}
     </div>
     <div class="spost-actions">
@@ -4615,65 +4628,137 @@ window.sharePost=function(postId){
 };
 
 function drawShareText(ctx,p,S){
-  const pad=72;
+  const pad=64;
 
-  // Mixly watermark top-right
-  ctx.font=`bold ${S*0.028}px 'Arial',sans-serif`;
+  // ── Watermark top-right ──
+  ctx.font=`bold ${S*0.026}px Arial,sans-serif`;
   ctx.textAlign='right';ctx.textBaseline='top';
-  ctx.fillStyle='rgba(0,194,255,0.9)';
-  ctx.fillText('MIXLY.LAT',S-pad,pad*0.7);
+  ctx.fillStyle='rgba(0,194,255,0.95)';
+  ctx.fillText('MIXLY.LAT',S-pad,pad*0.65);
 
-  // Bar name + handle
+  // ── Bar name + handle top-left ──
   ctx.textAlign='left';ctx.textBaseline='top';
-  ctx.fillStyle='rgba(255,255,255,0.75)';
-  ctx.font=`${S*0.026}px 'Arial',sans-serif`;
-  ctx.fillText((p.bar_name||'Mixly Bar')+' · @'+(p.username||'bartender'),pad,pad*0.7);
+  ctx.fillStyle='rgba(255,255,255,0.72)';
+  ctx.font=`${S*0.024}px Arial,sans-serif`;
+  ctx.fillText((p.bar_name||'Mixly Bar')+' · @'+(p.username||'bartender'),pad,pad*0.65);
 
-  // Bottom gradient overlay
-  const btmGrad=ctx.createLinearGradient(0,S*0.55,0,S);
+  // ── Bottom dark overlay (taller for more content) ──
+  const btmGrad=ctx.createLinearGradient(0,S*0.42,0,S);
   btmGrad.addColorStop(0,'rgba(0,0,0,0)');
-  btmGrad.addColorStop(1,'rgba(0,0,0,0.88)');
+  btmGrad.addColorStop(0.25,'rgba(0,0,0,0.75)');
+  btmGrad.addColorStop(1,'rgba(0,0,0,0.95)');
   ctx.fillStyle=btmGrad;
-  ctx.fillRect(0,S*0.55,S,S*0.45);
+  ctx.fillRect(0,S*0.42,S,S*0.58);
 
-  // Cocktail name
-  ctx.textAlign='left';ctx.textBaseline='bottom';
-  ctx.fillStyle='#ffffff';
-  ctx.font=`900 ${S*0.072}px 'Arial Black','Arial',sans-serif`;
-  // Word wrap if long
-  const maxW=S-pad*2;
-  const name=(p.name||'').toUpperCase();
-  let fontSize=S*0.072;
-  ctx.font=`900 ${fontSize}px 'Arial Black','Arial',sans-serif`;
-  while(ctx.measureText(name).width>maxW&&fontSize>S*0.038){
-    fontSize-=4;ctx.font=`900 ${fontSize}px 'Arial Black','Arial',sans-serif`;
-  }
-  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=12;
-  ctx.fillText(name,pad,S-pad*2.4);
-  ctx.shadowBlur=0;
+  // Build bottom layout bottom→up
+  let y=S-pad*0.7;
 
-  // Flavor pill
-  if(p.flavor){
-    ctx.font=`700 ${S*0.028}px 'Arial',sans-serif`;
-    ctx.fillStyle='rgba(0,194,255,0.9)';
-    ctx.fillText(p.flavor,pad,S-pad*1.7);
-  }
-
-  // Ingredients (up to 4)
-  const ings=(p.ingredients||[]).slice(0,4);
-  if(ings.length){
-    ctx.font=`${S*0.026}px 'Arial',sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,0.75)';
-    ctx.fillText(ings.join(' · '),pad,S-pad*1.1);
-  }
-
-  // Stars
+  // ── Stars ──
   if(p._ratingAvg>0){
     const stars='★'.repeat(Math.round(p._ratingAvg))+'☆'.repeat(5-Math.round(p._ratingAvg));
-    ctx.font=`${S*0.032}px serif`;
+    ctx.font=`${S*0.03}px serif`;
+    ctx.textAlign='left';ctx.textBaseline='bottom';
     ctx.fillStyle='#FFD700';
-    ctx.fillText(stars+` ${p._ratingAvg.toFixed(1)}`,pad,S-pad*0.55);
+    ctx.fillText(stars+` ${p._ratingAvg.toFixed(1)}`,pad,y);
+    y-=S*0.055;
   }
+
+  // ── Ingredients — vertical list, names only ──
+  const rawIngs=p.ingredients||[];
+  // Ingredients may be:
+  // 1. Array of strings: ["2oz Gin", "1oz Limón"]
+  // 2. Array of objects: [{name:"Gin",...}]
+  // 3. Single long string: "2oz Gin — 1oz Limón — ..."
+  // Normalize to array of clean names
+  function stripQty(s){
+    if(!s)return'';
+    // Remove leading number+unit: "2oz", "30 ml", "0.5", "1 —", etc.
+    return s.replace(/^[\d.,]+\s*(oz|ml|cl|lt|gr|kg|un|cdta|cda|taza|pzca|g|l)?\s*[-—]?\s*/i,'').trim();
+  }
+  let allIngs=[];
+  rawIngs.forEach(i=>{
+    const raw=typeof i==='string'?i:(i.name||'');
+    // Split if contains " — " or " - " (multiple ings in one string)
+    const parts=raw.split(/\s*[—–-]{1,2}\s*/).filter(Boolean);
+    parts.forEach(part=>{
+      const clean=stripQty(part.trim());
+      if(clean)allIngs.push(clean);
+    });
+  });
+  // Also handle case where entire ingredients array is one element with separators
+  if(allIngs.length===1&&allIngs[0].includes('·')){
+    allIngs=allIngs[0].split('·').map(s=>stripQty(s.trim())).filter(Boolean);
+  }
+  const ingNames=allIngs.slice(0,7);
+  if(ingNames.length){
+    const ingFontSize=S*0.026;
+    ctx.font=`${ingFontSize}px Arial,sans-serif`;
+    ctx.textAlign='left';ctx.textBaseline='bottom';
+    const lineH=S*0.044;
+    // Draw from bottom up
+    for(let i=ingNames.length-1;i>=0;i--){
+      ctx.fillStyle=i===0?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.65)';
+      // Bullet dot
+      ctx.fillStyle='rgba(0,194,255,0.8)';
+      ctx.beginPath();ctx.arc(pad+S*0.008,y-ingFontSize*0.35,S*0.006,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=i===0?'rgba(255,255,255,0.88)':'rgba(255,255,255,0.62)';
+      ctx.fillText(ingNames[i],pad+S*0.025,y);
+      y-=lineH;
+    }
+    // "Ingredientes" label
+    ctx.font=`700 ${S*0.02}px Arial,sans-serif`;
+    ctx.fillStyle='rgba(0,194,255,0.75)';
+    ctx.fillText('INGREDIENTES',pad,y);
+    y-=S*0.05;
+  }
+
+  // ── Description ──
+  const desc=p.description||'';
+  if(desc){
+    const descFontSize=S*0.027;
+    ctx.font=`${descFontSize}px Arial,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.textAlign='left';ctx.textBaseline='bottom';
+    const maxW=S-pad*2;
+    // Simple word wrap — up to 2 lines
+    const words=desc.split(' ');
+    const lines=[];let line='';
+    for(const w of words){
+      const test=line?line+' '+w:w;
+      if(ctx.measureText(test).width>maxW&&line){lines.push(line);line=w;}
+      else line=test;
+    }
+    if(line)lines.push(line);
+    const show=lines.slice(0,2);
+    for(let i=show.length-1;i>=0;i--){
+      ctx.fillText(show[i],pad,y);
+      y-=S*0.043;
+    }
+    y-=S*0.01;
+  }
+
+  // ── Flavor pill ──
+  if(p.flavor){
+    ctx.font=`700 ${S*0.026}px Arial,sans-serif`;
+    ctx.fillStyle='rgba(0,194,255,0.9)';
+    ctx.textAlign='left';ctx.textBaseline='bottom';
+    ctx.fillText(p.flavor,pad,y);
+    y-=S*0.055;
+  }
+
+  // ── Cocktail name ──
+  ctx.textAlign='left';ctx.textBaseline='bottom';
+  ctx.fillStyle='#ffffff';
+  const maxW=S-pad*2;
+  const name=(p.name||'').toUpperCase();
+  let fontSize=S*0.075;
+  ctx.font=`900 ${fontSize}px 'Arial Black',Arial,sans-serif`;
+  while(ctx.measureText(name).width>maxW&&fontSize>S*0.036){
+    fontSize-=3;ctx.font=`900 ${fontSize}px 'Arial Black',Arial,sans-serif`;
+  }
+  ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=16;
+  ctx.fillText(name,pad,y);
+  ctx.shadowBlur=0;
 }
 
 function showShareCanvas(){
@@ -5338,6 +5423,10 @@ window.socSwitchTab=function(tab,btn){
   else if(tab==='myposts'){document.querySelector('.ig-nav-btn[data-np="profile"]')?.classList.add('active');}
   if(tab==='people')renderSocPeople();
   if(tab==='myposts')renderSocMyPosts();
+  if(tab==='newpost'){
+    // Init ingredient rows if empty
+    if(!document.getElementById('snpIngRows')?.children.length)snpAddIngRow();
+  }
 };
 
 /* ── NEW POST ── */
@@ -5347,19 +5436,60 @@ window.snpSelectEmoji=function(emoji,el){
   el.classList.add('sel');
 };
 
-window.snpImportRecipe=function(){
-  if(!recs||!recs.length){alert('No tienes recetas. Crea una en Recetario primero.');return;}
-  const opts=recs.map((r,i)=>`${i+1}. ${r.name}`).join('\n');
-  const idx=prompt(`Elige una receta:\n${opts}`);
-  if(!idx)return;
-  const rec=recs[parseInt(idx)-1];if(!rec)return;
-  document.getElementById('snpName').value=rec.name||'';
-  document.getElementById('snpDesc').value=rec.notas||rec.notes||'';
-  const ings=(rec.ingredients||[]).map(i=>{
-    const prod=cat.find(p=>p.id===i.product_id);
-    return prod?`${i.qty||''}${i.unit||prod.unit_type||''} ${prod.name}`:'';
-  }).filter(Boolean);
-  document.getElementById('snpIngs').value=ings.join(', ');
+/* ── INGREDIENT ROWS (new post form) ── */
+let snpIngCount=0;
+
+window.snpAddIngRow=function(name=''){
+  snpIngCount++;
+  const id=snpIngCount;
+  const row=document.createElement('div');
+  row.id='snp-ing-'+id;
+  row.style.cssText='display:flex;align-items:center;gap:7px';
+  row.innerHTML=`<span style="color:var(--accent);font-size:1rem;flex-shrink:0">·</span>
+    <input style="flex:1;font-size:.82rem" placeholder="Ej: Gin, Campari, Limón…" value="${name.replace(/"/g,'&quot;')}"/>
+    <button onclick="document.getElementById('snp-ing-${id}').remove()" 
+      style="border:none;background:none;color:var(--t3);font-size:1rem;cursor:pointer;padding:2px 4px;flex-shrink:0">✕</button>`;
+  document.getElementById('snpIngRows').appendChild(row);
+  row.querySelector('input').focus();
+};
+
+function snpGetIngredients(){
+  const rows=document.querySelectorAll('#snpIngRows input');
+  return Array.from(rows).map(i=>i.value.trim()).filter(Boolean);
+}
+
+function snpResetIngRows(){
+  document.getElementById('snpIngRows').innerHTML='';
+  snpIngCount=0;
+  snpAddIngRow(); // start with one empty row
+}
+
+/* ── PUBLISH FROM RECETARIO ── */
+window.publishRecipe=function(recId){
+  const rec=recs.find(r=>r.id===recId);
+  if(!rec)return;
+  // Switch to new post tab
+  sp('social');
+  socSwitchTab('newpost',document.querySelector('[data-st=newpost]'));
+  // Fill form
+  setTimeout(()=>{
+    document.getElementById('snpName').value=rec.name||'';
+    document.getElementById('snpDesc').value=rec.description||rec.notas||rec.notes||'';
+    // Map profile to flavor
+    const profMap={dulce:'🍬 Dulce',suave:'🌸 Floral',seco:'🍋 Ácido',fuerte:'🔥 Ahumado','extra-fuerte':'🌿 Amargo'};
+    const perf=document.getElementById('snpPerfil');
+    if(perf&&rec.profile)perf.value=profMap[rec.profile]||'';
+    // Fill ingredients as rows
+    const ings=(rec.ingredients||[]).map(i=>{
+      if(i.name)return i.name;
+      const prod=cat.find(p=>p.id===i.product_id);
+      return prod?prod.name:'';
+    }).filter(Boolean);
+    document.getElementById('snpIngRows').innerHTML='';
+    snpIngCount=0;
+    if(ings.length){ings.forEach(n=>snpAddIngRow(n));}
+    else snpAddIngRow();
+  },150);
 };
 
 /* ── IMAGE UPLOAD HELPERS ── */
@@ -5405,7 +5535,7 @@ window.saveSocPost=async function(){
     const{data:urlData}=db.storage.from('cocktail-images').getPublicUrl(path);
     imageUrl=urlData?.publicUrl||null;
   }
-  const ings=document.getElementById('snpIngs').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const ings=snpGetIngredients();
   const m=await db.auth.getUser();
   const meta=m.data?.user?.user_metadata||{};
   const payload={
@@ -5423,7 +5553,7 @@ window.saveSocPost=async function(){
   const{data,error}=await db.from('social_posts').insert([payload]).select().single();
   if(error){erEl.textContent='⚠ '+error.message;erEl.style.display='block';okEl.style.display='none';setTimeout(()=>erEl.style.display='none',5000);return;}
   socPosts.unshift({...data,_myReaction:null,_reactions:{},_comments:0,_ratingAvg:0,_ratingCount:0,_myRating:0});
-  ['snpName','snpDesc','snpIngs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['snpName','snpDesc','snpIngs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});snpResetIngRows();
   document.getElementById('snpPerfil').value='';
   snpRemoveImg();
   checkBadges();
