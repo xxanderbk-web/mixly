@@ -1351,6 +1351,7 @@ tbody tr:hover td{background:var(--s2)}
     </div>
     <button class="btn bs" id="iUndo" disabled onclick="undoI()">↺ Deshacer</button>
     <button class="btn bok" onclick="expInv()">↓ Excel</button>
+    <button class="btn bp" onclick="openPedidoProveedor()" title="Copiar pedido por proveedor">📋 Pedido a proveedor</button>
     <button class="btn bw" onclick="resetI()">🔄 Vaciar stock</button>
   </div>
 
@@ -1820,6 +1821,33 @@ tbody tr:hover td{background:var(--s2)}
 </div>
 
 </div><!-- /main -->
+
+<!-- PEDIDO A PROVEEDOR MODAL -->
+<div class="mo" id="pedidoMo">
+  <div class="mb" style="max-width:440px">
+    <div class="mh">
+      <h3>📋 Pedido a proveedor</h3>
+      <button class="mc" onclick="document.getElementById('pedidoMo').classList.remove('show')">✕</button>
+    </div>
+    <div class="mbody" style="padding:16px">
+      <!-- Provider selector -->
+      <div class="fgroup">
+        <label class="fl">Proveedor</label>
+        <select id="pedidoProvSelect" onchange="renderPedidoPreview()">
+          <option value="">— elige un proveedor —</option>
+        </select>
+      </div>
+      <!-- Preview -->
+      <div id="pedidoPreview" style="background:var(--s2);border-radius:10px;padding:14px;min-height:60px;font-family:'DM Sans',monospace;font-size:.82rem;line-height:1.7;color:var(--text);white-space:pre-wrap;border:1px solid var(--b2);margin-bottom:12px"></div>
+      <!-- Actions -->
+      <div style="display:flex;gap:8px">
+        <button class="btn bp" style="flex:1" onclick="copyPedido()" id="pedidoCopyBtn">Copiar mensaje</button>
+        <button class="btn bs" style="flex:1" onclick="sharePedidoWhatsApp()">WhatsApp</button>
+      </div>
+      <div id="pedidoCopied" style="display:none;text-align:center;font-size:.72rem;color:var(--ok);margin-top:6px">✓ Copiado al portapapeles</div>
+    </div>
+  </div>
+</div>
 
 <!-- AGENDA MODAL -->
 <div class="mo" id="agMo">
@@ -4918,6 +4946,118 @@ window.filterByIngredient=function(ing,btn){
   }
   el.innerHTML=`<div style="font-family:'Syne',sans-serif;font-size:.62rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t2);margin-bottom:10px">${results.length} receta${results.length!==1?'s':''} con ${ing}</div>`
     +results.map(p=>socPostCard(p)).join('');
+};
+
+/* ══════════════════════════════════════════
+   PEDIDO A PROVEEDOR
+══════════════════════════════════════════ */
+window.openPedidoProveedor=function(){
+  // Build provider list from inventory items that have pedido_real > 0
+  // Include all providers so user can check any
+  const providers=[...new Set(
+    inv.map(i=>i.provider||'Sin proveedor').filter(Boolean)
+  )].sort((a,b)=>a.localeCompare(b,'es'));
+
+  const sel=document.getElementById('pedidoProvSelect');
+  sel.innerHTML='<option value="">— elige un proveedor —</option>'
+    +providers.map(p=>{
+      const hasPedido=inv.some(i=>(i.provider||'Sin proveedor')===p&&(i.pedido_real||0)>0);
+      return`<option value="${p.replace(/"/g,'&quot;')}">${p}${hasPedido?' ✓':''}</option>`;
+    }).join('');
+
+  // Auto-select first provider with pending orders
+  const withOrders=providers.find(p=>inv.some(i=>(i.provider||'Sin proveedor')===p&&(i.pedido_real||0)>0));
+  if(withOrders)sel.value=withOrders;
+
+  renderPedidoPreview();
+  document.getElementById('pedidoMo').classList.add('show');
+};
+
+window.renderPedidoPreview=function(){
+  const prov=document.getElementById('pedidoProvSelect').value;
+  const preview=document.getElementById('pedidoPreview');
+  const copyBtn=document.getElementById('pedidoCopyBtn');
+
+  if(!prov){
+    preview.textContent='Selecciona un proveedor para ver el pedido.';
+    copyBtn.disabled=true;
+    return;
+  }
+
+  const items=inv.filter(i=>(i.provider||'Sin proveedor')===prov&&(i.pedido_real||0)>0);
+
+  if(!items.length){
+    preview.textContent=`No hay productos con pedido pendiente para ${prov}.\n\nModifica la columna "A pedir" en el inventario.`;
+    copyBtn.disabled=true;
+    return;
+  }
+
+  copyBtn.disabled=false;
+  const fecha=new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+  const lines=[
+    `Pedido - ${prov}`,
+    `${fecha}`,
+    ``,
+    ...items.map(i=>`- ${i.name}: ${i.pedido_real} ${i.unit}`),
+    ``,
+    `Total: ${items.length} producto${items.length!==1?'s':''}`,
+  ];
+  // Store text in data attribute for reliable copying
+  const msg=lines.join('\n');
+  preview.textContent=msg;
+  preview.dataset.msg=msg;
+};
+
+window.copyPedido=function(){
+  const preview=document.getElementById('pedidoPreview');
+  const text=preview.dataset.msg||preview.textContent||'';
+  if(!text.trim())return;
+
+  // Method 1: modern clipboard API
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=>showCopied()).catch(()=>fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+};
+
+function fallbackCopy(text){
+  // Method 2: textarea + execCommand (works in all browsers/contexts)
+  const ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.cssText='position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  document.body.appendChild(ta);
+  ta.focus();ta.select();
+  try{
+    const ok=document.execCommand('copy');
+    if(ok)showCopied();
+    else showCopyError();
+  }catch(e){showCopyError();}
+  document.body.removeChild(ta);
+}
+
+function showCopied(){
+  const el=document.getElementById('pedidoCopied');
+  if(!el)return;
+  el.textContent='✓ Copiado al portapapeles';
+  el.style.color='var(--ok)';
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',2500);
+}
+
+function showCopyError(){
+  const el=document.getElementById('pedidoCopied');
+  if(!el)return;
+  el.textContent='⚠ No se pudo copiar. Selecciona el texto manualmente.';
+  el.style.color='var(--warn)';
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',3500);
+}
+
+window.sharePedidoWhatsApp=function(){
+  const preview=document.getElementById('pedidoPreview');
+  const text=preview.dataset.msg||preview.textContent||'';
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
 };
 
 /* ── IMAGE FULLVIEW ── */
