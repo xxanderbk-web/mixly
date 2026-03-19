@@ -2441,10 +2441,10 @@ async function undoI(){
 }
 
 async function resetI(){
-  if(!confirm('¿Vaciar TODO el stock a 0?\nEsto no elimina los productos del catálogo.'))return;
-  await db.from('inventory').update({stock_barra:0,stock_bodega:0}).eq('user_id',uid);
-  inv.forEach(i=>{i.stock_barra=0;i.stock_bodega=0;});
-  renderI();ok('i-ok','Stock vaciado');
+  if(!confirm('¿Vaciar TODO el inventario?\n\nEsto pondrá en 0:\n· Stock barra\n· Stock bodega\n· Cantidad a pedir\n\nLos productos del catálogo no se eliminan.'))return;
+  await db.from('inventory').update({stock_barra:0,stock_bodega:0,pedido_real:0}).eq('user_id',uid);
+  inv.forEach(i=>{i.stock_barra=0;i.stock_bodega=0;i.pedido_real=0;});
+  renderI();ok('i-ok','Inventario vaciado completamente');
 }
 
 function iStats(){
