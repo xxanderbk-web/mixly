@@ -825,6 +825,15 @@ tbody tr:hover td{background:var(--s2)}
   background:var(--s2);border:1px solid var(--b2);color:var(--t2);cursor:pointer;transition:.15s}
 .ing-tag:hover,.ing-tag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .ing-search-wrap{position:relative;margin-bottom:10px}
+
+/* ── INGREDIENT MEASURE TOGGLE ── */
+.ings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ings-toggle{padding:2px 8px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;font-size:.56rem;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--t3);cursor:pointer;transition:.15s;font-family:'Syne',sans-serif}
+.ings-toggle:hover{border-color:var(--accent);color:var(--accent);background:var(--abg)}
+.ings-toggle.active{border-color:var(--accent);color:var(--accent);background:var(--abg)}
+.sing-qty{color:var(--t3);font-size:.72rem;margin-left:4px}
 </style>
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
@@ -1956,7 +1965,8 @@ db.auth.onAuthStateChange((event,session)=>{
     lgsTab('reset');
     lgsShowAlert('✓ Enlace válido. Ingresa tu nueva contraseña','info');
   } else if(event==='SIGNED_IN'&&session){
-    lgsInitApp(session.user);
+    // Only init if not already logged in — prevents reset on token refresh
+    if(!uid) lgsInitApp(session.user);
   }
 });
 
@@ -1983,9 +1993,11 @@ async function lgsInitApp(u){
   document.getElementById('igBottomNav').style.removeProperty('display');
   document.getElementById('mainApp').style.removeProperty('display');
   initSocial();
-  sp('social');
-  // Always land on feed tab
-  setTimeout(()=>socSwitchTab('feed',null),100);
+  // Only navigate to feed on first load, not on token refresh
+  if(!document.getElementById('panel-social')?.classList.contains('active')){
+    sp('social');
+    setTimeout(()=>socSwitchTab('feed',null),100);
+  }
   maybeStartOB();
   // Update nav profile button with avatar if available
   setTimeout(updateNavAvatar, 1200);
@@ -2606,6 +2618,151 @@ async function expInv(){
 
     ws.addRow([]); // espacio entre secciones
   });
+
+  // ═══════════════════════════════════════════
+  // HOJA 2: RESUMEN DE PEDIDOS (solo pedido > 0)
+  // ═══════════════════════════════════════════
+  const itemsConPedido=inv.filter(i=>(i.pedido_real||0)>0);
+
+  if(itemsConPedido.length){
+    const ws2=wb.addWorksheet('Pedidos');
+    // 4 columnas — sin columna Proveedor (ya está en header de grupo)
+    ws2.columns=[
+      {key:'prod', width:36},
+      {key:'stk',  width:16},
+      {key:'min',  width:16},
+      {key:'ped',  width:18},
+    ];
+
+    // ── Título ──
+    const fecha=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+    const t2=ws2.addRow([`PEDIDOS  ·  ${fecha}`,'','','']);
+    ws2.mergeCells('A1:D1');
+    t2.height=32;
+    const tc2=t2.getCell('A');
+    tc2.font={bold:true,size:14,color:{argb:'FFFFFFFF'},name:'Calibri'};
+    tc2.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0A1628'}};
+    tc2.alignment={horizontal:'left',vertical:'middle',indent:2};
+    ws2.addRow([]); // spacer
+
+    // ── Agrupar por proveedor ──
+    const porProv={};
+    itemsConPedido.forEach(i=>{
+      const p=i.provider||'Sin proveedor';
+      if(!porProv[p])porProv[p]=[];
+      porProv[p].push(i);
+    });
+
+    const provColorList=[
+      {bg:'FF1565C0',light:'FFE3F2FD'},
+      {bg:'FFE65100',light:'FFFFF3E0'},
+      {bg:'FF6A1B9A',light:'FFF3E5F5'},
+      {bg:'FF4E342E',light:'FFEFEBE9'},
+      {bg:'FF2E7D32',light:'FFE8F5E9'},
+      {bg:'FF00696F',light:'FFE0F7FA'},
+      {bg:'FF4527A0',light:'FFEDE7F6'},
+      {bg:'FF7B1FA2',light:'FFF3E5F5'},
+    ];
+    let colorIdx=0;
+
+    Object.keys(porProv).sort().forEach(prov=>{
+      const items2=porProv[prov];
+      const colors=provColorList[colorIdx%provColorList.length];
+      colorIdx++;
+
+      // ── Header proveedor (span 4 cols) ──
+      const ph=ws2.addRow([prov.toUpperCase(),'','','']);
+      ws2.mergeCells('A'+ph.number+':D'+ph.number);
+      ph.height=22;
+      const phc=ph.getCell('A');
+      phc.fill={type:'pattern',pattern:'solid',fgColor:{argb:colors.bg}};
+      phc.font={bold:true,size:11,color:{argb:'FFFFFFFF'},name:'Calibri'};
+      phc.alignment={horizontal:'left',vertical:'middle',indent:2};
+
+      // ── Sub-header columnas ──
+      const sh2=ws2.addRow(['Producto','Stock actual','Mínimo','A pedir']);
+      sh2.height=15;
+      ['A','B','C','D'].forEach((col,i)=>{
+        const c=sh2.getCell(col);
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:colors.light}};
+        c.font={bold:true,size:9,color:{argb:colors.bg},name:'Calibri'};
+        c.alignment={horizontal:i===0?'left':'center',vertical:'middle',indent:i===0?2:0};
+        c.border={bottom:{style:'medium',color:{argb:colors.bg}}};
+      });
+
+      // ── Filas de productos ──
+      items2.forEach((item,i)=>{
+        const total=item.stock_barra+item.stock_bodega;
+        const min=item.min_stock||0;
+        const unit=item.unit||'';
+        const ped=item.pedido_real||0;
+        const fmtNum=v=>v%1===0?`${v} ${unit}`:`${v.toFixed(2)} ${unit}`;
+        const zero=total===0;
+        const low=min>0&&total<min/2;
+        const rowBg=i%2===0?'FFFFFFFF':colors.light+'88'; // subtle alternating
+
+        const row2=ws2.addRow([
+          item.name,
+          total>0?fmtNum(total):`0 ${unit}`,
+          min>0?fmtNum(min):'—',
+          fmtNum(ped),
+        ]);
+        row2.height=18;
+
+        // Base style for all cells
+        ['A','B','C','D'].forEach((col,ci)=>{
+          const c=row2.getCell(col);
+          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};
+          c.font={size:10,name:'Calibri',color:{argb:'FF0A1628'}};
+          c.alignment={horizontal:ci===0?'left':'center',vertical:'middle',indent:ci===0?2:0};
+          c.border={bottom:{style:'thin',color:{argb:'FFF0F0F0'}}};
+        });
+
+        // ── "A pedir" cell — color por urgencia ──
+        const pedCell2=row2.getCell('D');
+        if(zero){
+          pedCell2.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFCDD2'}};
+          pedCell2.font={bold:true,size:10,color:{argb:'FFB71C1C'},name:'Calibri'};
+          pedCell2.border={bottom:{style:'thin',color:{argb:'FFEF9A9A'}}};
+        } else if(low){
+          pedCell2.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE0B2'}};
+          pedCell2.font={bold:true,size:10,color:{argb:'FFE65100'},name:'Calibri'};
+          pedCell2.border={bottom:{style:'thin',color:{argb:'FFFFCC80'}}};
+        } else {
+          pedCell2.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF9C4'}};
+          pedCell2.font={bold:true,size:10,color:{argb:'FFF57F17'},name:'Calibri'};
+          pedCell2.border={bottom:{style:'thin',color:{argb:'FFFFF176'}}};
+        }
+      });
+
+      // ── Subtotal por proveedor ──
+      const totRow=ws2.addRow([`${items2.length} producto${items2.length!==1?'s':''}  ·  ${prov}`,'','','']);
+      ws2.mergeCells('A'+totRow.number+':D'+totRow.number);
+      totRow.height=14;
+      const totCell=totRow.getCell('A');
+      totCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:colors.light}};
+      totCell.font={italic:true,size:8,color:{argb:colors.bg},name:'Calibri'};
+      totCell.alignment={horizontal:'right',vertical:'middle',indent:2};
+
+      ws2.addRow([]); // espacio entre proveedores
+    });
+
+    // ── Total general ──
+    const totalProvs=Object.keys(porProv).length;
+    const sumRow=ws2.addRow([
+      `TOTAL:  ${itemsConPedido.length} producto${itemsConPedido.length!==1?'s':''}  en  ${totalProvs} proveedor${totalProvs!==1?'es':''}`,
+      '','',''
+    ]);
+    ws2.mergeCells('A'+sumRow.number+':D'+sumRow.number);
+    sumRow.height=22;
+    const sumCell=sumRow.getCell('A');
+    sumCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0A1628'}};
+    sumCell.font={bold:true,size:10,color:{argb:'FF00C2FF'},name:'Calibri'};
+    sumCell.alignment={horizontal:'left',vertical:'middle',indent:2};
+
+    // Freeze top row
+    ws2.views=[{state:'frozen',ySplit:1}];
+  }
 
   const buf=await wb.xlsx.writeBuffer();
   const a=document.createElement('a');
@@ -4309,6 +4466,8 @@ const SOC_BADGES=[
 let socPosts=[], socFollows=[], socSaved=[], socWantTry=[];
 let socFeedMode='global', socEmojiSel='🍸', socFeedFilter='all';
 let socImgFile=null;
+// Show ingredient measures preference (persisted in localStorage)
+let socShowMeasures=(()=>{try{return localStorage.getItem('mixly_show_measures')!=='0';}catch(e){return true;}})();
 let socInited=false, socCommentPostId=null;
 let socReplyToId=null, socReplyToName=null;
 let myProfile={}; // {avatar_url, bio, link}
@@ -4565,15 +4724,31 @@ function socPostCard(p){
       ${p.flavor?`<span class="pill pa" style="margin-bottom:6px;display:inline-block;font-size:.57rem">${p.flavor}</span>`:''}
       <div class="star-row">${starHtml}${avgHtml}</div>
       ${p.description?`<div class="spost-desc">${p.description}</div>`:''}
-      ${ings.length?`<div class="spost-ings-list">${(()=>{
-        function sqty(s){return(s||'').replace(/^[\d.,]+\s*(oz|ml|cl|lt|gr|kg|un|cdta|cda|taza|pzca|g|l)?\s*[-—]?\s*/i,'').trim();}
-        const flat=[];
-        ings.forEach(i=>{
-          const raw=typeof i==='string'?i:(i.name||'');
-          raw.split(/\s*[—–-]{1,2}\s*/).filter(Boolean).forEach(p=>{const c=sqty(p.trim());if(c)flat.push(c);});
-        });
-        return flat.slice(0,7).map(n=>`<div class="sing-row"><span class="sing-dot">·</span><span class="sing-name">${n}</span></div>`).join('');
-      })()}</div>`:''}
+      ${ings.length?`<div class="spost-ings-list" id="il-${p.id}">
+        <div class="ings-header">
+          <span style="font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3)">Ingredientes</span>
+          <button class="ings-toggle${socShowMeasures?' active':''}" onclick="toggleMeasures(this,'${p.id}')">${socShowMeasures?'Con medidas':'Sin medidas'}</button>
+        </div>
+        ${(()=>{
+          function sqty(s){return(s||'').replace(/^[\d.,]+\s*(oz|ml|cl|lt|gr|kg|un|cdta|cda|taza|pzca|g|l)?\s*[-—]?\s*/i,'').trim();}
+          function sgetqty(s){const m=(s||'').match(/^([\d.,]+\s*(?:oz|ml|cl|lt|gr|kg|un|cdta|cda|taza|pzca|g|l)?)/i);return m?m[1].trim():'';}
+          const flat=[];
+          ings.forEach(i=>{
+            const raw=typeof i==='string'?i:(i.name||'');
+            raw.split(/\s*[—–-]{1,2}\s*/).filter(Boolean).forEach(part=>{
+              const trimmed=part.trim();
+              const name=sqty(trimmed);
+              const qty=sgetqty(trimmed);
+              if(name)flat.push({name,qty});
+            });
+          });
+          return flat.slice(0,7).map(({name,qty})=>`<div class="sing-row">
+            <span class="sing-dot">·</span>
+            <span class="sing-name">${name}</span>
+            ${qty?`<span class="sing-qty" style="display:${socShowMeasures?'inline':'none'}">${qty}</span>`:''}
+          </div>`).join('');
+        })()}
+      </div>`:''}
       ${reactTotal?`<div class="sreacts-row">${SOC_REACTIONS.filter(r=>reacts[r]>0).map(r=>`<span class="sreact-chip${p._myReaction===r?' mine':''}">${r} ${reacts[r]}</span>`).join('')}</div>`:''}
     </div>
     <div class="spost-actions">
@@ -5058,6 +5233,24 @@ window.sharePedidoWhatsApp=function(){
   const preview=document.getElementById('pedidoPreview');
   const text=preview.dataset.msg||preview.textContent||'';
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
+};
+
+/* ── INGREDIENT MEASURES TOGGLE ── */
+window.toggleMeasures=function(btn,postId){
+  socShowMeasures=!socShowMeasures;
+  try{localStorage.setItem('mixly_show_measures',socShowMeasures?'1':'0');}catch(e){}
+  // Update all visible posts
+  document.querySelectorAll('.spost-ings-list').forEach(list=>{
+    // Update quantities visibility
+    list.querySelectorAll('.sing-qty').forEach(q=>{
+      q.style.display=socShowMeasures?'inline':'none';
+    });
+    // Update all toggle buttons
+    list.querySelectorAll('.ings-toggle').forEach(b=>{
+      b.textContent=socShowMeasures?'Con medidas':'Sin medidas';
+      b.classList.toggle('active',socShowMeasures);
+    });
+  });
 };
 
 /* ── IMAGE FULLVIEW ── */
