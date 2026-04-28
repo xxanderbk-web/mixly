@@ -1213,7 +1213,7 @@ tbody tr:hover td{background:var(--s2)}
 <div class="main" id="mainApp" style="display:none">
 
 <!-- ═══════════ HOME ═══════════ -->
-<div class="panel active" id="panel-home">
+<div class="panel" id="panel-home">
   <div class="ph"><h1>Dash<em>board</em></h1><p>Tu centro de operaciones Mixly</p></div>
   <div class="wbar">
     <div><div class="wname" id="wname">Mi Bar</div><div class="wemail" id="wemail"></div></div>
@@ -1732,7 +1732,7 @@ tbody tr:hover td{background:var(--s2)}
 </div>
 
 <!-- ═══════════ SOCIAL ═══════════ -->
-<div class="panel active" id="panel-social">
+<div class="panel" id="panel-social">
   <div class="social-wrap">
     <div class="soc-tabs" id="socTabsEl">
       <button class="soc-tab active" data-st="feed"    onclick="socSwitchTab('feed',this)">Feed</button>
@@ -1992,12 +1992,11 @@ async function lgsInitApp(u){
   document.getElementById('igTopbar').style.removeProperty('display');
   document.getElementById('igBottomNav').style.removeProperty('display');
   document.getElementById('mainApp').style.removeProperty('display');
+  // Remove any stale active panels before navigating
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   initSocial();
-  // Only navigate to feed on first load, not on token refresh
-  if(!document.getElementById('panel-social')?.classList.contains('active')){
-    sp('social');
-    setTimeout(()=>socSwitchTab('feed',null),100);
-  }
+  sp('social');
+  setTimeout(()=>socSwitchTab('feed',null),100);
   maybeStartOB();
   // Update nav profile button with avatar if available
   setTimeout(updateNavAvatar, 1200);
