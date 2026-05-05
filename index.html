@@ -2026,9 +2026,22 @@ function sp(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('active'));
   document.querySelector('.ni[data-p="'+name+'"]')?.classList.add('active');
-  document.getElementById('panel-'+name)?.classList.add('active');
   document.querySelectorAll('.ig-nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('.ig-nav-btn[data-np="'+name+'"]')?.classList.add('active');
+  if(name==='dash'){
+    // Dashboard uses panel-home
+    document.getElementById('panel-home')?.classList.add('active');
+    document.querySelector('.ig-nav-btn[data-np="dashboard"]')?.classList.add('active');
+    hStats();
+    return;
+  }
+  if(name==='social'){
+    document.getElementById('panel-social')?.classList.add('active');
+    document.querySelector('.ig-nav-btn[data-np="social"]')?.classList.add('active');
+    if(socInited&&socPosts.length)renderSocFeed();
+    return;
+  }
+  document.getElementById('panel-'+name)?.classList.add('active');
   if(name==='productos')renderP();
   if(name==='inventory')renderI();
   if(name==='recipes'){renderR();if(!rIC)addRI();}
@@ -2037,15 +2050,6 @@ function sp(name){
   if(name==='timers')renderTimers();
   if(name==='fichas')renderFichas();
   if(name==='mermas'){renderMermas();mStats();}
-  // social feed renders itself after loadSocData() finishes
-  // only re-render if data is already loaded (navigating back)
-  if(name==='social'&&socInited&&socPosts.length)renderSocFeed();
-  if(name==='dash'){
-    // Dashboard is panel-home
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    document.getElementById('panel-home')?.classList.add('active');
-    hStats();
-  }
 }
 function openDrawer(){document.getElementById('drawerBackdrop').classList.add('open');document.getElementById('toolsDrawer').classList.add('open');}
 function closeDrawer(){document.getElementById('drawerBackdrop').classList.remove('open');document.getElementById('toolsDrawer').classList.remove('open');}
